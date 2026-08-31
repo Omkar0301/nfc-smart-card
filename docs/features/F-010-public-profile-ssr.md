@@ -16,10 +16,10 @@ Implement the server-rendered public profile route — the page a visitor sees w
 ## User Story
 
 **Visitor (NFC tap):**  
-*As someone who just tapped an NFC card on my phone, I want to immediately see the cardholder's profile on a fast-loading page — so I can contact them, visit their social links, or save their contact.*
+_As someone who just tapped an NFC card on my phone, I want to immediately see the cardholder's profile on a fast-loading page — so I can contact them, visit their social links, or save their contact._
 
 **Customer:**  
-*As a cardholder, I want my public page to appear correctly when my URL is shared on WhatsApp, LinkedIn, or other social platforms — with a proper title, description, and preview image.*
+_As a cardholder, I want my public page to appear correctly when my URL is shared on WhatsApp, LinkedIn, or other social platforms — with a proper title, description, and preview image._
 
 ---
 
@@ -37,11 +37,11 @@ Implement the server-rendered public profile route — the page a visitor sees w
 
 ## What Is Already Implemented
 
-| Item | Status |
-|---|---|
+| Item                                    | Status   |
+| --------------------------------------- | -------- |
 | Next.js App Router `apps/web` structure | ✅ REUSE |
-| Template components (F-009) | ✅ REUSE |
-| Profile visibility enforcement (F-008) | ✅ REUSE |
+| Template components (F-009)             | ✅ REUSE |
+| Profile visibility enforcement (F-008)  | ✅ REUSE |
 
 ---
 
@@ -79,8 +79,8 @@ Implement the server-rendered public profile route — the page a visitor sees w
    Data fetching in `page.tsx` uses:
    ```typescript
    fetch(`${process.env.API_URL}/cards/${token}/public`, {
-     next: { tags: [`profile-${token}`] }
-   })
+     next: { tags: [`profile-${token}`] },
+   });
    ```
    When the cardholder updates their profile or status in `apps/api`, Express triggers revalidation:
    ```typescript
@@ -115,14 +115,14 @@ GET /p/[type]/[token] (apps/web)
 
 ## Status-Specific Components
 
-| Card Status | Component View |
-|---|---|
-| 404 / invalid token | "Card not found." — minimal |
-| `AVAILABLE` | "This card hasn't been set up yet." + "Activate card" CTA (links to `/activate/[token]`) |
-| `ASSIGNED` | "Profile coming soon." — owner setting up |
-| `PAUSED` | "This card is currently unavailable." |
-| `SUSPENDED` | "This card is temporarily unavailable." |
-| `DEACTIVATED` | "This card is no longer active." |
+| Card Status         | Component View                                                                           |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| 404 / invalid token | "Card not found." — minimal                                                              |
+| `AVAILABLE`         | "This card hasn't been set up yet." + "Activate card" CTA (links to `/activate/[token]`) |
+| `ASSIGNED`          | "Profile coming soon." — owner setting up                                                |
+| `PAUSED`            | "This card is currently unavailable."                                                    |
+| `SUSPENDED`         | "This card is temporarily unavailable."                                                  |
+| `DEACTIVATED`       | "This card is no longer active."                                                         |
 
 ---
 
@@ -130,23 +130,23 @@ GET /p/[type]/[token] (apps/web)
 
 ### Files to CREATE
 
-| File | Purpose |
-|---|---|
-| `apps/web/app/p/[type]/[token]/page.tsx` | Next.js App Router Server Component for public profile |
-| `apps/web/app/p/[type]/[token]/layout.tsx` | Layout wrapper (minimal HTML, meta tags) |
-| `apps/web/components/public/StatusViews.tsx` | Components for PAUSED, SUSPENDED, DEACTIVATED, AVAILABLE states |
-| `apps/web/components/public/AnalyticsTracker.tsx` | Client Component that fires `PROFILE_VIEW` event on mount |
-| `apps/web/app/api/revalidate/route.ts` | Next.js Route Handler for Express API to trigger `revalidateTag` |
+| File                                              | Purpose                                                          |
+| ------------------------------------------------- | ---------------------------------------------------------------- |
+| `apps/web/app/p/[type]/[token]/page.tsx`          | Next.js App Router Server Component for public profile           |
+| `apps/web/app/p/[type]/[token]/layout.tsx`        | Layout wrapper (minimal HTML, meta tags)                         |
+| `apps/web/components/public/StatusViews.tsx`      | Components for PAUSED, SUSPENDED, DEACTIVATED, AVAILABLE states  |
+| `apps/web/components/public/AnalyticsTracker.tsx` | Client Component that fires `PROFILE_VIEW` event on mount        |
+| `apps/web/app/api/revalidate/route.ts`            | Next.js Route Handler for Express API to trigger `revalidateTag` |
 
 ---
 
 ## Validation & Error Cases
 
-| Case | Behavior |
-|---|---|
-| Token not found | Render 404 Status Component |
-| Card type mismatch in URL | Render 404 Status Component |
-| Profile status is draft | Render "Profile coming soon" Component |
+| Case                      | Behavior                                        |
+| ------------------------- | ----------------------------------------------- |
+| Token not found           | Render 404 Status Component                     |
+| Card type mismatch in URL | Render 404 Status Component                     |
+| Profile status is draft   | Render "Profile coming soon" Component          |
 | Template component throws | Catch error in `error.tsx` → render fallback UI |
 
 ---

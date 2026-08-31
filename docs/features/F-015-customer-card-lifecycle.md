@@ -16,12 +16,12 @@ Give customers direct, instant control over their card's lifecycle state — spe
 ## User Story
 
 **Customer (lost card scenario):**  
-*As a customer who just lost my NFC card, I want to pause my card immediately from my phone — so that my public profile is taken offline instantly and nobody can see my contact info while my card is missing.*
+_As a customer who just lost my NFC card, I want to pause my card immediately from my phone — so that my public profile is taken offline instantly and nobody can see my contact info while my card is missing._
 
-*As a customer who found my card again, I want to resume it just as instantly — so my profile is back online without any admin action.*
+_As a customer who found my card again, I want to resume it just as instantly — so my profile is back online without any admin action._
 
 **Customer (permanent loss):**  
-*As a customer whose card is permanently lost or damaged, I want to report it lost and request a replacement — so that my profile data is preserved on the replacement card and I can keep using the platform.*
+_As a customer whose card is permanently lost or damaged, I want to report it lost and request a replacement — so that my profile data is preserved on the replacement card and I can keep using the platform._
 
 ---
 
@@ -37,12 +37,12 @@ Give customers direct, instant control over their card's lifecycle state — spe
 
 ## What Is Already Implemented
 
-| Item | Status |
-|---|---|
-| `NFCCard.status` with `PAUSED` value (after F-001 fix) | ✅ REUSE |
-| `Profile` linked to `NFCCard` via `CardAssignment` | ✅ REUSE |
-| `requireAuth` middleware (F-002) | ✅ REUSE |
-| Cache invalidation pattern (skills.md) | ✅ REUSE (pattern documented, implement alongside) |
+| Item                                                   | Status                                             |
+| ------------------------------------------------------ | -------------------------------------------------- |
+| `NFCCard.status` with `PAUSED` value (after F-001 fix) | ✅ REUSE                                           |
+| `Profile` linked to `NFCCard` via `CardAssignment`     | ✅ REUSE                                           |
+| `requireAuth` middleware (F-002)                       | ✅ REUSE                                           |
+| Cache invalidation pattern (skills.md)                 | ✅ REUSE (pattern documented, implement alongside) |
 
 ---
 
@@ -112,15 +112,16 @@ model CardReplacementRequest {
 
 ### Files to CREATE/MODIFY
 
-| File | Purpose |
-|---|---|
-| `src/routes/profile.ts` | Add pause/resume endpoints (extends F-008 file) |
+| File                               | Purpose                                                          |
+| ---------------------------------- | ---------------------------------------------------------------- |
+| `src/routes/profile.ts`            | Add pause/resume endpoints (extends F-008 file)                  |
 | `src/services/lifecycleService.ts` | Pause/resume logic, report-lost logic, replacement request logic |
-| `src/routes/cards.ts` | Add customer-facing replacement request endpoint |
+| `src/routes/cards.ts`              | Add customer-facing replacement request endpoint                 |
 
 ### API Endpoints
 
 #### `POST /profile/pause`
+
 - **Auth required:** Yes (Customer)
 - **Logic:**
   1. Find authenticated user's active `CardAssignment` → get `cardId`
@@ -132,6 +133,7 @@ model CardReplacementRequest {
 - **Error cases:** card not ACTIVE → `409`; card SUSPENDED → `409 CARD_SUSPENDED`
 
 #### `POST /profile/resume`
+
 - **Auth required:** Yes (Customer)
 - **Logic:**
   1. Find authenticated user's active `CardAssignment` → get `cardId`
@@ -141,6 +143,7 @@ model CardReplacementRequest {
 - **Response:** `200 { card: { status: "ACTIVE" } }`
 
 #### `POST /cards/report-lost`
+
 - **Auth required:** Yes (Customer)
 - **Input:** `{ reason?: "LOST" | "DAMAGED" | "STOLEN" | "OTHER", notes?: string }`
 - **Logic:**
@@ -150,22 +153,26 @@ model CardReplacementRequest {
 - **Response:** `201 { request: { id, status: "PENDING" }, card: { status: "PAUSED" } }`
 
 #### `POST /cards/request-replacement`
+
 - **Auth required:** Yes (Customer)
 - **Input:** `{ reason?: string, notes?: string }`
 - **Logic:** create `CardReplacementRequest` with `status = "PENDING"` (card is not auto-paused by this endpoint — it's a request, not an immediate action; customer can separately pause if they want)
 - **Response:** `201 { request: { id, status: "PENDING" }, message: "Replacement request submitted. You'll be notified when processed." }`
 
 #### `GET /cards/replacement-requests`
+
 - **Auth required:** Yes (Customer)
 - **Logic:** return all `CardReplacementRequest` rows for the authenticated user
 - **Response:** `200 { requests: [...] }`
 
 #### `GET /admin/replacement-requests`
+
 - **Auth required:** Admin
 - **Query params:** `?status=PENDING|IN_PROGRESS|COMPLETED`, `?page=`, `?limit=`
 - **Response:** `200 { requests: [...with user and card info] }`
 
 #### `PUT /admin/replacement-requests/:id`
+
 - **Auth required:** Admin
 - **Input:** `{ status: "IN_PROGRESS" | "COMPLETED" | "CANCELLED" }`
 - **Logic:** update request status; if COMPLETED, the actual card swap was done via F-006's replace endpoint
@@ -177,13 +184,13 @@ model CardReplacementRequest {
 
 ### Files to CREATE
 
-| File | Purpose |
-|---|---|
-| `src/portal/CardManagement/PauseResumeButton.tsx` | Single toggle button: "Pause Card" (if ACTIVE) or "Resume Card" (if PAUSED); shows card status context |
-| `src/portal/CardManagement/ReportLostFlow.tsx` | Multi-step flow: choose reason → confirm pause → confirmation screen |
-| `src/portal/CardManagement/RequestReplacementFlow.tsx` | Flow: describe situation → submit → confirmation |
-| `src/portal/CardManagement/ReplacementStatus.tsx` | Shows open replacement request status with timeline |
-| `src/shared/api/lifecycle.ts` | `pauseCard()`, `resumeCard()`, `reportLost()`, `requestReplacement()`, `getReplacementRequests()` |
+| File                                                   | Purpose                                                                                                |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `src/portal/CardManagement/PauseResumeButton.tsx`      | Single toggle button: "Pause Card" (if ACTIVE) or "Resume Card" (if PAUSED); shows card status context |
+| `src/portal/CardManagement/ReportLostFlow.tsx`         | Multi-step flow: choose reason → confirm pause → confirmation screen                                   |
+| `src/portal/CardManagement/RequestReplacementFlow.tsx` | Flow: describe situation → submit → confirmation                                                       |
+| `src/portal/CardManagement/ReplacementStatus.tsx`      | Shows open replacement request status with timeline                                                    |
+| `src/shared/api/lifecycle.ts`                          | `pauseCard()`, `resumeCard()`, `reportLost()`, `requestReplacement()`, `getReplacementRequests()`      |
 
 ### Pause Button UX Rules
 
@@ -216,13 +223,13 @@ Step 3: Confirmation
 
 ## Validation & Error Cases
 
-| Case | Behavior |
-|---|---|
-| Pause while card is `ASSIGNED` (not yet published) | `409 { error: { code: "CARD_NOT_ACTIVE" } }` |
-| Pause while card is `SUSPENDED` | `409 { error: { code: "CARD_SUSPENDED", message: "Only admin can clear a suspension" } }` |
-| Resume while card is `ACTIVE` | `409 { error: { code: "CARD_NOT_PAUSED" } }` |
-| Pause/resume for another user's card | `403 { error: { code: "FORBIDDEN" } }` (ownership check) |
-| Duplicate replacement request (already PENDING) | `409 { error: { code: "REQUEST_ALREADY_PENDING" } }` |
+| Case                                               | Behavior                                                                                  |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Pause while card is `ASSIGNED` (not yet published) | `409 { error: { code: "CARD_NOT_ACTIVE" } }`                                              |
+| Pause while card is `SUSPENDED`                    | `409 { error: { code: "CARD_SUSPENDED", message: "Only admin can clear a suspension" } }` |
+| Resume while card is `ACTIVE`                      | `409 { error: { code: "CARD_NOT_PAUSED" } }`                                              |
+| Pause/resume for another user's card               | `403 { error: { code: "FORBIDDEN" } }` (ownership check)                                  |
+| Duplicate replacement request (already PENDING)    | `409 { error: { code: "REQUEST_ALREADY_PENDING" } }`                                      |
 
 ---
 

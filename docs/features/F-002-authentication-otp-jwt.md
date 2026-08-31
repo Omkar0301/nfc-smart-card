@@ -16,13 +16,13 @@ Implement the platform's primary authentication system: mobile OTP verification 
 ## User Story
 
 **Customer:**  
-*As a customer arriving at an unactivated card URL, I want to enter my phone number, receive an OTP, verify it, and have a session created — so I can claim my card and manage my profile.*
+_As a customer arriving at an unactivated card URL, I want to enter my phone number, receive an OTP, verify it, and have a session created — so I can claim my card and manage my profile._
 
 **Admin:**  
-*As a super admin, I want to log in with my phone number + OTP and receive a JWT that grants me access to all admin routes.*
+_As a super admin, I want to log in with my phone number + OTP and receive a JWT that grants me access to all admin routes._
 
 **API:**  
-*As an API consumer, I want a `GET /auth/me` endpoint that returns the current user from their JWT, and a `POST /auth/logout` that invalidates the session — so the frontend can restore and clear state reliably.*
+_As an API consumer, I want a `GET /auth/me` endpoint that returns the current user from their JWT, and a `POST /auth/logout` that invalidates the session — so the frontend can restore and clear state reliably._
 
 ---
 
@@ -39,14 +39,14 @@ Implement the platform's primary authentication system: mobile OTP verification 
 
 ## What Is Already Implemented
 
-| Item | Status |
-|---|---|
-| `User` model (id, name, phone, email, role, status) | ✅ REUSE |
-| `Role` enum (CUSTOMER, ADMIN) | ✅ REUSE |
-| `jsonwebtoken` dependency in `package.json` | ✅ REUSE |
-| `JWT_SECRET` env var in `.env.example` | ✅ REUSE |
-| Empty `src/auth/` directory | ⚠️ SCAFFOLD (create code here) |
-| Empty `src/middleware/` directory | ⚠️ SCAFFOLD (create guards here) |
+| Item                                                | Status                           |
+| --------------------------------------------------- | -------------------------------- |
+| `User` model (id, name, phone, email, role, status) | ✅ REUSE                         |
+| `Role` enum (CUSTOMER, ADMIN)                       | ✅ REUSE                         |
+| `jsonwebtoken` dependency in `package.json`         | ✅ REUSE                         |
+| `JWT_SECRET` env var in `.env.example`              | ✅ REUSE                         |
+| Empty `src/auth/` directory                         | ⚠️ SCAFFOLD (create code here)   |
+| Empty `src/middleware/` directory                   | ⚠️ SCAFFOLD (create guards here) |
 
 ---
 
@@ -145,19 +145,20 @@ model RefreshToken {
 
 ### Files to CREATE
 
-| File | Purpose |
-|---|---|
-| `src/lib/prisma.ts` | Singleton Prisma client instance — imported by all services |
-| `src/auth/otp.ts` | OTP generation, hashing, storage, expiry, validation |
-| `src/auth/jwt.ts` | JWT sign (access + refresh), verify, decode utilities |
-| `src/auth/router.ts` | Express router mounting all `/auth/*` endpoints |
-| `src/auth/otp-provider.ts` | OTP provider interface + console-log dev implementation |
-| `src/middleware/requireAuth.ts` | Validates `Authorization: Bearer` JWT; attaches `req.user` |
+| File                             | Purpose                                                       |
+| -------------------------------- | ------------------------------------------------------------- |
+| `src/lib/prisma.ts`              | Singleton Prisma client instance — imported by all services   |
+| `src/auth/otp.ts`                | OTP generation, hashing, storage, expiry, validation          |
+| `src/auth/jwt.ts`                | JWT sign (access + refresh), verify, decode utilities         |
+| `src/auth/router.ts`             | Express router mounting all `/auth/*` endpoints               |
+| `src/auth/otp-provider.ts`       | OTP provider interface + console-log dev implementation       |
+| `src/middleware/requireAuth.ts`  | Validates `Authorization: Bearer` JWT; attaches `req.user`    |
 | `src/middleware/requireAdmin.ts` | Calls `requireAuth`, then asserts `req.user.role === 'ADMIN'` |
 
 ### API Endpoints
 
 #### `POST /auth/send-otp`
+
 - **Input:** `{ phone: string }` (validated — E.164 format or normalized)
 - **Logic:** validate phone format → generate 6-digit OTP → hash it → upsert `OtpVerification` row (invalidates prior) → call `OtpProvider.sendOtp()` → respond
 - **Response (success):** `200 { success: true, message: "OTP sent" }`
@@ -165,6 +166,7 @@ model RefreshToken {
 - **Rate limit:** max 3 OTP sends per phone per 10 minutes (enforced in handler until F-017)
 
 #### `POST /auth/verify-otp`
+
 - **Input:** `{ phone: string, code: string }`
 - **Logic:** find latest `OtpVerification` for phone → check not expired, not used, not exceeded max attempts → compare hash → if match: mark `usedAt`, find-or-create `User` by phone, issue access + refresh tokens → respond
 - **Response (success):** `200 { accessToken: string, refreshToken: string, user: { id, name, phone, role } }`
@@ -172,17 +174,20 @@ model RefreshToken {
 - **Max attempts:** 5 failed verifications → OTP locked (must request new one)
 
 #### `POST /auth/refresh`
+
 - **Input:** `{ refreshToken: string }` (in body or httpOnly cookie — implementation choice)
 - **Logic:** verify refresh token signature → look up `RefreshToken` row → check not expired, not revoked → issue new access token (and optionally rotate refresh token)
 - **Response:** `200 { accessToken: string }`
 
 #### `POST /auth/logout`
+
 - **Auth required:** Yes (Bearer token)
-- **Input:** `{ refreshToken: string }` 
+- **Input:** `{ refreshToken: string }`
 - **Logic:** set `revokedAt` on `RefreshToken` row
 - **Response:** `200 { success: true }`
 
 #### `GET /auth/me`
+
 - **Auth required:** Yes (Bearer token)
 - **Logic:** return `req.user` from decoded JWT (or fetch fresh from DB for full profile)
 - **Response:** `200 { id, name, phone, email, role, status }`
@@ -195,13 +200,13 @@ The frontend for this feature is minimal — the activation/claiming UI is in F-
 
 ### Files to CREATE (in `apps/web/src/shared/`)
 
-| File | Purpose |
-|---|---|
-| `src/shared/api/client.ts` | Base Axios/fetch instance with `Authorization` header injection and 401 refresh handling |
-| `src/shared/api/auth.ts` | `sendOtp()`, `verifyOtp()`, `refresh()`, `logout()`, `getMe()` API calls |
-| `src/shared/context/AuthContext.tsx` | React context: current user, `login()`, `logout()`, `isAdmin` helper |
-| `src/shared/hooks/useAuth.ts` | Convenience hook that reads `AuthContext` |
-| `src/shared/components/OtpFlow/` | Reusable 2-step OTP UI: phone entry → code entry (used in Activate and Admin Login) |
+| File                                 | Purpose                                                                                  |
+| ------------------------------------ | ---------------------------------------------------------------------------------------- |
+| `src/shared/api/client.ts`           | Base Axios/fetch instance with `Authorization` header injection and 401 refresh handling |
+| `src/shared/api/auth.ts`             | `sendOtp()`, `verifyOtp()`, `refresh()`, `logout()`, `getMe()` API calls                 |
+| `src/shared/context/AuthContext.tsx` | React context: current user, `login()`, `logout()`, `isAdmin` helper                     |
+| `src/shared/hooks/useAuth.ts`        | Convenience hook that reads `AuthContext`                                                |
+| `src/shared/components/OtpFlow/`     | Reusable 2-step OTP UI: phone entry → code entry (used in Activate and Admin Login)      |
 
 ### Auth token storage
 
@@ -213,16 +218,16 @@ The frontend for this feature is minimal — the activation/claiming UI is in F-
 
 ## Validation & Error Cases
 
-| Case | Behavior |
-|---|---|
-| Invalid phone format | `400 { error: { code: "INVALID_PHONE", message: "..." } }` |
-| OTP expired | `400 { error: { code: "OTP_EXPIRED" } }` |
-| OTP incorrect | `400 { error: { code: "OTP_INVALID", attemptsLeft: N } }` |
-| OTP max attempts exceeded | `401 { error: { code: "OTP_LOCKED" } }` |
-| JWT missing or malformed | `401 { error: { code: "UNAUTHORIZED" } }` |
-| JWT expired (access token) | `401 { error: { code: "TOKEN_EXPIRED" } }` — client should retry with refresh |
-| User suspended (`status = SUSPENDED`) | `403 { error: { code: "ACCOUNT_SUSPENDED" } }` |
-| Admin route called by CUSTOMER role | `403 { error: { code: "FORBIDDEN" } }` |
+| Case                                  | Behavior                                                                      |
+| ------------------------------------- | ----------------------------------------------------------------------------- |
+| Invalid phone format                  | `400 { error: { code: "INVALID_PHONE", message: "..." } }`                    |
+| OTP expired                           | `400 { error: { code: "OTP_EXPIRED" } }`                                      |
+| OTP incorrect                         | `400 { error: { code: "OTP_INVALID", attemptsLeft: N } }`                     |
+| OTP max attempts exceeded             | `401 { error: { code: "OTP_LOCKED" } }`                                       |
+| JWT missing or malformed              | `401 { error: { code: "UNAUTHORIZED" } }`                                     |
+| JWT expired (access token)            | `401 { error: { code: "TOKEN_EXPIRED" } }` — client should retry with refresh |
+| User suspended (`status = SUSPENDED`) | `403 { error: { code: "ACCOUNT_SUSPENDED" } }`                                |
+| Admin route called by CUSTOMER role   | `403 { error: { code: "FORBIDDEN" } }`                                        |
 
 ---
 
@@ -273,19 +278,24 @@ The frontend for this feature is minimal — the activation/claiming UI is in F-
 ## Implementation Notes
 
 ### Database Setup
+
 ✅ **Migration:** `20260831120000_auth_otp_refresh_tokens`
+
 - Creates `OtpVerification` table with phone index
 - Creates `RefreshToken` table with userId index
 - Adds foreign keys and proper timestamps
 
 **Run migrations:**
+
 ```bash
 cd apps/api
 npm run prisma:migrate:deploy
 ```
 
 ### Backend Files Created
+
 All files in `apps/api/src/`:
+
 - ✅ `lib/prisma.ts` — Prisma singleton client
 - ✅ `auth/otp-provider.ts` — Pluggable SMS interface (console-log in dev)
 - ✅ `auth/otp.ts` — OTP generation, hashing, validation logic
@@ -296,7 +306,9 @@ All files in `apps/api/src/`:
 - ✅ `middleware/requireAdmin.ts` — Admin-only route guard
 
 ### Frontend Files Created
+
 All files in `apps/web/src/shared/`:
+
 - ✅ `api/client.ts` — Axios instance with auto Bearer token injection & 401 retry
 - ✅ `api/auth.ts` — Auth API wrappers (sendOtp, verifyOtp, refresh, logout, getMe)
 - ✅ `context/AuthContext.tsx` — Global auth state management
@@ -304,6 +316,7 @@ All files in `apps/web/src/shared/`:
 - ✅ `components/OtpFlow/OtpFlow.tsx` — Reusable 2-step OTP UI component
 
 ### Running the API
+
 ```bash
 cd apps/api
 npm run dev
@@ -311,6 +324,7 @@ npm run dev
 ```
 
 ### Running Integration Tests
+
 ```bash
 cd apps/api
 npx tsx src/__tests__/auth.integration.test.ts
@@ -320,6 +334,7 @@ npx tsx src/__tests__/auth.integration.test.ts
 ### Environment Variables Required
 
 **API (.env):**
+
 ```env
 JWT_SECRET=your-min-32-char-secret-key
 DATABASE_URL=postgresql://user:pass@localhost:5432/nfc_card_platform
@@ -330,6 +345,7 @@ PORT=4000
 ```
 
 **Frontend (.env.local):**
+
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:4000
 ```
@@ -337,15 +353,17 @@ NEXT_PUBLIC_API_URL=http://localhost:4000
 ### Using in Frontend
 
 **Wrap app with provider:**
+
 ```tsx
 import { AuthProvider } from '@/shared/context/AuthContext';
 
 <AuthProvider>
   <YourApp />
-</AuthProvider>
+</AuthProvider>;
 ```
 
 **Access auth in components:**
+
 ```tsx
 import { useAuth } from '@/shared/hooks/useAuth';
 
@@ -353,15 +371,17 @@ const { user, isAdmin, isLoading, sendOtp, login, logout } = useAuth();
 ```
 
 **Use OTP flow component:**
+
 ```tsx
 import { OtpFlow } from '@/shared/components/OtpFlow';
 
-<OtpFlow onSuccess={() => navigate('/dashboard')} />
+<OtpFlow onSuccess={() => navigate('/dashboard')} />;
 ```
 
 ### API Endpoint Examples
 
 **Send OTP:**
+
 ```bash
 curl -X POST http://localhost:4000/auth/send-otp \
   -H "Content-Type: application/json" \
@@ -370,6 +390,7 @@ curl -X POST http://localhost:4000/auth/send-otp \
 ```
 
 **Verify OTP:**
+
 ```bash
 curl -X POST http://localhost:4000/auth/verify-otp \
   -H "Content-Type: application/json" \
@@ -378,6 +399,7 @@ curl -X POST http://localhost:4000/auth/verify-otp \
 ```
 
 **Get Current User:**
+
 ```bash
 curl -X GET http://localhost:4000/auth/me \
   -H "Authorization: Bearer <accessToken>"
@@ -385,6 +407,7 @@ curl -X GET http://localhost:4000/auth/me \
 ```
 
 ### Security Summary
+
 - ✅ OTP hashed with HMAC-SHA256 (never plaintext)
 - ✅ Access token: 15 minutes lifetime
 - ✅ Refresh token: 7 days lifetime with rotation
@@ -396,7 +419,9 @@ curl -X GET http://localhost:4000/auth/me \
 ---
 
 ## Unblocks
+
 This feature enables development of:
+
 - F-003 — Account Recovery (depends on auth system)
 - F-006 — Admin Card Lifecycle (requires admin auth)
 - F-007 — Card Claiming/Activation (requires customer auth)

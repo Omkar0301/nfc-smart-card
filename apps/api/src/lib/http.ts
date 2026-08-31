@@ -1,4 +1,4 @@
-import type { Response } from "express";
+import type { Response } from 'express';
 
 export interface ApiResponseSuccess<T = unknown> {
   success: true;
@@ -15,12 +15,7 @@ export interface ApiResponseError {
   };
 }
 
-export function sendSuccess<T>(
-  res: Response,
-  status = 200,
-  data: T,
-  message?: string
-) {
+export function sendSuccess<T>(res: Response, status = 200, data: T, message?: string) {
   const payload: ApiResponseSuccess<T> = {
     success: true,
     data,

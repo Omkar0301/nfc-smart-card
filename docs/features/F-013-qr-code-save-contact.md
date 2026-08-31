@@ -16,10 +16,10 @@ Generate and display a QR code encoding the same public URL as the NFC chip, and
 ## User Story
 
 **Customer:**  
-*As a cardholder, I want a QR code I can show or print alongside my NFC card — so that visitors without NFC can still access my profile.*
+_As a cardholder, I want a QR code I can show or print alongside my NFC card — so that visitors without NFC can still access my profile._
 
 **Visitor:**  
-*As a visitor viewing a public profile, I want a "Save Contact" button that downloads a `.vcf` file pre-filled with the cardholder's public contact info — so I can add them to my phone contacts in one tap.*
+_As a visitor viewing a public profile, I want a "Save Contact" button that downloads a `.vcf` file pre-filled with the cardholder's public contact info — so I can add them to my phone contacts in one tap._
 
 ---
 

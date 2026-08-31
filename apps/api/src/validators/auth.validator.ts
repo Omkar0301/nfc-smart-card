@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const sendOtpSchema = z.object({
   phone: z.string().min(1),

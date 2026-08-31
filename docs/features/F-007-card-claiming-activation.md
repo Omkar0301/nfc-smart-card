@@ -16,13 +16,13 @@ Implement the card claiming flow — the entry point for every customer into the
 ## User Story
 
 **New customer (first tap):**  
-*As a customer who just received an NFC card and tapped it for the first time, I want to be prompted to verify my phone number and claim the card — so I can set up my profile and start using my card.*
+_As a customer who just received an NFC card and tapped it for the first time, I want to be prompted to verify my phone number and claim the card — so I can set up my profile and start using my card._
 
 **Returning visitor (public tap):**  
-*As a visitor tapping an existing card, I want to immediately see the owner's profile — without any login prompt or delay.*
+_As a visitor tapping an existing card, I want to immediately see the owner's profile — without any login prompt or delay._
 
 **System:**  
-*As the platform, I must ensure that a card can only be claimed by one person (race-condition-safe) and that an authenticated customer is always required before a card changes hands.*
+_As the platform, I must ensure that a card can only be claimed by one person (race-condition-safe) and that an authenticated customer is always required before a card changes hands._
 
 ---
 
@@ -40,11 +40,11 @@ Implement the card claiming flow — the entry point for every customer into the
 
 ## What Is Already Implemented
 
-| Item | Status |
-|---|---|
-| `NFCCard` model with `publicToken` | ✅ REUSE |
-| `CardAssignment` model | ✅ REUSE |
-| `CardStatus` enum (after F-001 fix) | ✅ REUSE |
+| Item                                  | Status   |
+| ------------------------------------- | -------- |
+| `NFCCard` model with `publicToken`    | ✅ REUSE |
+| `CardAssignment` model                | ✅ REUSE |
+| `CardStatus` enum (after F-001 fix)   | ✅ REUSE |
 | `requireAuth` middleware (from F-002) | ✅ REUSE |
 
 ---
@@ -63,22 +63,22 @@ Implement the card claiming flow — the entry point for every customer into the
 ## Business Rules
 
 1. **Unauthenticated visitors can never claim a card.** (PRD §10.1) `POST /cards/:token/claim` requires a valid JWT.
-2. **The claim operation is transactional** — uses a Prisma interactive transaction with a row lock (`SELECT ... FOR UPDATE` via raw query or Prisma's `$transaction`) that re-verifies `status = AVAILABLE` *inside* the lock, not before.
+2. **The claim operation is transactional** — uses a Prisma interactive transaction with a row lock (`SELECT ... FOR UPDATE` via raw query or Prisma's `$transaction`) that re-verifies `status = AVAILABLE` _inside_ the lock, not before.
 3. **Two simultaneous claims of the same card** — only one succeeds. The second attempt fails with `409 CARD_ALREADY_CLAIMED` after the first transaction commits and the status is no longer `AVAILABLE`.
 4. **One user, one active card per type** — a user cannot claim a second Business card if they already have an active/assigned Business card. Check before claiming.
 5. **On claim success:** `NFCCard.status` → `ASSIGNED`; a new `CardAssignment` row is created; an empty `Profile` is initialized (status = `"draft"`, `data = {}`, `fieldVisibility = {}` — field defaults are applied in F-008 when the customer first opens the editor).
 6. **`GET /cards/:token`** is public (no auth required) and returns just enough information for the frontend to decide what to render — it does NOT return profile data (profile data is served from the SSR route in F-010 or from authenticated profile endpoints in F-008).
 7. **Card status response matrix** (PRD §23):
 
-| Card Status | `GET /cards/:token` Response |
-|---|---|
-| Token not found | 404 `CARD_NOT_FOUND` |
-| `AVAILABLE` | 200 `{ status: "AVAILABLE", cardType: { slug, name } }` — triggers activation UI |
-| `ASSIGNED` | 200 `{ status: "ASSIGNED" }` — profile not yet published; route to "coming soon" or setup screen |
-| `ACTIVE` | 200 `{ status: "ACTIVE", publicToken }` — redirect to `/p/:type/:token` |
-| `PAUSED` | 200 `{ status: "PAUSED" }` — "This card is currently unavailable" |
-| `SUSPENDED` | 200 `{ status: "SUSPENDED" }` — "This card is temporarily unavailable" |
-| `DEACTIVATED` | 200 `{ status: "DEACTIVATED" }` — "This card is no longer active" |
+| Card Status     | `GET /cards/:token` Response                                                                     |
+| --------------- | ------------------------------------------------------------------------------------------------ |
+| Token not found | 404 `CARD_NOT_FOUND`                                                                             |
+| `AVAILABLE`     | 200 `{ status: "AVAILABLE", cardType: { slug, name } }` — triggers activation UI                 |
+| `ASSIGNED`      | 200 `{ status: "ASSIGNED" }` — profile not yet published; route to "coming soon" or setup screen |
+| `ACTIVE`        | 200 `{ status: "ACTIVE", publicToken }` — redirect to `/p/:type/:token`                          |
+| `PAUSED`        | 200 `{ status: "PAUSED" }` — "This card is currently unavailable"                                |
+| `SUSPENDED`     | 200 `{ status: "SUSPENDED" }` — "This card is temporarily unavailable"                           |
+| `DEACTIVATED`   | 200 `{ status: "DEACTIVATED" }` — "This card is no longer active"                                |
 
 ---
 
@@ -86,14 +86,15 @@ Implement the card claiming flow — the entry point for every customer into the
 
 ### Files to CREATE
 
-| File | Purpose |
-|---|---|
-| `src/routes/cards.ts` | Public card token routes (lookup + claim) |
+| File                           | Purpose                                          |
+| ------------------------------ | ------------------------------------------------ |
+| `src/routes/cards.ts`          | Public card token routes (lookup + claim)        |
 | `src/services/claimService.ts` | Transactional claim logic, race-condition safety |
 
 ### API Endpoints
 
 #### `GET /cards/:token`
+
 - **Auth required:** No (public)
 - **Logic:** find `NFCCard` by `publicToken` → return status + cardType info based on response matrix above
 - **Does NOT return:** profile data, customer PII, full card details
@@ -106,6 +107,7 @@ Implement the card claiming flow — the entry point for every customer into the
   ```
 
 #### `POST /cards/:token/claim`
+
 - **Auth required:** Yes (Bearer token — customer)
 - **Input:** None (token is in URL, user is from JWT)
 - **Logic:**
@@ -131,6 +133,7 @@ Implement the card claiming flow — the entry point for every customer into the
 ### URL Routing for NFC Taps
 
 When the physical card is tapped, the browser opens:
+
 ```
 https://yourdomain.com/p/{cardType.slug}/{publicToken}
 ```
@@ -145,26 +148,26 @@ Or the SSR route itself handles all states (AVAILABLE = redirect to /activate/:t
 
 ### Files to CREATE
 
-| File | Purpose |
-|---|---|
-| `src/portal/Activate/ActivatePage.tsx` | Container: reads token from URL → calls `GET /cards/:token` → routes to correct sub-screen |
-| `src/portal/Activate/UnavailableCard.tsx` | Status-specific message for PAUSED / SUSPENDED / DEACTIVATED |
-| `src/portal/Activate/ClaimCard.tsx` | Shows card type info, triggers OTP flow (F-002 OtpFlow component), then calls `POST /cards/:token/claim` |
-| `src/portal/Activate/ClaimSuccess.tsx` | Post-claim confirmation: "Card claimed! Set up your profile" CTA → navigates to ProfileEditor (F-008) |
-| `src/shared/api/cards.ts` | Add `getCardByToken()`, `claimCard()` calls |
+| File                                      | Purpose                                                                                                  |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `src/portal/Activate/ActivatePage.tsx`    | Container: reads token from URL → calls `GET /cards/:token` → routes to correct sub-screen               |
+| `src/portal/Activate/UnavailableCard.tsx` | Status-specific message for PAUSED / SUSPENDED / DEACTIVATED                                             |
+| `src/portal/Activate/ClaimCard.tsx`       | Shows card type info, triggers OTP flow (F-002 OtpFlow component), then calls `POST /cards/:token/claim` |
+| `src/portal/Activate/ClaimSuccess.tsx`    | Post-claim confirmation: "Card claimed! Set up your profile" CTA → navigates to ProfileEditor (F-008)    |
+| `src/shared/api/cards.ts`                 | Add `getCardByToken()`, `claimCard()` calls                                                              |
 
 ---
 
 ## Validation & Error Cases
 
-| Case | Behavior |
-|---|---|
-| Token not in DB | `404 { error: { code: "CARD_NOT_FOUND" } }` |
-| Card not AVAILABLE (claim attempt) | `409 { error: { code: "CARD_NOT_AVAILABLE", status: "ACTIVE" } }` |
-| Race condition — card claimed mid-request | `409 { error: { code: "CARD_ALREADY_CLAIMED" } }` |
-| User already owns card of same type | `409 { error: { code: "USER_ALREADY_HAS_CARD" } }` |
-| Unauthenticated claim attempt | `401 { error: { code: "UNAUTHORIZED" } }` |
-| Valid claim | `201` with card, profile, assignment data |
+| Case                                      | Behavior                                                          |
+| ----------------------------------------- | ----------------------------------------------------------------- |
+| Token not in DB                           | `404 { error: { code: "CARD_NOT_FOUND" } }`                       |
+| Card not AVAILABLE (claim attempt)        | `409 { error: { code: "CARD_NOT_AVAILABLE", status: "ACTIVE" } }` |
+| Race condition — card claimed mid-request | `409 { error: { code: "CARD_ALREADY_CLAIMED" } }`                 |
+| User already owns card of same type       | `409 { error: { code: "USER_ALREADY_HAS_CARD" } }`                |
+| Unauthenticated claim attempt             | `401 { error: { code: "UNAUTHORIZED" } }`                         |
+| Valid claim                               | `201` with card, profile, assignment data                         |
 
 ---
 

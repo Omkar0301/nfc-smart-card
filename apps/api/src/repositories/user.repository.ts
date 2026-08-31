@@ -1,5 +1,5 @@
-import { prisma } from "../lib/prisma.js";
-import type { Role } from "@nfc-card/shared";
+import { prisma } from '../lib/prisma.js';
+import type { Role } from '@nfc-card/shared';
 
 export const userRepository = {
   findByPhone(phone: string) {

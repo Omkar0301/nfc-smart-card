@@ -16,10 +16,10 @@ Implement end-to-end analytics: capture profile interaction events on the public
 ## User Story
 
 **Customer:**  
-*As a cardholder, I want to see how many times my profile was viewed today, this week, and in total — as well as which contact links were clicked — so I know whether my card is making an impact.*
+_As a cardholder, I want to see how many times my profile was viewed today, this week, and in total — as well as which contact links were clicked — so I know whether my card is making an impact._
 
 **Admin:**  
-*As a super admin, I want platform-wide analytics — total views, total scans, and breakdowns by card type — so I can assess platform health and engagement.*
+_As a super admin, I want platform-wide analytics — total views, total scans, and breakdowns by card type — so I can assess platform health and engagement._
 
 ---
 

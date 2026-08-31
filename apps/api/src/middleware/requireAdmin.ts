@@ -1,1 +1,1 @@
-export { requireAdmin } from "./requireAuth.js";
+export { requireAdmin } from './requireAuth.js';

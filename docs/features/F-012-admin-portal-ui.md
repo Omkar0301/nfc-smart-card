@@ -15,7 +15,7 @@ Build the complete admin portal: the authenticated web application that gives su
 
 ## User Story
 
-*As a super admin, I want a single portal where I can view the entire card inventory, generate new batches, manage customer cards through their full lifecycle, manage templates, and see platform-wide analytics — so I can operate the platform cleanly.*
+_As a super admin, I want a single portal where I can view the entire card inventory, generate new batches, manage customer cards through their full lifecycle, manage templates, and see platform-wide analytics — so I can operate the platform cleanly._
 
 ---
 
@@ -49,18 +49,18 @@ apps/web/app/admin/
 
 ### Files to CREATE
 
-| File | Purpose |
-|---|---|
-| `apps/web/app/admin/layout.tsx` | Admin layout with `role === 'ADMIN'` protection |
-| `apps/web/app/admin/dashboard/page.tsx` | Dashboard metrics |
-| `apps/web/app/admin/cards/page.tsx` | Card inventory table |
-| `apps/web/app/admin/cards/[id]/page.tsx` | Card detail & actions |
-| `apps/web/app/admin/generate/page.tsx` | Bulk generation page |
-| `apps/web/app/admin/card-types/page.tsx` | Card type management page |
-| `apps/web/app/admin/templates/page.tsx` | Template management page |
-| `apps/web/app/admin/analytics/page.tsx` | Platform analytics page |
-| `apps/web/app/admin/customers/page.tsx` | Customer lookup page |
-| `apps/web/components/admin/AdminSidebar.tsx` | Admin navigation sidebar |
+| File                                         | Purpose                                         |
+| -------------------------------------------- | ----------------------------------------------- |
+| `apps/web/app/admin/layout.tsx`              | Admin layout with `role === 'ADMIN'` protection |
+| `apps/web/app/admin/dashboard/page.tsx`      | Dashboard metrics                               |
+| `apps/web/app/admin/cards/page.tsx`          | Card inventory table                            |
+| `apps/web/app/admin/cards/[id]/page.tsx`     | Card detail & actions                           |
+| `apps/web/app/admin/generate/page.tsx`       | Bulk generation page                            |
+| `apps/web/app/admin/card-types/page.tsx`     | Card type management page                       |
+| `apps/web/app/admin/templates/page.tsx`      | Template management page                        |
+| `apps/web/app/admin/analytics/page.tsx`      | Platform analytics page                         |
+| `apps/web/app/admin/customers/page.tsx`      | Customer lookup page                            |
+| `apps/web/components/admin/AdminSidebar.tsx` | Admin navigation sidebar                        |
 
 ---
 

@@ -16,10 +16,10 @@ Implement secure file upload for profile photos (customer-facing) and template t
 ## User Story
 
 **Customer:**  
-*As a customer editing my profile, I want to upload a profile photo — so my public page shows my face alongside my contact information.*
+_As a customer editing my profile, I want to upload a profile photo — so my public page shows my face alongside my contact information._
 
 **Admin:**  
-*As a super admin managing templates, I want to upload a thumbnail image for each template — so customers can see a preview of each template in the picker.*
+_As a super admin managing templates, I want to upload a thumbnail image for each template — so customers can see a preview of each template in the picker._
 
 ---
 
@@ -35,12 +35,12 @@ Implement secure file upload for profile photos (customer-facing) and template t
 
 ## What Is Already Implemented
 
-| Item | Status |
-|---|---|
-| `image` field type in FieldSchema taxonomy (architecture.md §6) | ✅ REUSE |
-| `Profile.data` JSONB (stores photo URL) | ✅ REUSE |
-| `Template.thumbnail` string field (stores thumbnail URL) | ✅ REUSE |
-| S3 env var reference in architecture.md | ✅ DOCUMENTED |
+| Item                                                            | Status        |
+| --------------------------------------------------------------- | ------------- |
+| `image` field type in FieldSchema taxonomy (architecture.md §6) | ✅ REUSE      |
+| `Profile.data` JSONB (stores photo URL)                         | ✅ REUSE      |
+| `Template.thumbnail` string field (stores thumbnail URL)        | ✅ REUSE      |
+| S3 env var reference in architecture.md                         | ✅ DOCUMENTED |
 
 ---
 
@@ -91,11 +91,11 @@ S3_PUBLIC_BASE_URL="https://nfc-card-platform.s3.amazonaws.com"  # public URL pr
 
 Do not rely on the `Content-Type` header sent by the client. Read the first bytes of the uploaded buffer:
 
-| Format | Magic Bytes |
-|---|---|
-| JPEG | `FF D8 FF` |
-| PNG | `89 50 4E 47 0D 0A 1A 0A` |
-| WebP | `52 49 46 46 ... 57 45 42 50` |
+| Format | Magic Bytes                   |
+| ------ | ----------------------------- |
+| JPEG   | `FF D8 FF`                    |
+| PNG    | `89 50 4E 47 0D 0A 1A 0A`     |
+| WebP   | `52 49 46 46 ... 57 45 42 50` |
 
 If the buffer does not match any allowed signature, reject the upload with `415 Unsupported Media Type`.
 
@@ -121,16 +121,17 @@ npm install @types/multer --workspace=apps/api --save-dev
 
 ### Files to CREATE
 
-| File | Purpose |
-|---|---|
-| `src/lib/s3.ts` | S3 client initialization (AWS SDK v3); `uploadFile()`, `deleteFile()` utilities |
-| `src/lib/validateFile.ts` | Magic-byte validation, size check, extension check |
-| `src/routes/upload.ts` | Upload endpoints for profile photo and template thumbnail |
+| File                       | Purpose                                                                          |
+| -------------------------- | -------------------------------------------------------------------------------- |
+| `src/lib/s3.ts`            | S3 client initialization (AWS SDK v3); `uploadFile()`, `deleteFile()` utilities  |
+| `src/lib/validateFile.ts`  | Magic-byte validation, size check, extension check                               |
+| `src/routes/upload.ts`     | Upload endpoints for profile photo and template thumbnail                        |
 | `src/middleware/multer.ts` | Multer configuration: memory storage, 10 MB raw limit (validation applied after) |
 
 ### API Endpoints
 
 #### `POST /upload/profile-photo`
+
 - **Auth required:** Yes (Customer)
 - **Content-Type:** `multipart/form-data`
 - **Body:** `file` field containing the image
@@ -146,6 +147,7 @@ npm install @types/multer --workspace=apps/api --save-dev
 - **Error:** `400 FILE_TOO_LARGE`, `415 INVALID_FILE_TYPE`
 
 #### `POST /upload/template-thumbnail`
+
 - **Auth required:** Admin
 - **Content-Type:** `multipart/form-data`
 - **Body:** `file` field + `templateId` field
@@ -174,15 +176,16 @@ ImageField behavior:
 
 ### Files to CREATE/MODIFY
 
-| File | Purpose |
-|---|---|
-| `src/shared/FieldRenderer/ImageField.tsx` | COMPLETE this component (stubbed in F-008) — file picker, preview, upload call, URL propagation |
-| `src/shared/api/upload.ts` | `uploadProfilePhoto(file: File): Promise<{ url: string }>`, `uploadTemplateThumbnail(file: File, templateId: string): Promise<{ url: string }>` |
-| `src/admin/TemplateManagement/ThumbnailUpload.tsx` | Admin thumbnail upload component used in TemplateForm (F-009) |
+| File                                               | Purpose                                                                                                                                         |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/shared/FieldRenderer/ImageField.tsx`          | COMPLETE this component (stubbed in F-008) — file picker, preview, upload call, URL propagation                                                 |
+| `src/shared/api/upload.ts`                         | `uploadProfilePhoto(file: File): Promise<{ url: string }>`, `uploadTemplateThumbnail(file: File, templateId: string): Promise<{ url: string }>` |
+| `src/admin/TemplateManagement/ThumbnailUpload.tsx` | Admin thumbnail upload component used in TemplateForm (F-009)                                                                                   |
 
 ### Client-Side Pre-Validation
 
 Before calling the upload endpoint, perform a lightweight client-side check:
+
 - File size < 5 MB (show warning if larger, but still attempt — server is the authority)
 - File type is `image/jpeg`, `image/png`, or `image/webp` per `file.type` (informational only — server validates by magic bytes)
 
@@ -190,14 +193,14 @@ Before calling the upload endpoint, perform a lightweight client-side check:
 
 ## Validation & Error Cases
 
-| Case | Behavior |
-|---|---|
-| File > 5 MB (profile photo) | `400 { error: { code: "FILE_TOO_LARGE", maxSizeMb: 5 } }` |
-| File > 2 MB (template thumbnail) | `400 { error: { code: "FILE_TOO_LARGE", maxSizeMb: 2 } }` |
-| File type not JPEG/PNG/WebP (by magic bytes) | `415 { error: { code: "INVALID_FILE_TYPE" } }` |
-| No file attached | `400 { error: { code: "NO_FILE" } }` |
-| S3 upload fails | `500 { error: { code: "UPLOAD_FAILED" } }` — log the S3 error; don't expose internals |
-| Old photo deletion fails | Log warning; don't fail the request — orphaned files are acceptable in MVP |
+| Case                                         | Behavior                                                                              |
+| -------------------------------------------- | ------------------------------------------------------------------------------------- |
+| File > 5 MB (profile photo)                  | `400 { error: { code: "FILE_TOO_LARGE", maxSizeMb: 5 } }`                             |
+| File > 2 MB (template thumbnail)             | `400 { error: { code: "FILE_TOO_LARGE", maxSizeMb: 2 } }`                             |
+| File type not JPEG/PNG/WebP (by magic bytes) | `415 { error: { code: "INVALID_FILE_TYPE" } }`                                        |
+| No file attached                             | `400 { error: { code: "NO_FILE" } }`                                                  |
+| S3 upload fails                              | `500 { error: { code: "UPLOAD_FAILED" } }` — log the S3 error; don't expose internals |
+| Old photo deletion fails                     | Log warning; don't fail the request — orphaned files are acceptable in MVP            |
 
 ---
 

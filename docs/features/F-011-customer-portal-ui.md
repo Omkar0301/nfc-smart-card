@@ -15,7 +15,7 @@ Build the complete customer-facing portal: the authenticated web application whe
 
 ## User Story
 
-*As a customer, I want a clean, mobile-friendly dashboard where I can see my card status at a glance, quickly navigate to edit my profile, switch my template, preview what my public page looks like, see how many times my card has been viewed, and manage my card if it's lost or I want to pause it.*
+_As a customer, I want a clean, mobile-friendly dashboard where I can see my card status at a glance, quickly navigate to edit my profile, switch my template, preview what my public page looks like, see how many times my card has been viewed, and manage my card if it's lost or I want to pause it._
 
 ---
 
@@ -49,27 +49,27 @@ apps/web/app/portal/
 
 ### Files to CREATE
 
-| File | Purpose |
-|---|---|
-| `apps/web/app/portal/layout.tsx` | Portal layout with Auth Guard & Navigation |
-| `apps/web/app/portal/dashboard/page.tsx` | Dashboard view |
-| `apps/web/app/portal/profile/page.tsx` | Profile editor page |
-| `apps/web/app/portal/templates/page.tsx` | Template picker page |
-| `apps/web/app/portal/preview/page.tsx` | Client-side live preview |
-| `apps/web/app/portal/my-card/page.tsx` | Card management & QR page |
-| `apps/web/app/portal/analytics/page.tsx` | Customer analytics page |
-| `apps/web/app/portal/settings/page.tsx` | Account settings page |
-| `apps/web/components/portal/DashboardCard.tsx` | Status tile & metrics overview |
-| `apps/web/components/portal/PortalNav.tsx` | Mobile-friendly navigation bar |
+| File                                           | Purpose                                    |
+| ---------------------------------------------- | ------------------------------------------ |
+| `apps/web/app/portal/layout.tsx`               | Portal layout with Auth Guard & Navigation |
+| `apps/web/app/portal/dashboard/page.tsx`       | Dashboard view                             |
+| `apps/web/app/portal/profile/page.tsx`         | Profile editor page                        |
+| `apps/web/app/portal/templates/page.tsx`       | Template picker page                       |
+| `apps/web/app/portal/preview/page.tsx`         | Client-side live preview                   |
+| `apps/web/app/portal/my-card/page.tsx`         | Card management & QR page                  |
+| `apps/web/app/portal/analytics/page.tsx`       | Customer analytics page                    |
+| `apps/web/app/portal/settings/page.tsx`        | Account settings page                      |
+| `apps/web/components/portal/DashboardCard.tsx` | Status tile & metrics overview             |
+| `apps/web/components/portal/PortalNav.tsx`     | Mobile-friendly navigation bar             |
 
 ---
 
 ## Validation & Error Cases
 
-| Case | Behavior |
-|---|---|
-| User not logged in | Next.js redirect to `/login` or `/activate/[token]` |
-| User has no active card | Show "Activate a card" prompt |
+| Case                         | Behavior                                                 |
+| ---------------------------- | -------------------------------------------------------- |
+| User not logged in           | Next.js redirect to `/login` or `/activate/[token]`      |
+| User has no active card      | Show "Activate a card" prompt                            |
 | Token expired (401 from API) | Auto-trigger token refresh; if failed, redirect to login |
 
 ---

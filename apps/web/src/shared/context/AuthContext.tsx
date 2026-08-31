@@ -1,16 +1,9 @@
-"use client";
+'use client';
 
-import {
-  createContext,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
-import { Role, type AuthUser } from "@nfc-card/shared";
-import { ApiError, setAccessToken, setRefreshToken, tryRefresh } from "../api/client";
-import * as authApi from "../api/auth";
+import { createContext, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Role, type AuthUser } from '@nfc-card/shared';
+import { ApiError, setAccessToken, setRefreshToken, tryRefresh } from '../api/client';
+import * as authApi from '../api/auth';
 
 type AuthContextValue = {
   user: AuthUser | null;
@@ -57,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       phone: session.user.phone,
       email: null,
       role: session.user.role,
-      status: "ACTIVE",
+      status: 'ACTIVE',
     };
     try {
       const full = await authApi.getMe();

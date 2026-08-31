@@ -16,11 +16,11 @@ Give super admins full visibility and control over every card in the system: sea
 ## User Story
 
 **Admin:**  
-*As a super admin, I want to search, filter, and view all cards in the system — so I can quickly find a specific card, see its current owner, and take any necessary lifecycle action.*
+_As a super admin, I want to search, filter, and view all cards in the system — so I can quickly find a specific card, see its current owner, and take any necessary lifecycle action._
 
-*As a super admin, I want to suspend a card under investigation and deactivate a lost or abandoned card — so I can protect the platform and the customer without waiting for support tickets.*
+_As a super admin, I want to suspend a card under investigation and deactivate a lost or abandoned card — so I can protect the platform and the customer without waiting for support tickets._
 
-*As a super admin, I want to replace a lost card with a new one while preserving the customer's profile — so the customer can continue using the platform after card loss.*
+_As a super admin, I want to replace a lost card with a new one while preserving the customer's profile — so the customer can continue using the platform after card loss._
 
 ---
 
@@ -38,11 +38,11 @@ Give super admins full visibility and control over every card in the system: sea
 
 ## What Is Already Implemented
 
-| Item | Status |
-|---|---|
-| `NFCCard` model | ✅ REUSE |
-| `CardAssignment` model (with history) | ✅ REUSE |
-| `CardStatus` enum (after F-001 fix) | ✅ REUSE |
+| Item                                   | Status   |
+| -------------------------------------- | -------- |
+| `NFCCard` model                        | ✅ REUSE |
+| `CardAssignment` model (with history)  | ✅ REUSE |
+| `CardStatus` enum (after F-001 fix)    | ✅ REUSE |
 | `requireAdmin` middleware (from F-002) | ✅ REUSE |
 
 ---
@@ -62,24 +62,25 @@ Give super admins full visibility and control over every card in the system: sea
 
 ### Lifecycle Transition Rules
 
-| From | To | Who | Allowed? |
-|---|---|---|---|
-| `AVAILABLE` | `ASSIGNED` | System (on claim) | Yes — via F-007 |
-| `ASSIGNED` | `ACTIVE` | System (on first publish) | Yes — via F-008 |
-| `ACTIVE` | `PAUSED` | Customer | Yes — F-015 |
-| `PAUSED` | `ACTIVE` | Customer | Yes — F-015 |
-| `ACTIVE` | `SUSPENDED` | Admin only | Yes |
-| `PAUSED` | `SUSPENDED` | Admin only | Yes |
-| `ASSIGNED` | `SUSPENDED` | Admin only | Yes |
-| `SUSPENDED` | `ACTIVE` | Admin only | Yes (reinstate) |
-| `SUSPENDED` | `PAUSED` | Admin only | No — reinstate always goes to ACTIVE |
-| Any → `DEACTIVATED` | Admin only | Yes (permanent) |
-| `DEACTIVATED` → any | — | No — permanent, irreversible |
-| `AVAILABLE` → `DEACTIVATED` | Admin (batch invalidation, F-005) | Yes |
+| From                        | To                                | Who                          | Allowed?                             |
+| --------------------------- | --------------------------------- | ---------------------------- | ------------------------------------ |
+| `AVAILABLE`                 | `ASSIGNED`                        | System (on claim)            | Yes — via F-007                      |
+| `ASSIGNED`                  | `ACTIVE`                          | System (on first publish)    | Yes — via F-008                      |
+| `ACTIVE`                    | `PAUSED`                          | Customer                     | Yes — F-015                          |
+| `PAUSED`                    | `ACTIVE`                          | Customer                     | Yes — F-015                          |
+| `ACTIVE`                    | `SUSPENDED`                       | Admin only                   | Yes                                  |
+| `PAUSED`                    | `SUSPENDED`                       | Admin only                   | Yes                                  |
+| `ASSIGNED`                  | `SUSPENDED`                       | Admin only                   | Yes                                  |
+| `SUSPENDED`                 | `ACTIVE`                          | Admin only                   | Yes (reinstate)                      |
+| `SUSPENDED`                 | `PAUSED`                          | Admin only                   | No — reinstate always goes to ACTIVE |
+| Any → `DEACTIVATED`         | Admin only                        | Yes (permanent)              |
+| `DEACTIVATED` → any         | —                                 | No — permanent, irreversible |
+| `AVAILABLE` → `DEACTIVATED` | Admin (batch invalidation, F-005) | Yes                          |
 
 ### Replace Flow
 
 A customer loses their card and requests replacement (or admin initiates). The flow:
+
 1. Find the customer's currently assigned card
 2. Verify a replacement `AVAILABLE` card exists for the same card type
 3. In a single transaction:
@@ -100,36 +101,41 @@ Allows admin to manually assign an `AVAILABLE` card to an existing user (e.g. if
 
 ### Files to MODIFY/CREATE
 
-| File | Purpose |
-|---|---|
-| `src/routes/admin/cards.ts` | Add lifecycle endpoints (extends F-005 file) |
+| File                          | Purpose                                                           |
+| ----------------------------- | ----------------------------------------------------------------- |
+| `src/routes/admin/cards.ts`   | Add lifecycle endpoints (extends F-005 file)                      |
 | `src/services/cardService.ts` | Add lifecycle transition logic, replace flow (extends F-005 file) |
 
 ### API Endpoints
 
 #### `GET /admin/cards`
+
 - **Auth required:** Admin
 - **Query params:** `?cardTypeId=`, `?status=`, `?batchId=`, `?search=` (searches cardNumber, customer phone/name), `?page=`, `?limit=`
 - **Response:** `200 { cards: [...], total, page, limit }`
 - Each card item includes: id, cardNumber, publicToken, status, cardType name, assigned user (name/phone if any), createdAt
 
 #### `GET /admin/cards/:id`
+
 - **Auth required:** Admin
 - **Response:** `200 { card: NFCCard & { cardType, assignments: [...with user data], events: [...recent 20] } }`
 
 #### `POST /admin/cards/:id/assign`
+
 - **Auth required:** Admin
 - **Input:** `{ userId: string }`
 - **Validation:** card must be `AVAILABLE`; user must exist; user must not already have an active card of the same type
 - **Logic:** run transactional claim (same as F-007 but admin-initiated) → `AVAILABLE → ASSIGNED`
 
 #### `POST /admin/cards/:id/activate`
+
 - **Auth required:** Admin
 - **Validation:** card must be `ASSIGNED`
 - **Logic:** `ASSIGNED → ACTIVE`
 - **Use case:** admin manually activates a card bypassing the profile publish step (for demo or support scenarios)
 
 #### `POST /admin/cards/:id/suspend`
+
 - **Auth required:** Admin
 - **Input:** `{ reason?: string }`
 - **Validation:** card must be `ACTIVE`, `ASSIGNED`, or `PAUSED`
@@ -137,11 +143,13 @@ Allows admin to manually assign an `AVAILABLE` card to an existing user (e.g. if
 - **Side effect:** public profile immediately returns "temporarily unavailable" (enforced at render time in F-010)
 
 #### `POST /admin/cards/:id/unsuspend`
+
 - **Auth required:** Admin
 - **Validation:** card must be `SUSPENDED`
 - **Logic:** `SUSPENDED → ACTIVE`
 
 #### `POST /admin/cards/:id/deactivate`
+
 - **Auth required:** Admin
 - **Input:** `{ reason?: string }`
 - **Validation:** card must not already be `DEACTIVATED`
@@ -149,6 +157,7 @@ Allows admin to manually assign an `AVAILABLE` card to an existing user (e.g. if
 - **Side effect:** public profile returns "no longer active"
 
 #### `POST /admin/cards/:id/replace`
+
 - **Auth required:** Admin
 - **Input:** `{ replacementCardId: string }` — admin selects the AVAILABLE replacement card
 - **Validation:** old card must be `ASSIGNED`, `ACTIVE`, `PAUSED`, or `SUSPENDED`; replacement card must be `AVAILABLE` and same `cardTypeId`
@@ -161,27 +170,27 @@ Allows admin to manually assign an `AVAILABLE` card to an existing user (e.g. if
 
 ### Files to CREATE
 
-| File | Purpose |
-|---|---|
-| `src/admin/CardManagement/CardList.tsx` | Searchable/filterable card inventory table |
-| `src/admin/CardManagement/CardDetail.tsx` | Single card detail view with assignment history and lifecycle action buttons |
-| `src/admin/CardManagement/ReplaceCardModal.tsx` | Modal to select replacement card and confirm replace flow |
-| `src/admin/CardManagement/SuspendModal.tsx` | Modal to enter reason and confirm suspend |
-| `src/admin/CardManagement/DeactivateModal.tsx` | Modal to confirm permanent deactivation |
+| File                                            | Purpose                                                                      |
+| ----------------------------------------------- | ---------------------------------------------------------------------------- |
+| `src/admin/CardManagement/CardList.tsx`         | Searchable/filterable card inventory table                                   |
+| `src/admin/CardManagement/CardDetail.tsx`       | Single card detail view with assignment history and lifecycle action buttons |
+| `src/admin/CardManagement/ReplaceCardModal.tsx` | Modal to select replacement card and confirm replace flow                    |
+| `src/admin/CardManagement/SuspendModal.tsx`     | Modal to enter reason and confirm suspend                                    |
+| `src/admin/CardManagement/DeactivateModal.tsx`  | Modal to confirm permanent deactivation                                      |
 
 ---
 
 ## Validation & Error Cases
 
-| Case | Behavior |
-|---|---|
-| Invalid lifecycle transition | `409 { error: { code: "INVALID_TRANSITION", from: "...", to: "..." } }` |
-| Card not found | `404 { error: { code: "CARD_NOT_FOUND" } }` |
-| Replacement card not AVAILABLE | `409 { error: { code: "REPLACEMENT_NOT_AVAILABLE" } }` |
-| Replacement card wrong type | `409 { error: { code: "CARD_TYPE_MISMATCH" } }` |
-| User not found (assign) | `404 { error: { code: "USER_NOT_FOUND" } }` |
-| User already has active card of same type | `409 { error: { code: "USER_ALREADY_HAS_CARD" } }` |
-| Attempting to reverse DEACTIVATED | `409 { error: { code: "CARD_DEACTIVATED_PERMANENT" } }` |
+| Case                                      | Behavior                                                                |
+| ----------------------------------------- | ----------------------------------------------------------------------- |
+| Invalid lifecycle transition              | `409 { error: { code: "INVALID_TRANSITION", from: "...", to: "..." } }` |
+| Card not found                            | `404 { error: { code: "CARD_NOT_FOUND" } }`                             |
+| Replacement card not AVAILABLE            | `409 { error: { code: "REPLACEMENT_NOT_AVAILABLE" } }`                  |
+| Replacement card wrong type               | `409 { error: { code: "CARD_TYPE_MISMATCH" } }`                         |
+| User not found (assign)                   | `404 { error: { code: "USER_NOT_FOUND" } }`                             |
+| User already has active card of same type | `409 { error: { code: "USER_ALREADY_HAS_CARD" } }`                      |
+| Attempting to reverse DEACTIVATED         | `409 { error: { code: "CARD_DEACTIVATED_PERMANENT" } }`                 |
 
 ---
 

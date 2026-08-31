@@ -16,10 +16,10 @@ Implement the config-driven card type system: seed the Business and College card
 ## User Story
 
 **Admin:**  
-*As a super admin, I want to create and manage card types with their field schemas from the admin portal — so that adding a new vertical (e.g. Doctor) requires only a config change, not a code change.*
+_As a super admin, I want to create and manage card types with their field schemas from the admin portal — so that adding a new vertical (e.g. Doctor) requires only a config change, not a code change._
 
 **System:**  
-*As the platform, I need Business and College card types to exist with correct field schemas and defaultVisible flags — so that profile onboarding, form rendering, and visibility defaults work correctly out of the box.*
+_As the platform, I need Business and College card types to exist with correct field schemas and defaultVisible flags — so that profile onboarding, form rendering, and visibility defaults work correctly out of the box._
 
 ---
 
@@ -36,11 +36,11 @@ Implement the config-driven card type system: seed the Business and College card
 
 ## What Is Already Implemented
 
-| Item | Status |
-|---|---|
+| Item                                                                                | Status   |
+| ----------------------------------------------------------------------------------- | -------- |
 | `CardType` model in schema (id, name, slug, description, fieldSchema JSONB, status) | ✅ REUSE |
-| `CardType.slug` unique index | ✅ REUSE |
-| FK relations to `NFCCard`, `Template`, `Profile` | ✅ REUSE |
+| `CardType.slug` unique index                                                        | ✅ REUSE |
+| FK relations to `NFCCard`, `Template`, `Profile`                                    | ✅ REUSE |
 
 ---
 
@@ -85,14 +85,14 @@ export type FieldType =
   | 'select';
 
 export interface FieldSchemaItem {
-  key: string;           // unique key within the CardType, used as key in Profile.data
-  label: string;         // display label shown in forms and public templates
+  key: string; // unique key within the CardType, used as key in Profile.data
+  label: string; // display label shown in forms and public templates
   type: FieldType;
-  required: boolean;     // whether the field must be filled in onboarding
+  required: boolean; // whether the field must be filled in onboarding
   defaultVisible: boolean; // PRD §16 — initial value for Profile.fieldVisibility[key]
-  placeholder?: string;  // optional hint text for form inputs
-  options?: string[];    // only for type = 'select'
-  helpText?: string;     // optional additional guidance
+  placeholder?: string; // optional hint text for form inputs
+  options?: string[]; // only for type = 'select'
+  helpText?: string; // optional additional guidance
 }
 
 export type FieldSchema = FieldSchemaItem[];
@@ -104,24 +104,24 @@ export type FieldSchema = FieldSchemaItem[];
 
 Slug: `business`
 
-| Key | Label | Type | Required | Default Visible |
-|---|---|---|---|---|
-| `photo` | Profile Photo | `image` | false | true |
-| `name` | Full Name | `text` | **true** | true |
-| `designation` | Designation / Title | `text` | false | true |
-| `company` | Company Name | `text` | false | true |
-| `bio` | About / Bio | `long_text` | false | true |
-| `phone` | Phone Number | `phone` | false | true |
-| `whatsapp` | WhatsApp | `phone` | false | true |
-| `email` | Email Address | `email` | false | true |
-| `website` | Website | `url` | false | true |
-| `instagram` | Instagram | `url` | false | true |
-| `linkedin` | LinkedIn | `url` | false | true |
-| `facebook` | Facebook | `url` | false | true |
-| `youtube` | YouTube | `url` | false | true |
-| `address` | Address | `address` | false | **false** |
-| `google_maps` | Google Maps Link | `url` | false | true |
-| `services` | Services Offered | `list_of_strings` | false | true |
+| Key           | Label               | Type              | Required | Default Visible |
+| ------------- | ------------------- | ----------------- | -------- | --------------- |
+| `photo`       | Profile Photo       | `image`           | false    | true            |
+| `name`        | Full Name           | `text`            | **true** | true            |
+| `designation` | Designation / Title | `text`            | false    | true            |
+| `company`     | Company Name        | `text`            | false    | true            |
+| `bio`         | About / Bio         | `long_text`       | false    | true            |
+| `phone`       | Phone Number        | `phone`           | false    | true            |
+| `whatsapp`    | WhatsApp            | `phone`           | false    | true            |
+| `email`       | Email Address       | `email`           | false    | true            |
+| `website`     | Website             | `url`             | false    | true            |
+| `instagram`   | Instagram           | `url`             | false    | true            |
+| `linkedin`    | LinkedIn            | `url`             | false    | true            |
+| `facebook`    | Facebook            | `url`             | false    | true            |
+| `youtube`     | YouTube             | `url`             | false    | true            |
+| `address`     | Address             | `address`         | false    | **false**       |
+| `google_maps` | Google Maps Link    | `url`             | false    | true            |
+| `services`    | Services Offered    | `list_of_strings` | false    | true            |
 
 ---
 
@@ -129,22 +129,22 @@ Slug: `business`
 
 Slug: `college`
 
-| Key | Label | Type | Required | Default Visible |
-|---|---|---|---|---|
-| `photo` | Profile Photo | `image` | false | true |
-| `name` | Full Name | `text` | **true** | true |
-| `college` | College / University | `text` | false | true |
-| `course` | Course / Degree | `text` | false | true |
-| `branch` | Branch / Specialization | `text` | false | true |
-| `semester` | Semester / Year | `text` | false | true |
-| `student_id` | Student ID | `text` | false | **false** ← identifier field |
-| `student_email` | College Email | `email` | false | true |
-| `phone` | Phone Number | `phone` | false | true |
-| `linkedin` | LinkedIn | `url` | false | true |
-| `portfolio` | Portfolio URL | `url` | false | true |
-| `skills` | Skills | `list_of_strings` | false | true |
-| `achievements` | Achievements | `list_of_strings` | false | true |
-| `about` | About / Bio | `long_text` | false | true |
+| Key             | Label                   | Type              | Required | Default Visible              |
+| --------------- | ----------------------- | ----------------- | -------- | ---------------------------- |
+| `photo`         | Profile Photo           | `image`           | false    | true                         |
+| `name`          | Full Name               | `text`            | **true** | true                         |
+| `college`       | College / University    | `text`            | false    | true                         |
+| `course`        | Course / Degree         | `text`            | false    | true                         |
+| `branch`        | Branch / Specialization | `text`            | false    | true                         |
+| `semester`      | Semester / Year         | `text`            | false    | true                         |
+| `student_id`    | Student ID              | `text`            | false    | **false** ← identifier field |
+| `student_email` | College Email           | `email`           | false    | true                         |
+| `phone`         | Phone Number            | `phone`           | false    | true                         |
+| `linkedin`      | LinkedIn                | `url`             | false    | true                         |
+| `portfolio`     | Portfolio URL           | `url`             | false    | true                         |
+| `skills`        | Skills                  | `list_of_strings` | false    | true                         |
+| `achievements`  | Achievements            | `list_of_strings` | false    | true                         |
+| `about`         | About / Bio             | `long_text`       | false    | true                         |
 
 ---
 
@@ -155,6 +155,7 @@ No new models needed. Seed data is applied via `prisma/seed.ts`.
 ### CREATE — Seed script `apps/api/prisma/seed.ts`
 
 Seeds:
+
 1. Business `CardType` row with full `fieldSchema`
 2. College `CardType` row with full `fieldSchema`
 3. Placeholder `Template` rows for both (actual template components are built in F-009; seed creates the DB rows with `isActive = false` until templates are complete)
@@ -165,19 +166,21 @@ Seeds:
 
 ### Files to CREATE
 
-| File | Purpose |
-|---|---|
-| `src/routes/admin/cardTypes.ts` | Admin card-type CRUD routes |
+| File                              | Purpose                                 |
+| --------------------------------- | --------------------------------------- |
+| `src/routes/admin/cardTypes.ts`   | Admin card-type CRUD routes             |
 | `src/services/cardTypeService.ts` | Business logic for card type operations |
 
 ### API Endpoints
 
 #### `GET /admin/card-types`
+
 - **Auth required:** Admin
 - **Logic:** return all `CardType` rows (including fieldSchema), ordered by `createdAt`
 - **Response:** `200 { cardTypes: CardType[] }`
 
 #### `POST /admin/card-types`
+
 - **Auth required:** Admin
 - **Input:** `{ name, slug, description?, fieldSchema: FieldSchemaItem[] }`
 - **Validation:** slug must be unique, lowercase, alphanumeric + hyphens only; fieldSchema must be a valid array of `FieldSchemaItem` objects with unique keys; at least one field required
@@ -185,6 +188,7 @@ Seeds:
 - **Response:** `201 { cardType: CardType }`
 
 #### `PUT /admin/card-types/:id`
+
 - **Auth required:** Admin
 - **Input:** `{ name?, description?, fieldSchema?, status? }`
 - **Validation:** if `fieldSchema` is updated, validate same rules as POST; if cards already exist for this type, adding/removing required fields is a breaking change — warn in response but allow (admin decision)
@@ -197,26 +201,27 @@ Seeds:
 
 ### Files to CREATE
 
-| File | Purpose |
-|---|---|
-| `src/admin/CardTypeManagement/CardTypeList.tsx` | Table of all card types with status, field count, action buttons |
+| File                                            | Purpose                                                                                            |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `src/admin/CardTypeManagement/CardTypeList.tsx` | Table of all card types with status, field count, action buttons                                   |
 | `src/admin/CardTypeManagement/CardTypeForm.tsx` | Create/edit form with dynamic field schema builder (add/remove/reorder fields, set defaultVisible) |
-| `src/shared/api/cardTypes.ts` | `listCardTypes()`, `createCardType()`, `updateCardType()` API calls |
+| `src/shared/api/cardTypes.ts`                   | `listCardTypes()`, `createCardType()`, `updateCardType()` API calls                                |
 
 ### `packages/shared/src/types/fieldSchema.ts`
+
 - **CREATE** — type definitions shared across web and api (see Field Schema Type Definition above)
 
 ---
 
 ## Validation & Error Cases
 
-| Case | Behavior |
-|---|---|
-| Duplicate slug | `409 { error: { code: "SLUG_EXISTS" } }` |
-| Invalid slug format | `400 { error: { code: "INVALID_SLUG" } }` |
-| Invalid fieldSchema (unknown type) | `400 { error: { code: "INVALID_FIELD_TYPE", field: "..." } }` |
-| Duplicate field keys within schema | `400 { error: { code: "DUPLICATE_FIELD_KEY" } }` |
-| CardType not found | `404 { error: { code: "NOT_FOUND" } }` |
+| Case                                    | Behavior                                                                          |
+| --------------------------------------- | --------------------------------------------------------------------------------- |
+| Duplicate slug                          | `409 { error: { code: "SLUG_EXISTS" } }`                                          |
+| Invalid slug format                     | `400 { error: { code: "INVALID_SLUG" } }`                                         |
+| Invalid fieldSchema (unknown type)      | `400 { error: { code: "INVALID_FIELD_TYPE", field: "..." } }`                     |
+| Duplicate field keys within schema      | `400 { error: { code: "DUPLICATE_FIELD_KEY" } }`                                  |
+| CardType not found                      | `404 { error: { code: "NOT_FOUND" } }`                                            |
 | Deactivating CardType with active cards | Allow but warn: `200 { cardType, warning: "N active cards exist for this type" }` |
 
 ---

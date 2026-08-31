@@ -1,10 +1,10 @@
-import { describe, it, expect } from "vitest";
-import { config } from "../../src/config.js";
+import { describe, it, expect } from 'vitest';
+import { config } from '../../src/config.js';
 
-describe("Environment Configuration (config.ts)", () => {
-  it("should validate all required configuration properties and defaults", () => {
+describe('Environment Configuration (config.ts)', () => {
+  it('should validate all required configuration properties and defaults', () => {
     expect(config.NODE_ENV).toBeDefined();
-    expect(typeof config.PORT).toBe("number");
+    expect(typeof config.PORT).toBe('number');
     expect(config.PORT).toBeGreaterThan(0);
     expect(config.LOG_LEVEL).toBeDefined();
     expect(config.LOG_DIR).toBeDefined();

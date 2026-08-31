@@ -16,11 +16,11 @@ Implement the full profile lifecycle: create/read/update the customer's profile 
 ## User Story
 
 **Customer:**  
-*As a customer who just claimed a card, I want to fill in my profile information using a form that shows the right fields for my card type — so I can publish my profile and let people view it when they tap my card.*
+_As a customer who just claimed a card, I want to fill in my profile information using a form that shows the right fields for my card type — so I can publish my profile and let people view it when they tap my card._
 
-*As a customer, I want to control which fields are public and which are hidden — so I don't expose my home address or student ID by default.*
+_As a customer, I want to control which fields are public and which are hidden — so I don't expose my home address or student ID by default._
 
-*As a customer, I want to edit my profile at any time after publishing — so I can keep my information current without touching my physical card.*
+_As a customer, I want to edit my profile at any time after publishing — so I can keep my information current without touching my physical card._
 
 ---
 
@@ -38,12 +38,12 @@ Implement the full profile lifecycle: create/read/update the customer's profile 
 
 ## What Is Already Implemented
 
-| Item | Status |
-|---|---|
-| `Profile` model with `data` and `fieldVisibility` JSONB | ✅ REUSE |
-| `Profile.status` draft/published | ✅ REUSE |
-| `Profile` created empty on card claim (F-007) | ✅ REUSE (once F-007 built) |
-| `FieldSchemaItem` type (from F-004) | ✅ REUSE |
+| Item                                                    | Status                      |
+| ------------------------------------------------------- | --------------------------- |
+| `Profile` model with `data` and `fieldVisibility` JSONB | ✅ REUSE                    |
+| `Profile.status` draft/published                        | ✅ REUSE                    |
+| `Profile` created empty on card claim (F-007)           | ✅ REUSE (once F-007 built) |
+| `FieldSchemaItem` type (from F-004)                     | ✅ REUSE                    |
 
 ---
 
@@ -96,21 +96,23 @@ This function runs server-side for every field before building the public profil
 
 ### Files to CREATE
 
-| File | Purpose |
-|---|---|
+| File                             | Purpose                                                               |
+| -------------------------------- | --------------------------------------------------------------------- |
 | `src/services/profileService.ts` | Profile CRUD, visibility init, publish/unpublish, public data builder |
-| `src/routes/profile.ts` | Customer profile endpoints (auth-gated) |
+| `src/routes/profile.ts`          | Customer profile endpoints (auth-gated)                               |
 
 ### API Endpoints
 
 All profile endpoints resolve the customer's profile via their JWT (`req.user.id`) and their active `CardAssignment`. Do not accept `profileId` or `userId` from the client — look them up from the authenticated user.
 
 #### `GET /profile`
+
 - **Auth required:** Yes (Customer)
 - **Logic:** find active `CardAssignment` for user → find `Profile` by userId + cardTypeId → if `fieldVisibility = {}`, initialize from fieldSchema defaults and persist → return full profile for editing
 - **Response:** `200 { profile: { id, data, fieldVisibility, status, cardType: { fieldSchema }, card: { cardNumber, publicToken, status } } }`
 
 #### `POST /profile`
+
 - **Auth required:** Yes (Customer)
 - **Input:** `{ data: { [key]: value }, fieldVisibility: { [key]: boolean } }` (partial — not all fields required)
 - **Logic:** find existing Profile (created on claim) → validate keys against fieldSchema → merge `data` and `fieldVisibility` → save
@@ -118,6 +120,7 @@ All profile endpoints resolve the customer's profile via their JWT (`req.user.id
 - **Response:** `200 { profile }`
 
 #### `PUT /profile`
+
 - **Auth required:** Yes (Customer)
 - **Input:** `{ data: { [key]: value }, fieldVisibility: { [key]: boolean }, publish?: boolean }`
 - **Logic:**
@@ -128,7 +131,8 @@ All profile endpoints resolve the customer's profile via their JWT (`req.user.id
   - Trigger cache invalidation for the card's public token (skills.md)
 - **Response:** `200 { profile }`
 
-#### `GET /profile/public/:token` *(internal — used by SSR route in F-010)*
+#### `GET /profile/public/:token` _(internal — used by SSR route in F-010)_
+
 - **Auth required:** No (called server-to-server within Express, not exposed to public as a standalone API)
 - **Logic:** resolve token → NFCCard → CardAssignment → Profile + CardType → run visibility algorithm → return only public fields
 - **Response:** filtered profile data, card status, template info — used by F-010 SSR renderer
@@ -152,36 +156,37 @@ FieldRenderer
 ```
 
 Each field renders:
+
 - The input/control appropriate for its type
 - A visibility toggle (eye icon) that controls `fieldVisibility[key]`
 - A lock icon if the field is a required field
 
 ### Files to CREATE
 
-| File | Purpose |
-|---|---|
-| `src/shared/FieldRenderer/FieldRenderer.tsx` | Renders a single field with input + visibility toggle |
-| `src/shared/FieldRenderer/TextField.tsx` | Input for text, email, url, phone |
-| `src/shared/FieldRenderer/LongTextField.tsx` | Textarea for long_text |
-| `src/shared/FieldRenderer/ImageField.tsx` | Image upload preview (connects to F-016) |
-| `src/shared/FieldRenderer/AddressField.tsx` | Multi-line address input |
-| `src/shared/FieldRenderer/ListField.tsx` | Add/remove list items |
-| `src/shared/FieldRenderer/SelectField.tsx` | Dropdown for select type |
-| `src/portal/ProfileEditor/ProfileEditor.tsx` | Main profile edit page — renders all fields from fieldSchema using FieldRenderer |
-| `src/portal/ProfileEditor/PublishBar.tsx` | Bottom bar: Save / Publish / Unpublish buttons, validation state |
-| `src/portal/ProfileEditor/VisibilitySummary.tsx` | Shows count of visible vs hidden fields |
-| `src/shared/api/profile.ts` | `getProfile()`, `updateProfile()`, `publishProfile()` API calls |
+| File                                             | Purpose                                                                          |
+| ------------------------------------------------ | -------------------------------------------------------------------------------- |
+| `src/shared/FieldRenderer/FieldRenderer.tsx`     | Renders a single field with input + visibility toggle                            |
+| `src/shared/FieldRenderer/TextField.tsx`         | Input for text, email, url, phone                                                |
+| `src/shared/FieldRenderer/LongTextField.tsx`     | Textarea for long_text                                                           |
+| `src/shared/FieldRenderer/ImageField.tsx`        | Image upload preview (connects to F-016)                                         |
+| `src/shared/FieldRenderer/AddressField.tsx`      | Multi-line address input                                                         |
+| `src/shared/FieldRenderer/ListField.tsx`         | Add/remove list items                                                            |
+| `src/shared/FieldRenderer/SelectField.tsx`       | Dropdown for select type                                                         |
+| `src/portal/ProfileEditor/ProfileEditor.tsx`     | Main profile edit page — renders all fields from fieldSchema using FieldRenderer |
+| `src/portal/ProfileEditor/PublishBar.tsx`        | Bottom bar: Save / Publish / Unpublish buttons, validation state                 |
+| `src/portal/ProfileEditor/VisibilitySummary.tsx` | Shows count of visible vs hidden fields                                          |
+| `src/shared/api/profile.ts`                      | `getProfile()`, `updateProfile()`, `publishProfile()` API calls                  |
 
 ---
 
 ## Validation & Error Cases
 
-| Case | Behavior |
-|---|---|
-| Required field missing on publish | `400 { error: { code: "REQUIRED_FIELD_MISSING", field: "name" } }` |
-| Unknown field key in `data` | Strip silently on write; do not 400 (graceful handling) |
-| Profile not found (no active assignment) | `404 { error: { code: "NO_ACTIVE_CARD" } }` |
-| Publishing a profile for a PAUSED card | `409 { error: { code: "CARD_PAUSED" } }` — must resume before publishing |
+| Case                                        | Behavior                                                                     |
+| ------------------------------------------- | ---------------------------------------------------------------------------- |
+| Required field missing on publish           | `400 { error: { code: "REQUIRED_FIELD_MISSING", field: "name" } }`           |
+| Unknown field key in `data`                 | Strip silently on write; do not 400 (graceful handling)                      |
+| Profile not found (no active assignment)    | `404 { error: { code: "NO_ACTIVE_CARD" } }`                                  |
+| Publishing a profile for a PAUSED card      | `409 { error: { code: "CARD_PAUSED" } }` — must resume before publishing     |
 | Unpublishing a profile for a SUSPENDED card | `409 { error: { code: "CARD_SUSPENDED" } }` — admin only can clear SUSPENDED |
 
 ---

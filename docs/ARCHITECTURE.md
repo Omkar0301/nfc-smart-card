@@ -45,7 +45,8 @@ https://{domain}/p/{cardType.slug}/{publicToken}
 ## Application Surfaces
 
 ### 1. Public Profile Route (Next.js SSR) — `/p/[type]/[token]`
-- **Location:** `apps/web/app/p/[type]/[token]/page.tsx` *(F-010)*
+
+- **Location:** `apps/web/app/p/[type]/[token]/page.tsx` _(F-010)_
 - **Rendering:** React Server Component rendered on demand by Next.js App Router.
 - **Metadata & SEO:** `generateMetadata()` dynamically populates Open Graph tags (`og:title`, `og:image`, `og:url`) and Twitter Cards.
 - **Template Components:** Imported from `packages/shared/src/templates/` — React Server Components shared across templates.
@@ -53,12 +54,14 @@ https://{domain}/p/{cardType.slug}/{publicToken}
 - **Visibility Enforcement:** Profile fields are filtered server-side (in `apps/api` or during Server Component data fetching) before rendering.
 
 ### 2. Customer Portal — `/portal/*`
-- **Location:** `apps/web/app/portal/` *(F-011)*
+
+- **Location:** `apps/web/app/portal/` _(F-011)_
 - **Rendering:** Client-interactive Next.js components (`'use client'`).
 - **Auth:** JWT Bearer token attached to API requests via HTTP client.
 
 ### 3. Admin Portal — `/admin/*`
-- **Location:** `apps/web/app/admin/` *(F-012)*
+
+- **Location:** `apps/web/app/admin/` _(F-012)_
 - **Rendering:** Client-interactive Next.js components (`'use client'`).
 - **Auth:** JWT Bearer token + server-enforced `role === 'ADMIN'` check.
 
@@ -116,6 +119,7 @@ app.use('/admin', requireAdmin, adminRoutes)
 The platform uses **OTP-based authentication** (no passwords) with **JWT tokens** for session management.
 
 **Auth Flow:**
+
 1. **Send OTP** → `POST /auth/send-otp` with phone number
    - Validates phone (E.164 format)
    - Generates 6-digit random OTP
@@ -133,11 +137,13 @@ The platform uses **OTP-based authentication** (no passwords) with **JWT tokens*
 5. **Logout** → `POST /auth/logout` revokes refresh token in database
 
 **Tokens:**
+
 - **Access Token:** Stateless JWT containing `{ sub: userId, role: Role, typ: "access" }`. No DB lookup on use.
 - **Refresh Token:** JWT with JTI (JWT ID). Hash stored in `RefreshToken` table. Enables revocation and rotation.
 - **Refresh Token Storage:** httpOnly cookie (secure, auto-sent by browser). Also accepted in request body for mobile clients.
 
 **Security:**
+
 - OTP never stored plaintext (HMAC-SHA256 hash required by Rule #14)
 - JWT signed with `JWT_SECRET` environment variable (minimum 32 characters)
 - Account suspension (`User.status = 'SUSPENDED'`) checked on every auth operation
@@ -145,6 +151,7 @@ The platform uses **OTP-based authentication** (no passwords) with **JWT tokens*
 - Token rotation: old refresh tokens revoked when new one issued
 
 **Files (Feature F-002) — Controller → Service → Repository:**
+
 - Controllers: `apps/api/src/controllers/auth.controller.ts`
 - Services: `apps/api/src/services/auth.service.ts`, `services/otp.service.ts`, `services/token.service.ts`
 - Repositories: `apps/api/src/repositories/user.repository.ts`, `repositories/otp.repository.ts`, `repositories/token.repository.ts`
@@ -156,6 +163,7 @@ The platform uses **OTP-based authentication** (no passwords) with **JWT tokens*
 - Database: `OtpVerification` & `RefreshToken` tables (migration: `20260831120000_auth_otp_refresh_tokens`)
 
 **See Also:**
+
 - Detailed implementation: [docs/features/F-002-authentication-otp-jwt.md](./features/F-002-authentication-otp-jwt.md)
 - Frontend integration: Implementation notes in F-002 feature doc
 
@@ -200,6 +208,7 @@ Next.js Data Cache for /p/[type]/[token] is purged instantly
 ## Shared Package Boundary (`packages/shared`)
 
 `packages/shared/src/` contains code consumed by both `apps/web` (Next.js) and `apps/api` (Express):
+
 - `types.ts`: `CardStatus`, `Role`, `CardTypeCode`, `User`, `Card`
 - `fieldSchema.ts`: `FieldType`, `FieldDefinition`, `CardFieldSchema`
 - `templates/`: React Server Components for template rendering (`BusinessModern`, `CollegeAcademic`, etc.)

@@ -16,21 +16,23 @@ Apply the platform-wide security hardening layer: rate limiting on sensitive end
 ## User Story
 
 **Platform operator:**  
-*As the platform operator, I need rate limiting on OTP, recovery, and analytics endpoints — so the platform cannot be abused by automated attacks, OTP flooding, or analytics event stuffing.*
+_As the platform operator, I need rate limiting on OTP, recovery, and analytics endpoints — so the platform cannot be abused by automated attacks, OTP flooding, or analytics event stuffing._
 
-*As the platform operator, I need HTTP security headers on all responses — so the platform presents a hardened surface to browsers and passes basic security tooling checks.*
+_As the platform operator, I need HTTP security headers on all responses — so the platform presents a hardened surface to browsers and passes basic security tooling checks._
 
 ---
 
 ## Technical Details (Option B Architecture)
 
 ### 1. Express API Hardening (`apps/api`)
+
 - **Rate Limiting:** `express-rate-limit` on `/auth/send-otp` (3 per 10m), `/auth/verify-otp` (5 per 10m), `/auth/recover/request` (3 per 60m), `/analytics/event` (60 per 60s), `/upload/*` (10 per 60m).
 - **Security Headers:** `helmet()` setting `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy`.
 - **CORS Scoping:** `cors({ origin: process.env.WEB_URL, credentials: true })`. Public endpoints allow `origin: '*'`.
 - **Cache Purge Trigger:** Profile updates call Next.js revalidation endpoint (`revalidateTag("profile-${token}")`).
 
 ### 2. Next.js App Router Hardening (`apps/web`)
+
 - **Middleware:** `apps/web/middleware.ts` for client-side Auth route protection (`/portal/*`, `/admin/*`).
 - **Headers in `next.config.ts`:** CSP (Content-Security-Policy), Permissions-Policy, HSTS.
 - **Dynamic Metadata:** Next.js `generateMetadata()` in `app/p/[type]/[token]/page.tsx` for valid Open Graph and Twitter Card headers.

@@ -1,11 +1,11 @@
-import { prisma } from "../lib/prisma.js";
+import { prisma } from '../lib/prisma.js';
 
 export const tokenRepository = {
   createPending(userId: string, expiresAt: Date) {
     return prisma.refreshToken.create({
       data: {
         userId,
-        tokenHash: "pending",
+        tokenHash: 'pending',
         expiresAt,
       },
     });

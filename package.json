@@ -10,6 +10,10 @@
     "dev": "concurrently \"npm run dev -w apps/api\" \"npm run dev -w apps/web\"",
     "build": "npm run build --ws",
     "typecheck": "npm run typecheck --ws",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "npm run test -w apps/api",
     "test:unit": "npm run test:unit -w apps/api",
     "test:integration": "npm run test:integration -w apps/api",
@@ -20,6 +24,8 @@
   },
   "devDependencies": {
     "concurrently": "^9.0.0",
+    "oxlint": "^1.80.0",
+    "prettier": "^3.9.6",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0"
   }

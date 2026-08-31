@@ -12,17 +12,17 @@ Source specification: [`PRD_NFC_Digital_Card_Platform.md`](file:///d:/nfc-new/nf
 
 ## Technology Stack
 
-| Layer | Technology | Details / Purpose |
-|---|---|---|
-| Frontend / Web Surface | Next.js (App Router), React 19, TypeScript | Customer Portal, Admin Portal, Public Profile SSR |
-| Backend API | Node.js, Express 5, TypeScript | REST API endpoints, Auth, Business Logic |
-| Public Profile SSR | Next.js App Router Server Components | `app/p/[type]/[token]/page.tsx` + `generateMetadata()` |
-| Database | PostgreSQL | Managed via Prisma ORM |
-| ORM | Prisma | Schema in `apps/api/prisma/schema.prisma` |
-| Background Jobs | pg-boss (Postgres-native) | Bulk card generation, export (runs in `apps/api`) |
-| File Storage | S3-compatible | Profile photo, template thumbnail uploads |
-| Auth | JWT (access + refresh) + Mobile OTP | Header Bearer token for API |
-| Shared Package | `@nfc-card/shared` | Types, field schema definitions, template components |
+| Layer                  | Technology                                 | Details / Purpose                                      |
+| ---------------------- | ------------------------------------------ | ------------------------------------------------------ |
+| Frontend / Web Surface | Next.js (App Router), React 19, TypeScript | Customer Portal, Admin Portal, Public Profile SSR      |
+| Backend API            | Node.js, Express 5, TypeScript             | REST API endpoints, Auth, Business Logic               |
+| Public Profile SSR     | Next.js App Router Server Components       | `app/p/[type]/[token]/page.tsx` + `generateMetadata()` |
+| Database               | PostgreSQL                                 | Managed via Prisma ORM                                 |
+| ORM                    | Prisma                                     | Schema in `apps/api/prisma/schema.prisma`              |
+| Background Jobs        | pg-boss (Postgres-native)                  | Bulk card generation, export (runs in `apps/api`)      |
+| File Storage           | S3-compatible                              | Profile photo, template thumbnail uploads              |
+| Auth                   | JWT (access + refresh) + Mobile OTP        | Header Bearer token for API                            |
+| Shared Package         | `@nfc-card/shared`                         | Types, field schema definitions, template components   |
 
 **Explicit non-stack decisions:** No Redis, No custom `ReactDOMServer` rendering inside Express, No Vite (replaced by Next.js), No test suite (explicit product decision per `.agents/rules.md` #18).
 
@@ -108,6 +108,7 @@ nfc-card-platform/
 ## Background Processing (Planned — F-005)
 
 `pg-boss` (Postgres-native job queue) running inside `apps/api`. No Redis.
+
 - Bulk card generation (resumable, retry on token collision)
 - CSV export for large card batches
 

@@ -1,6 +1,13 @@
-import type { AuthUser, Role } from "@nfc-card/shared";
-import { ApiError, apiFetch, getAccessToken, setAccessToken, setRefreshToken, tryRefresh } from "./client";
-import { API_ROUTES } from "./routes";
+import type { AuthUser, Role } from '@nfc-card/shared';
+import {
+  ApiError,
+  apiFetch,
+  getAccessToken,
+  setAccessToken,
+  setRefreshToken,
+  tryRefresh,
+} from './client';
+import { API_ROUTES } from './routes';
 
 export type SessionUser = {
   id: string;
@@ -17,7 +24,7 @@ export type VerifyOtpResponse = {
 
 export async function sendOtp(phone: string): Promise<{ success: true; message: string }> {
   return apiFetch(API_ROUTES.auth.sendOtp, {
-    method: "POST",
+    method: 'POST',
     skipAuth: true,
     skipRefresh: true,
     body: JSON.stringify({ phone }),
@@ -26,7 +33,7 @@ export async function sendOtp(phone: string): Promise<{ success: true; message: 
 
 export async function verifyOtp(phone: string, code: string): Promise<VerifyOtpResponse> {
   const data = await apiFetch<VerifyOtpResponse>(API_ROUTES.auth.verifyOtp, {
-    method: "POST",
+    method: 'POST',
     skipAuth: true,
     skipRefresh: true,
     body: JSON.stringify({ phone, code }),
@@ -39,18 +46,18 @@ export async function verifyOtp(phone: string, code: string): Promise<VerifyOtpR
 export async function refresh(): Promise<{ accessToken: string }> {
   const ok = await tryRefresh();
   if (!ok) {
-    throw new ApiError(401, "UNAUTHORIZED", "Refresh failed");
+    throw new ApiError(401, 'UNAUTHORIZED', 'Refresh failed');
   }
   const token = getAccessToken();
   if (!token) {
-    throw new ApiError(401, "UNAUTHORIZED", "Refresh failed");
+    throw new ApiError(401, 'UNAUTHORIZED', 'Refresh failed');
   }
   return { accessToken: token };
 }
 
 export async function logout(): Promise<void> {
   try {
-    await apiFetch(API_ROUTES.auth.logout, { method: "POST", body: JSON.stringify({}) });
+    await apiFetch(API_ROUTES.auth.logout, { method: 'POST', body: JSON.stringify({}) });
   } finally {
     setAccessToken(null);
     setRefreshToken(null);

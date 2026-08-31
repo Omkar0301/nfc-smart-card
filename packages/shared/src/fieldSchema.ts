@@ -1,13 +1,5 @@
 export type FieldType =
-  | "text"
-  | "textarea"
-  | "image"
-  | "phone"
-  | "email"
-  | "url"
-  | "address"
-  | "social"
-  | "date";
+  'text' | 'textarea' | 'image' | 'phone' | 'email' | 'url' | 'address' | 'social' | 'date';
 
 export interface FieldDefinition {
   key: string;

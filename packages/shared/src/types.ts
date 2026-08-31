@@ -1,18 +1,18 @@
 export enum CardStatus {
-  AVAILABLE = "AVAILABLE",
-  ASSIGNED = "ASSIGNED",
-  ACTIVE = "ACTIVE",
-  PAUSED = "PAUSED",
-  SUSPENDED = "SUSPENDED",
-  DEACTIVATED = "DEACTIVATED"
+  AVAILABLE = 'AVAILABLE',
+  ASSIGNED = 'ASSIGNED',
+  ACTIVE = 'ACTIVE',
+  PAUSED = 'PAUSED',
+  SUSPENDED = 'SUSPENDED',
+  DEACTIVATED = 'DEACTIVATED',
 }
 
 export enum Role {
-  CUSTOMER = "CUSTOMER",
-  ADMIN = "ADMIN"
+  CUSTOMER = 'CUSTOMER',
+  ADMIN = 'ADMIN',
 }
 
-export type CardTypeCode = "BUSINESS" | "COLLEGE";
+export type CardTypeCode = 'BUSINESS' | 'COLLEGE';
 
 export interface User {
   id: string;

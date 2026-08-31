@@ -1,22 +1,22 @@
-"use client";
+'use client';
 
-import { useState, type FormEvent } from "react";
-import { ApiError } from "../../api/client";
-import { useAuth } from "../../hooks/useAuth";
-import styles from "./OtpFlow.module.css";
+import { useState, type FormEvent } from 'react';
+import { ApiError } from '../../api/client';
+import { useAuth } from '../../hooks/useAuth';
+import styles from './OtpFlow.module.css';
 
-type Step = "phone" | "code";
+type Step = 'phone' | 'code';
 
 type OtpFlowProps = {
   title?: string;
   onAuthenticated?: () => void;
 };
 
-export function OtpFlow({ title = "Sign in", onAuthenticated }: OtpFlowProps) {
+export function OtpFlow({ title = 'Sign in', onAuthenticated }: OtpFlowProps) {
   const { sendOtp, login } = useAuth();
-  const [step, setStep] = useState<Step>("phone");
-  const [phone, setPhone] = useState("");
-  const [code, setCode] = useState("");
+  const [step, setStep] = useState<Step>('phone');
+  const [phone, setPhone] = useState('');
+  const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -26,9 +26,9 @@ export function OtpFlow({ title = "Sign in", onAuthenticated }: OtpFlowProps) {
     setPending(true);
     try {
       await sendOtp(phone);
-      setStep("code");
+      setStep('code');
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Could not send code.");
+      setError(err instanceof ApiError ? err.message : 'Could not send code.');
     } finally {
       setPending(false);
     }
@@ -42,13 +42,13 @@ export function OtpFlow({ title = "Sign in", onAuthenticated }: OtpFlowProps) {
       await login(phone, code);
       onAuthenticated?.();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Could not verify code.");
+      setError(err instanceof ApiError ? err.message : 'Could not verify code.');
     } finally {
       setPending(false);
     }
   }
 
-  if (step === "phone") {
+  if (step === 'phone') {
     return (
       <form className={styles.form} onSubmit={handleSend}>
         <h1>{title}</h1>
@@ -66,7 +66,7 @@ export function OtpFlow({ title = "Sign in", onAuthenticated }: OtpFlowProps) {
         </label>
         {error ? <p className={styles.error}>{error}</p> : null}
         <button className={styles.button} type="submit" disabled={pending}>
-          {pending ? "Sending…" : "Send OTP"}
+          {pending ? 'Sending…' : 'Send OTP'}
         </button>
       </form>
     );
@@ -84,21 +84,21 @@ export function OtpFlow({ title = "Sign in", onAuthenticated }: OtpFlowProps) {
           autoComplete="one-time-code"
           maxLength={6}
           value={code}
-          onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+          onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
           required
         />
       </label>
       {error ? <p className={styles.error}>{error}</p> : null}
       <button className={styles.button} type="submit" disabled={pending || code.length !== 6}>
-        {pending ? "Verifying…" : "Verify"}
+        {pending ? 'Verifying…' : 'Verify'}
       </button>
       <button
         className={styles.button}
         type="button"
         disabled={pending}
         onClick={() => {
-          setStep("phone");
-          setCode("");
+          setStep('phone');
+          setCode('');
           setError(null);
         }}
       >

@@ -15,9 +15,9 @@ Implement a recovery path for customers who have lost access to their registered
 
 ## User Story
 
-*As a customer who has changed my phone number, I want to recover access to my account using my registered email address — so I can resume editing my profile and managing my card without losing my history, assignment, or data.*
+_As a customer who has changed my phone number, I want to recover access to my account using my registered email address — so I can resume editing my profile and managing my card without losing my history, assignment, or data._
 
-*As an admin, I want account recovery attempts to be logged and rate-limited — so that recovery cannot be exploited as an unauthenticated path into someone else's account.*
+_As an admin, I want account recovery attempts to be logged and rate-limited — so that recovery cannot be exploited as an unauthenticated path into someone else's account._
 
 ---
 
@@ -32,10 +32,10 @@ Implement a recovery path for customers who have lost access to their registered
 
 ## What Is Already Implemented
 
-| Item | Status |
-|---|---|
-| `User.email` optional field (intended for recovery) | ✅ REUSE |
-| `requireAuth` middleware (from F-002) | ✅ REUSE (once F-002 is built) |
+| Item                                                | Status                         |
+| --------------------------------------------------- | ------------------------------ |
+| `User.email` optional field (intended for recovery) | ✅ REUSE                       |
+| `requireAuth` middleware (from F-002)               | ✅ REUSE (once F-002 is built) |
 
 ---
 
@@ -105,14 +105,15 @@ model AccountRecoveryToken {
 
 ### Files to CREATE
 
-| File | Purpose |
-|---|---|
-| `src/auth/recovery.ts` | Recovery token generation, hashing, email dispatch, validation |
-| `src/auth/email-provider.ts` | Email provider interface + console-log dev implementation |
+| File                         | Purpose                                                        |
+| ---------------------------- | -------------------------------------------------------------- |
+| `src/auth/recovery.ts`       | Recovery token generation, hashing, email dispatch, validation |
+| `src/auth/email-provider.ts` | Email provider interface + console-log dev implementation      |
 
 ### API Endpoints
 
 #### `POST /auth/recover/request`
+
 - **Auth required:** No (this is the path for locked-out users)
 - **Input:** `{ email: string }`
 - **Logic:** normalize email → find User by email → if found: invalidate prior recovery tokens, generate new token, hash + store, dispatch email → always respond with same success message (security: do not reveal whether email exists)
@@ -120,13 +121,15 @@ model AccountRecoveryToken {
 - **Rate limit:** 3 requests per email per hour; log all attempts
 
 #### `POST /auth/recover/verify`
+
 - **Auth required:** No
 - **Input:** `{ token: string }` (from the email link's query parameter, submitted via frontend)
 - **Logic:** hash incoming token → find `AccountRecoveryToken` where `tokenHash` matches → validate not expired, not used → mark `usedAt` → issue access + refresh tokens for the linked User
 - **Response (success):** `200 { accessToken, refreshToken, user: { id, name, phone, role } }`
 - **Response (error):** `400` for invalid/expired/used token
 
-#### `PUT /auth/recover/phone` *(called after successful recovery)*
+#### `PUT /auth/recover/phone` _(called after successful recovery)_
+
 - **Auth required:** Yes (the newly issued access token)
 - **Input:** `{ phone: string, otpCode: string }` — updating phone requires verifying OTP on the new number
 - **Logic:** verify OTP for new phone (reuses F-002 OTP system) → update `User.phone`
@@ -138,26 +141,26 @@ model AccountRecoveryToken {
 
 ### Files to CREATE
 
-| File | Purpose |
-|---|---|
-| `src/portal/Settings/RecoveryEmailSetup.tsx` | UI for customer to add/update their recovery email (shown in profile settings) |
-| `src/shared/pages/RecoverAccount.tsx` | "Forgot access" page — email input, submission, confirmation message |
-| `src/shared/pages/RecoveryVerify.tsx` | Token landing page (from email link) — verifies token and redirects to portal with session |
-| `src/shared/api/auth.ts` | Add `requestRecovery()`, `verifyRecoveryToken()`, `updatePhone()` calls (extends F-002 file) |
+| File                                         | Purpose                                                                                      |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `src/portal/Settings/RecoveryEmailSetup.tsx` | UI for customer to add/update their recovery email (shown in profile settings)               |
+| `src/shared/pages/RecoverAccount.tsx`        | "Forgot access" page — email input, submission, confirmation message                         |
+| `src/shared/pages/RecoveryVerify.tsx`        | Token landing page (from email link) — verifies token and redirects to portal with session   |
+| `src/shared/api/auth.ts`                     | Add `requestRecovery()`, `verifyRecoveryToken()`, `updatePhone()` calls (extends F-002 file) |
 
 ---
 
 ## Validation & Error Cases
 
-| Case | Behavior |
-|---|---|
-| Email not registered | 200 with generic success message (do not reveal) |
-| Token expired | `400 { error: { code: "RECOVERY_TOKEN_EXPIRED" } }` |
-| Token already used | `400 { error: { code: "RECOVERY_TOKEN_USED" } }` |
-| Token not found / invalid | `400 { error: { code: "RECOVERY_TOKEN_INVALID" } }` |
-| Recovery rate limit exceeded | `429 { error: { code: "RATE_LIMITED" } }` |
-| New phone already registered to another user | `409 { error: { code: "PHONE_IN_USE" } }` |
-| OTP for new phone fails | `400 { error: { code: "OTP_INVALID" } }` |
+| Case                                         | Behavior                                            |
+| -------------------------------------------- | --------------------------------------------------- |
+| Email not registered                         | 200 with generic success message (do not reveal)    |
+| Token expired                                | `400 { error: { code: "RECOVERY_TOKEN_EXPIRED" } }` |
+| Token already used                           | `400 { error: { code: "RECOVERY_TOKEN_USED" } }`    |
+| Token not found / invalid                    | `400 { error: { code: "RECOVERY_TOKEN_INVALID" } }` |
+| Recovery rate limit exceeded                 | `429 { error: { code: "RATE_LIMITED" } }`           |
+| New phone already registered to another user | `409 { error: { code: "PHONE_IN_USE" } }`           |
+| OTP for new phone fails                      | `400 { error: { code: "OTP_INVALID" } }`            |
 
 ---
 

@@ -1,7 +1,7 @@
-import crypto from "node:crypto";
-import { config } from "../config.js";
-import { otpRepository } from "../repositories/otp.repository.js";
-import { createOtpProvider } from "../providers/otp.provider.js";
+import crypto from 'node:crypto';
+import { config } from '../config.js';
+import { otpRepository } from '../repositories/otp.repository.js';
+import { createOtpProvider } from '../providers/otp.provider.js';
 
 const otpProvider = createOtpProvider();
 
@@ -10,11 +10,14 @@ function hashSecret(): string {
 }
 
 export function hashOtp(phone: string, code: string): string {
-  return crypto.createHmac("sha256", hashSecret()).update(`${phone}:${code}`).digest("hex");
+  return crypto.createHmac('sha256', hashSecret()).update(`${phone}:${code}`).digest('hex');
 }
 
 export function generateOtpCode(): string {
-  return crypto.randomInt(0, 10 ** config.OTP_DIGITS).toString().padStart(config.OTP_DIGITS, "0");
+  return crypto
+    .randomInt(0, 10 ** config.OTP_DIGITS)
+    .toString()
+    .padStart(config.OTP_DIGITS, '0');
 }
 
 export async function countRecentSends(phone: string): Promise<number> {
@@ -49,8 +52,8 @@ export async function verifyOtp(phone: string, code: string): Promise<VerifyOtpR
     return {
       ok: false,
       status: 400,
-      code: "OTP_INVALID",
-      message: "Invalid or already used verification code.",
+      code: 'OTP_INVALID',
+      message: 'Invalid or already used verification code.',
     };
   }
 
@@ -58,8 +61,8 @@ export async function verifyOtp(phone: string, code: string): Promise<VerifyOtpR
     return {
       ok: false,
       status: 400,
-      code: "OTP_EXPIRED",
-      message: "This verification code has expired.",
+      code: 'OTP_EXPIRED',
+      message: 'This verification code has expired.',
     };
   }
 
@@ -67,13 +70,13 @@ export async function verifyOtp(phone: string, code: string): Promise<VerifyOtpR
     return {
       ok: false,
       status: 401,
-      code: "OTP_LOCKED",
-      message: "Too many incorrect attempts. Request a new code.",
+      code: 'OTP_LOCKED',
+      message: 'Too many incorrect attempts. Request a new code.',
     };
   }
 
-  const expected = Buffer.from(record.codeHash, "hex");
-  const actual = Buffer.from(hashOtp(phone, code), "hex");
+  const expected = Buffer.from(record.codeHash, 'hex');
+  const actual = Buffer.from(hashOtp(phone, code), 'hex');
 
   if (expected.length !== actual.length || !crypto.timingSafeEqual(expected, actual)) {
     const attempts = record.attempts + 1;
@@ -83,16 +86,16 @@ export async function verifyOtp(phone: string, code: string): Promise<VerifyOtpR
       return {
         ok: false,
         status: 401,
-        code: "OTP_LOCKED",
-        message: "Too many incorrect attempts. Request a new code.",
+        code: 'OTP_LOCKED',
+        message: 'Too many incorrect attempts. Request a new code.',
       };
     }
 
     return {
       ok: false,
       status: 400,
-      code: "OTP_INVALID",
-      message: "Invalid verification code.",
+      code: 'OTP_INVALID',
+      message: 'Invalid verification code.',
       attemptsLeft: config.OTP_MAX_ATTEMPTS - attempts,
     };
   }

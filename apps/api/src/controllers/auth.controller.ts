@@ -1,12 +1,18 @@
-import type { Request, Response } from "express";
-import { ZodError } from "zod";
-import { sendError, sendSuccess } from "../lib/http.js";
-import { authService } from "../services/auth.service.js";
-import { refreshSchema, sendOtpSchema, verifyOtpSchema } from "../validators/auth.validator.js";
-import { REFRESH_COOKIE, clearRefreshCookie, setRefreshCookie, verifyStoredRefreshToken, revokeRefreshTokenById } from "../services/token.service.js";
+import type { Request, Response } from 'express';
+import { ZodError } from 'zod';
+import { sendError, sendSuccess } from '../lib/http.js';
+import { authService } from '../services/auth.service.js';
+import { refreshSchema, sendOtpSchema, verifyOtpSchema } from '../validators/auth.validator.js';
+import {
+  REFRESH_COOKIE,
+  clearRefreshCookie,
+  setRefreshCookie,
+  verifyStoredRefreshToken,
+  revokeRefreshTokenById,
+} from '../services/token.service.js';
 
 function validationError(res: Response, err: ZodError) {
-  return sendError(res, 400, "VALIDATION_ERROR", err.issues[0]?.message ?? "Invalid request.");
+  return sendError(res, 400, 'VALIDATION_ERROR', err.issues[0]?.message ?? 'Invalid request.');
 }
 
 export const authController = {
@@ -18,7 +24,7 @@ export const authController = {
         sendError(res, result.status, result.code, result.message, result.details);
         return;
       }
-      sendSuccess(res, 200, result.data, "OTP sent");
+      sendSuccess(res, 200, result.data, 'OTP sent');
     } catch (err) {
       if (err instanceof ZodError) {
         validationError(res, err);
@@ -52,11 +58,13 @@ export const authController = {
       const body = refreshSchema.parse(req.body ?? {});
       const token =
         body.refreshToken ||
-        (typeof req.cookies?.[REFRESH_COOKIE] === "string" ? req.cookies[REFRESH_COOKIE] : undefined);
+        (typeof req.cookies?.[REFRESH_COOKIE] === 'string'
+          ? req.cookies[REFRESH_COOKIE]
+          : undefined);
 
       const result = await authService.refresh(token);
       if (!result.ok) {
-        if (result.code === "TOKEN_EXPIRED" || result.code === "UNAUTHORIZED") {
+        if (result.code === 'TOKEN_EXPIRED' || result.code === 'UNAUTHORIZED') {
           clearRefreshCookie(res);
         }
         sendError(res, result.status, result.code, result.message);
@@ -78,7 +86,7 @@ export const authController = {
     const body = refreshSchema.safeParse(req.body ?? {});
     const token =
       (body.success ? body.data.refreshToken : undefined) ||
-      (typeof req.cookies?.[REFRESH_COOKIE] === "string" ? req.cookies[REFRESH_COOKIE] : undefined);
+      (typeof req.cookies?.[REFRESH_COOKIE] === 'string' ? req.cookies[REFRESH_COOKIE] : undefined);
 
     if (token) {
       const verified = await verifyStoredRefreshToken(token);

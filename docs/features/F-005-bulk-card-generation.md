@@ -16,11 +16,11 @@ Implement the admin-triggered bulk card generation system using a Postgres-backe
 ## User Story
 
 **Admin:**  
-*As a super admin, I want to select a card type and quantity (e.g. 1,000 Business cards), submit the request, and see real-time job progress — so I can generate inventory without waiting for a long-running HTTP request to complete, and without losing progress if something goes wrong partway through.*
+_As a super admin, I want to select a card type and quantity (e.g. 1,000 Business cards), submit the request, and see real-time job progress — so I can generate inventory without waiting for a long-running HTTP request to complete, and without losing progress if something goes wrong partway through._
 
-*As a super admin, I want to export the generated card data as a CSV — so I can send the manufacturer the card numbers, types, and NFC URLs they need to program the physical chips.*
+_As a super admin, I want to export the generated card data as a CSV — so I can send the manufacturer the card numbers, types, and NFC URLs they need to program the physical chips._
 
-*As a super admin, I want to mark a batch as defective and invalidate all still-AVAILABLE cards in it — so that QC-rejected print runs don't reach customers.*
+_As a super admin, I want to mark a batch as defective and invalidate all still-AVAILABLE cards in it — so that QC-rejected print runs don't reach customers._
 
 ---
 
@@ -36,13 +36,13 @@ Implement the admin-triggered bulk card generation system using a Postgres-backe
 
 ## What Is Already Implemented
 
-| Item | Status |
-|---|---|
-| `NFCCard` model (cardNumber, publicToken, cardTypeId, batchId, status, organizationId) | ✅ REUSE |
-| `CardStatus.AVAILABLE` enum value | ✅ REUSE (after F-001 fix) |
-| `batchId` field on NFCCard | ✅ REUSE |
-| `NFCCard.publicToken` unique index | ✅ REUSE |
-| `NFCCard.cardNumber` unique index | ✅ REUSE |
+| Item                                                                                   | Status                     |
+| -------------------------------------------------------------------------------------- | -------------------------- |
+| `NFCCard` model (cardNumber, publicToken, cardTypeId, batchId, status, organizationId) | ✅ REUSE                   |
+| `CardStatus.AVAILABLE` enum value                                                      | ✅ REUSE (after F-001 fix) |
+| `batchId` field on NFCCard                                                             | ✅ REUSE                   |
+| `NFCCard.publicToken` unique index                                                     | ✅ REUSE                   |
+| `NFCCard.cardNumber` unique index                                                      | ✅ REUSE                   |
 
 ---
 
@@ -76,13 +76,13 @@ Implement the admin-triggered bulk card generation system using a Postgres-backe
 
 ## Card Number Prefix Map
 
-| CardType Slug | Prefix | Example |
-|---|---|---|
-| `business` | `BC` | `BC-000001` |
-| `college` | `CC` | `CC-000001` |
-| `doctor` | `DC` | `DC-000001` (post-MVP) |
-| `employee` | `EC` | `EC-000001` (post-MVP) |
-| `freelancer` | `FC` | `FC-000001` (post-MVP) |
+| CardType Slug | Prefix | Example                |
+| ------------- | ------ | ---------------------- |
+| `business`    | `BC`   | `BC-000001`            |
+| `college`     | `CC`   | `CC-000001`            |
+| `doctor`      | `DC`   | `DC-000001` (post-MVP) |
+| `employee`    | `EC`   | `EC-000001` (post-MVP) |
+| `freelancer`  | `FC`   | `FC-000001` (post-MVP) |
 
 The prefix is stored in the `CardType` record (add a `cardNumberPrefix` field to the schema) or derived from slug convention — **must be stored**, not derived at runtime, to avoid inconsistency if the slug is later renamed.
 
@@ -139,33 +139,37 @@ npm install @types/pg --workspace=apps/api --save-dev
 
 ### Files to CREATE
 
-| File | Purpose |
-|---|---|
-| `src/lib/queue.ts` | pg-boss instance initialization and connection |
-| `src/jobs/cardGeneration.ts` | Job worker: token generation, collision retry, batch write, progress update |
-| `src/services/cardService.ts` | Card number sequencing, batch validation, defective-batch invalidation |
-| `src/routes/admin/cards.ts` | Admin card endpoints (generation, status, export) |
+| File                          | Purpose                                                                     |
+| ----------------------------- | --------------------------------------------------------------------------- |
+| `src/lib/queue.ts`            | pg-boss instance initialization and connection                              |
+| `src/jobs/cardGeneration.ts`  | Job worker: token generation, collision retry, batch write, progress update |
+| `src/services/cardService.ts` | Card number sequencing, batch validation, defective-batch invalidation      |
+| `src/routes/admin/cards.ts`   | Admin card endpoints (generation, status, export)                           |
 
 ### API Endpoints
 
 #### `POST /admin/cards/generate`
+
 - **Auth required:** Admin
 - **Input:** `{ cardTypeId: string, quantity: number }` (quantity: 1–10,000, validated)
 - **Logic:** validate card type exists + is ACTIVE → generate `batchId` → create `GenerationJob` row (PENDING) → enqueue pg-boss job with `{ batchId, cardTypeId, quantity, requestedBy }` → respond immediately
 - **Response:** `202 { jobId: string, batchId: string, message: "Generation job enqueued" }`
 
 #### `GET /admin/jobs/:id`
+
 - **Auth required:** Admin
 - **Logic:** find `GenerationJob` by id → return current state
 - **Response:** `200 { job: { id, batchId, cardTypeId, quantity, generated, status, startedAt, completedAt, errorMessage } }`
 
 #### `GET /admin/cards/export`
+
 - **Auth required:** Admin
 - **Query params:** `?cardTypeId=...&status=...&batchId=...` (all optional filters)
 - **Logic:** query NFCCard with filters → generate CSV → stream response with `Content-Disposition: attachment; filename="cards-export.csv"`
 - **Response:** CSV file stream
 
-#### `POST /admin/cards/batches/:batchId/invalidate` *(defective batch)*
+#### `POST /admin/cards/batches/:batchId/invalidate` _(defective batch)_
+
 - **Auth required:** Admin
 - **Logic:** find all `NFCCard` where `batchId = :batchId` AND `status = AVAILABLE` → bulk update `status = DEACTIVATED` → return count
 - **Response:** `200 { invalidated: N, skipped: M, message: "M cards in assigned/active/paused state were skipped" }`
@@ -195,26 +199,26 @@ On job start:
 
 ### Files to CREATE
 
-| File | Purpose |
-|---|---|
-| `src/admin/CardManagement/GenerateCards.tsx` | Form: select card type, enter quantity, submit; shows job progress |
-| `src/admin/CardManagement/JobStatus.tsx` | Real-time job progress display (polls `GET /admin/jobs/:id` until complete) |
-| `src/admin/CardManagement/BatchInvalidate.tsx` | Form to mark a batch as defective |
-| `src/shared/api/cards.ts` | `generateCards()`, `getJobStatus()`, `exportCards()`, `invalidateBatch()` API calls |
+| File                                           | Purpose                                                                             |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `src/admin/CardManagement/GenerateCards.tsx`   | Form: select card type, enter quantity, submit; shows job progress                  |
+| `src/admin/CardManagement/JobStatus.tsx`       | Real-time job progress display (polls `GET /admin/jobs/:id` until complete)         |
+| `src/admin/CardManagement/BatchInvalidate.tsx` | Form to mark a batch as defective                                                   |
+| `src/shared/api/cards.ts`                      | `generateCards()`, `getJobStatus()`, `exportCards()`, `invalidateBatch()` API calls |
 
 ---
 
 ## Validation & Error Cases
 
-| Case | Behavior |
-|---|---|
-| `quantity` < 1 or > 10,000 | `400 { error: { code: "INVALID_QUANTITY" } }` |
-| `cardTypeId` not found | `404 { error: { code: "CARD_TYPE_NOT_FOUND" } }` |
-| `cardTypeId` refers to inactive CardType | `400 { error: { code: "CARD_TYPE_INACTIVE" } }` |
-| Job ID not found | `404 { error: { code: "JOB_NOT_FOUND" } }` |
-| Batch ID not found for invalidation | `404 { error: { code: "BATCH_NOT_FOUND" } }` |
-| Batch already fully invalidated | `200` with `invalidated: 0, skipped: 0` |
-| Token collision after 5 retries | Log error, skip that card, continue batch (GenerationJob reflects partial completion) |
+| Case                                     | Behavior                                                                              |
+| ---------------------------------------- | ------------------------------------------------------------------------------------- |
+| `quantity` < 1 or > 10,000               | `400 { error: { code: "INVALID_QUANTITY" } }`                                         |
+| `cardTypeId` not found                   | `404 { error: { code: "CARD_TYPE_NOT_FOUND" } }`                                      |
+| `cardTypeId` refers to inactive CardType | `400 { error: { code: "CARD_TYPE_INACTIVE" } }`                                       |
+| Job ID not found                         | `404 { error: { code: "JOB_NOT_FOUND" } }`                                            |
+| Batch ID not found for invalidation      | `404 { error: { code: "BATCH_NOT_FOUND" } }`                                          |
+| Batch already fully invalidated          | `200` with `invalidated: 0, skipped: 0`                                               |
+| Token collision after 5 retries          | Log error, skip that card, continue batch (GenerationJob reflects partial completion) |
 
 ---
 

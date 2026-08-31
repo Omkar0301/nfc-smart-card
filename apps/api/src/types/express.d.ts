@@ -1,4 +1,4 @@
-import { Role } from "@nfc-card/shared";
+import { Role } from '@nfc-card/shared';
 
 export {};
 

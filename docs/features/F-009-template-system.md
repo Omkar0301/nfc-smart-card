@@ -16,12 +16,12 @@ Build the template library for Business and College card types (3 templates each
 ## User Story
 
 **Customer:**  
-*As a customer setting up my profile, I want to choose a template that suits my style from a gallery specific to my card type — so my public page looks the way I want.*
+_As a customer setting up my profile, I want to choose a template that suits my style from a gallery specific to my card type — so my public page looks the way I want._
 
-*As a customer, I want to switch my template at any time without losing my data or changing my card's URL.*
+_As a customer, I want to switch my template at any time without losing my data or changing my card's URL._
 
 **Admin:**  
-*As a super admin, I want to manage which templates are active for each card type, set their display order, mark them as free or premium, and update their thumbnail.*
+_As a super admin, I want to manage which templates are active for each card type, set their display order, mark them as free or premium, and update their thumbnail._
 
 ---
 
@@ -37,11 +37,11 @@ Build the template library for Business and College card types (3 templates each
 
 ## What Is Already Implemented
 
-| Item | Status |
-|---|---|
+| Item                                                                                                     | Status   |
+| -------------------------------------------------------------------------------------------------------- | -------- |
 | `Template` model (id, cardTypeId, name, slug, thumbnail, isActive, isPremium, configuration, timestamps) | ✅ REUSE |
-| `Template ↔ CardType` FK relation | ✅ REUSE |
-| `Template ↔ Profile` FK (templateId on Profile) | ✅ REUSE |
+| `Template ↔ CardType` FK relation                                                                        | ✅ REUSE |
+| `Template ↔ Profile` FK (templateId on Profile)                                                          | ✅ REUSE |
 
 ---
 
@@ -76,19 +76,19 @@ Build the template library for Business and College card types (3 templates each
 
 ### Business Card Templates (slug: `business`)
 
-| Template Name | Slug | Description |
-|---|---|---|
-| Modern | `business-modern` | Clean card with large photo, name at top, icon-based social links, colored accent bar |
-| Minimal | `business-minimal` | Text-first, no heavy imagery, minimal whitespace, monochrome palette |
-| Premium | `business-premium` | Gradient background, prominent photo, card-style layout, save-contact CTA dominant |
+| Template Name | Slug               | Description                                                                           |
+| ------------- | ------------------ | ------------------------------------------------------------------------------------- |
+| Modern        | `business-modern`  | Clean card with large photo, name at top, icon-based social links, colored accent bar |
+| Minimal       | `business-minimal` | Text-first, no heavy imagery, minimal whitespace, monochrome palette                  |
+| Premium       | `business-premium` | Gradient background, prominent photo, card-style layout, save-contact CTA dominant    |
 
 ### College / Student Card Templates (slug: `college`)
 
-| Template Name | Slug | Description |
-|---|---|---|
-| Academic | `college-academic` | Formal layout, institution logo area, skills and achievements in clean list |
-| Modern | `college-modern` | Colorful card-style layout, social links as chips, photo circle |
-| Creative | `college-creative` | Portfolio-forward, skills as tags, bold typography, portfolio link dominant |
+| Template Name | Slug               | Description                                                                 |
+| ------------- | ------------------ | --------------------------------------------------------------------------- |
+| Academic      | `college-academic` | Formal layout, institution logo area, skills and achievements in clean list |
+| Modern        | `college-modern`   | Colorful card-style layout, social links as chips, photo circle             |
+| Creative      | `college-creative` | Portfolio-forward, skills as tags, bold typography, portfolio link dominant |
 
 ---
 
@@ -100,20 +100,20 @@ All templates conform to this shared props interface in `packages/shared/src/typ
 import { FieldSchema } from './fieldSchema';
 
 export interface PublicProfileData {
-  [key: string]: string | string[] | null;  // already visibility-filtered by server
+  [key: string]: string | string[] | null; // already visibility-filtered by server
 }
 
 export interface TemplateProps {
   profile: {
-    data: PublicProfileData;           // only public fields (server-filtered)
-    fieldSchema: FieldSchema;          // for label lookups
+    data: PublicProfileData; // only public fields (server-filtered)
+    fieldSchema: FieldSchema; // for label lookups
   };
   card: {
     publicToken: string;
     cardNumber: string;
   };
-  configuration?: Record<string, unknown>;  // Template.configuration from DB
-  isPreview?: boolean;                      // true in portal preview — disables analytics events
+  configuration?: Record<string, unknown>; // Template.configuration from DB
+  isPreview?: boolean; // true in portal preview — disables analytics events
 }
 ```
 
@@ -124,6 +124,7 @@ export interface TemplateProps {
 ### MODIFY — Template seed data (extends F-004 seed script)
 
 Add 6 `Template` rows to `apps/api/prisma/seed.ts`:
+
 - 3 for Business cardTypeId: Modern, Minimal, Premium
 - 3 for College cardTypeId: Academic, Modern, Creative
 
@@ -144,20 +145,20 @@ Add 6 `Template` rows to `apps/api/prisma/seed.ts`:
 
 ### Files to CREATE
 
-| File | Purpose |
-|---|---|
-| `packages/shared/src/templates/business/BusinessModern.tsx` | Business — Modern template |
-| `packages/shared/src/templates/business/BusinessMinimal.tsx` | Business — Minimal template |
-| `packages/shared/src/templates/business/BusinessPremium.tsx` | Business — Premium template |
-| `packages/shared/src/templates/college/CollegeAcademic.tsx` | College — Academic template |
-| `packages/shared/src/templates/college/CollegeModern.tsx` | College — Modern template |
-| `packages/shared/src/templates/college/CollegeCreative.tsx` | College — Creative template |
-| `packages/shared/src/templates/index.ts` | Registry: `{ slug → Component }` map |
-| `packages/shared/src/types/template.ts` | `TemplateProps` interface |
-| `apps/web/app/portal/templates/page.tsx` | Next.js portal page for template picker |
-| `apps/web/components/portal/TemplatePicker.tsx` | Gallery UI: templates for customer's card type |
-| `apps/web/components/portal/TemplatePreview.tsx` | Full-screen preview of a template |
-| `apps/web/app/admin/templates/page.tsx` | Admin template management page |
+| File                                                         | Purpose                                        |
+| ------------------------------------------------------------ | ---------------------------------------------- |
+| `packages/shared/src/templates/business/BusinessModern.tsx`  | Business — Modern template                     |
+| `packages/shared/src/templates/business/BusinessMinimal.tsx` | Business — Minimal template                    |
+| `packages/shared/src/templates/business/BusinessPremium.tsx` | Business — Premium template                    |
+| `packages/shared/src/templates/college/CollegeAcademic.tsx`  | College — Academic template                    |
+| `packages/shared/src/templates/college/CollegeModern.tsx`    | College — Modern template                      |
+| `packages/shared/src/templates/college/CollegeCreative.tsx`  | College — Creative template                    |
+| `packages/shared/src/templates/index.ts`                     | Registry: `{ slug → Component }` map           |
+| `packages/shared/src/types/template.ts`                      | `TemplateProps` interface                      |
+| `apps/web/app/portal/templates/page.tsx`                     | Next.js portal page for template picker        |
+| `apps/web/components/portal/TemplatePicker.tsx`              | Gallery UI: templates for customer's card type |
+| `apps/web/components/portal/TemplatePreview.tsx`             | Full-screen preview of a template              |
+| `apps/web/app/admin/templates/page.tsx`                      | Admin template management page                 |
 
 ---
 

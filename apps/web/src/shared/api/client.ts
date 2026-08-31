@@ -1,6 +1,6 @@
-import { API_ROUTES } from "./routes";
+import { API_ROUTES } from './routes';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
 export class ApiError extends Error {
   constructor(
@@ -10,7 +10,7 @@ export class ApiError extends Error {
     public extra?: Record<string, unknown>
   ) {
     super(message);
-    this.name = "ApiError";
+    this.name = 'ApiError';
   }
 }
 
@@ -35,12 +35,7 @@ async function readError(res: Response): Promise<never> {
     error?: { code?: string; message?: string } & Record<string, unknown>;
   };
   const err = body.error ?? {};
-  throw new ApiError(
-    res.status,
-    err.code ?? "UNKNOWN",
-    err.message ?? res.statusText,
-    err
-  );
+  throw new ApiError(res.status, err.code ?? 'UNKNOWN', err.message ?? res.statusText, err);
 }
 
 async function tryRefresh(): Promise<boolean> {
@@ -50,9 +45,9 @@ async function tryRefresh(): Promise<boolean> {
 
   refreshInFlight = (async () => {
     const res = await fetch(`${API_URL}${API_ROUTES.auth.refresh}`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(refreshToken ? { refreshToken } : {}),
     });
 
@@ -65,7 +60,9 @@ async function tryRefresh(): Promise<boolean> {
     const body = (await res.json()) as
       | { success: true; data: { accessToken: string; refreshToken?: string } }
       | { accessToken: string; refreshToken?: string };
-    const data = (body as { data?: { accessToken: string; refreshToken?: string } }).data ?? (body as { accessToken: string; refreshToken?: string });
+    const data =
+      (body as { data?: { accessToken: string; refreshToken?: string } }).data ??
+      (body as { accessToken: string; refreshToken?: string });
     if (!data?.accessToken) {
       setAccessToken(null);
       setRefreshToken(null);
@@ -95,11 +92,11 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
 
   const buildHeaders = (): Headers => {
     const next = new Headers(headers);
-    if (!next.has("Content-Type") && rest.body) {
-      next.set("Content-Type", "application/json");
+    if (!next.has('Content-Type') && rest.body) {
+      next.set('Content-Type', 'application/json');
     }
     if (!skipAuth && accessToken) {
-      next.set("Authorization", `Bearer ${accessToken}`);
+      next.set('Authorization', `Bearer ${accessToken}`);
     }
     return next;
   };
@@ -107,17 +104,20 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
   const request = () =>
     fetch(`${API_URL}${path}`, {
       ...rest,
-      credentials: "include",
+      credentials: 'include',
       headers: buildHeaders(),
     });
 
   let res = await request();
 
   if (res.status === 401 && !skipRefresh && !path.startsWith(API_ROUTES.auth.refresh)) {
-    const errorBody = (await res.clone().json().catch(() => ({}))) as {
+    const errorBody = (await res
+      .clone()
+      .json()
+      .catch(() => ({}))) as {
       error?: { code?: string };
     };
-    if (!skipAuth && errorBody.error?.code === "TOKEN_EXPIRED") {
+    if (!skipAuth && errorBody.error?.code === 'TOKEN_EXPIRED') {
       const refreshed = await tryRefresh();
       if (refreshed) {
         res = await request();

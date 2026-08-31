@@ -9,18 +9,18 @@
 
 This version keeps every v1 decision that was sound and changes the handful of things that would have caused real pain at scale. Nothing below changes the core product idea (permanent card → mutable backend record) or the fixed stack.
 
-| # | Area | v1 | v2 | Why |
-|---|------|----|----|-----|
-| 1 | Card type data model | One database table per card type (`BusinessProfile`, `CollegeProfile`, …) | One shared `Profile` table + a `fieldSchema` config per `CardType` | Adding a vertical was a code change + migration; now it's a config change. See §7, §21. |
-| 2 | Multi-tenancy | Not modeled; "Multi-company enterprise hierarchy" listed as Non-Goal | Lightweight `Organization` entity added to the schema now (no UI yet) | Employee/College cards are naturally bought and managed in bulk by an org. Adding this later would be a breaking migration. See §6, §21, §28. |
-| 3 | Card lifecycle | `AVAILABLE → ASSIGNED → ACTIVE → SUSPENDED → DEACTIVATED` | Adds `PAUSED`, a customer-controlled, instantly reversible state, distinct from admin-controlled `SUSPENDED` | Closes the "lost card stays live and public" exposure window without waiting on support. See §8, §17. |
-| 4 | Account recovery | Not specified | Explicit recovery flow when a customer loses access to their OTP phone number | Phone-only auth risks permanently locking someone out of editing a card they still own. See §10. |
-| 5 | Field visibility defaults | Not specified (customer opts fields in/out) | Identifier-like fields (Student ID, Employee ID, home address) default **hidden**; contact fields default **visible** | Safer default given anyone with the URL can view the page. See §16. |
-| 6 | Bulk card generation | Implied synchronous | Explicit background job (queued, resumable, idempotent) | Generating thousands of unique tokens shouldn't block an HTTP request or fail all-or-nothing. See §9. |
-| 7 | Public profile rendering | Not specified | Server-rendered for the public profile route specifically (fast first paint, working Open Graph tags), client-rendered SPA everywhere else | The one place SEO/share-preview and mobile load speed actually matter. See §14, §25. |
-| 8 | Analytics integrity | Raw event log only | Adds bot/crawler filtering and a visit-dedup window | Prevents customer-facing scan counts from being inflated by crawlers and repeat taps. See §20. |
-| 9 | Employee Card | Included in initial four verticals with individual self-serve onboarding | Marked explicitly as **blocked on Organization bulk-assign** before real productization; usable stand-alone only for pilots | Companies don't want employees self-registering with personal OTP outside HR control. See §7.3, §28. |
-| 10 | Development order | 9 stages, includes vertical-by-vertical rebuilds | Restructured around the config-driven model so new verticals are Stage 9 config work, not Stage 3-style rebuilds | See §27. |
+| #   | Area                      | v1                                                                        | v2                                                                                                                                         | Why                                                                                                                                           |
+| --- | ------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Card type data model      | One database table per card type (`BusinessProfile`, `CollegeProfile`, …) | One shared `Profile` table + a `fieldSchema` config per `CardType`                                                                         | Adding a vertical was a code change + migration; now it's a config change. See §7, §21.                                                       |
+| 2   | Multi-tenancy             | Not modeled; "Multi-company enterprise hierarchy" listed as Non-Goal      | Lightweight `Organization` entity added to the schema now (no UI yet)                                                                      | Employee/College cards are naturally bought and managed in bulk by an org. Adding this later would be a breaking migration. See §6, §21, §28. |
+| 3   | Card lifecycle            | `AVAILABLE → ASSIGNED → ACTIVE → SUSPENDED → DEACTIVATED`                 | Adds `PAUSED`, a customer-controlled, instantly reversible state, distinct from admin-controlled `SUSPENDED`                               | Closes the "lost card stays live and public" exposure window without waiting on support. See §8, §17.                                         |
+| 4   | Account recovery          | Not specified                                                             | Explicit recovery flow when a customer loses access to their OTP phone number                                                              | Phone-only auth risks permanently locking someone out of editing a card they still own. See §10.                                              |
+| 5   | Field visibility defaults | Not specified (customer opts fields in/out)                               | Identifier-like fields (Student ID, Employee ID, home address) default **hidden**; contact fields default **visible**                      | Safer default given anyone with the URL can view the page. See §16.                                                                           |
+| 6   | Bulk card generation      | Implied synchronous                                                       | Explicit background job (queued, resumable, idempotent)                                                                                    | Generating thousands of unique tokens shouldn't block an HTTP request or fail all-or-nothing. See §9.                                         |
+| 7   | Public profile rendering  | Not specified                                                             | Server-rendered for the public profile route specifically (fast first paint, working Open Graph tags), client-rendered SPA everywhere else | The one place SEO/share-preview and mobile load speed actually matter. See §14, §25.                                                          |
+| 8   | Analytics integrity       | Raw event log only                                                        | Adds bot/crawler filtering and a visit-dedup window                                                                                        | Prevents customer-facing scan counts from being inflated by crawlers and repeat taps. See §20.                                                |
+| 9   | Employee Card             | Included in initial four verticals with individual self-serve onboarding  | Marked explicitly as **blocked on Organization bulk-assign** before real productization; usable stand-alone only for pilots                | Companies don't want employees self-registering with personal OTP outside HR control. See §7.3, §28.                                          |
+| 10  | Development order         | 9 stages, includes vertical-by-vertical rebuilds                          | Restructured around the config-driven model so new verticals are Stage 9 config work, not Stage 3-style rebuilds                           | See §27.                                                                                                                                      |
 
 Everything else — token security, QR fallback, template-per-vertical UX, admin lifecycle controls, `.vcf` save-contact, analytics event types — is carried over from v1 essentially unchanged.
 
@@ -28,14 +28,14 @@ Everything else — token security, QR fallback, template-per-vertical UX, admin
 
 ## 1. Tech Stack
 
-| Layer | Choice | Notes |
-|---|---|---|
-| Frontend | Next.js (App Router) | Customer Portal + Admin Portal + Public Profile SSR (`/p/[type]/[token]`). See §14, §25. |
-| Backend | Node.js (Express) | REST API. Also owns the server-rendered public profile route. |
-| Database | PostgreSQL | Including JSONB columns for the config-driven profile/field-schema model (§21). |
-| ORM | Prisma | Chosen for migration tooling and TypeScript types shared with the frontend. Full rationale in `.agents/architecture.md`. |
-| Background jobs | Postgres-backed queue (no new infra) | Bulk card generation, CSV export, image processing. Rationale in `.agents/architecture.md`. |
-| File storage | S3-compatible object storage | Profile photos and template thumbnails; only the key/URL is stored in Postgres. |
+| Layer           | Choice                               | Notes                                                                                                                    |
+| --------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| Frontend        | Next.js (App Router)                 | Customer Portal + Admin Portal + Public Profile SSR (`/p/[type]/[token]`). See §14, §25.                                 |
+| Backend         | Node.js (Express)                    | REST API. Also owns the server-rendered public profile route.                                                            |
+| Database        | PostgreSQL                           | Including JSONB columns for the config-driven profile/field-schema model (§21).                                          |
+| ORM             | Prisma                               | Chosen for migration tooling and TypeScript types shared with the frontend. Full rationale in `.agents/architecture.md`. |
+| Background jobs | Postgres-backed queue (no new infra) | Bulk card generation, CSV export, image processing. Rationale in `.agents/architecture.md`.                              |
+| File storage    | S3-compatible object storage         | Profile photos and template thumbnails; only the key/URL is stored in Postgres.                                          |
 
 This stack is fixed for the project. Any deviation (e.g., adding Redis, swapping the ORM, adding a second frontend framework) requires an explicit, written technical justification before it's adopted — see `.agents/rules.md`.
 
@@ -109,22 +109,26 @@ Not in the first version unless explicitly required:
 - Wallet passes
 - Advanced CRM / marketing automation
 
-**Note (v2):** the *data model* for organizations is included now (§21) even though the *UI* for org management is not. This is a schema decision, not a scope expansion — it costs nothing to build now and avoids a breaking migration when Employee/College bulk-issuance becomes real (§28).
+**Note (v2):** the _data model_ for organizations is included now (§21) even though the _UI_ for org management is not. This is a schema decision, not a scope expansion — it costs nothing to build now and avoids a breaking migration when Employee/College bulk-issuance becomes real (§28).
 
 ---
 
 ## 6. User Roles
 
 ### 6.1 Super Admin
+
 Manage card types & field schemas, generate cards, view inventory, export card data, manage customers, manage templates, control card lifecycle, view analytics, manage platform configuration.
 
 ### 6.2 Customer
+
 Activate a card, create/edit a profile, choose and switch templates, preview and publish, view card info and analytics, pause/report-lost/request-replacement for their own card.
 
 ### 6.3 Public Visitor
+
 No account required. View public profile, call/WhatsApp/email the customer, open social/website links, save contact (`.vcf`).
 
-### 6.4 Organization Admin *(schema reserved, no UI in MVP)*
+### 6.4 Organization Admin _(schema reserved, no UI in MVP)_
+
 Future role scoped to a company's card pool: bulk-assign cards to employees, revoke on offboarding, set default branding. Not built in MVP; see §21 and §28.
 
 ---
@@ -144,15 +148,15 @@ The schema only needs to support a small set of field types to cover every verti
 ### 7.2 Initial verticals (MVP: Business + College only, per §26)
 
 **Business Card** — photo, name, designation, company, bio, phone, WhatsApp, email, website, Instagram, LinkedIn, Facebook, YouTube, address, Google Maps link, services.
-*Future fields:* products, business hours, portfolio, booking URL, custom CTA.
+_Future fields:_ products, business hours, portfolio, booking URL, custom CTA.
 
-**College / Student Card** — photo, name, college, course, branch, semester, student ID *(hidden by default)*, student email, phone, LinkedIn, portfolio, skills, achievements, about.
+**College / Student Card** — photo, name, college, course, branch, semester, student ID _(hidden by default)_, student email, phone, LinkedIn, portfolio, skills, achievements, about.
 
 ### 7.3 Verticals staged for post-MVP
 
 **Doctor Card** — photo, name, specialization, qualification, clinic/hospital, experience, phone, WhatsApp, email, appointment URL, address, Google Maps, working hours, about.
 
-**Employee Card** *(blocked, see below)* — photo, name, employee ID *(hidden by default)*, designation, department, company, email, phone, office location, LinkedIn, about.
+**Employee Card** _(blocked, see below)_ — photo, name, employee ID _(hidden by default)_, designation, department, company, email, phone, office location, LinkedIn, about.
 
 > **v2 flag:** Employee Card, as specified, assumes an individual self-registers with personal OTP. Real-world buyers of employee cards are HR/IT departments who want to bulk-issue cards, control branding, and revoke access on offboarding — none of which exists until the Organization Admin role (§6.4) ships. Treat Employee Card in MVP+1 as an **individual-pilot product only**; don't market it as an enterprise product until bulk-assign and revoke exist.
 
@@ -170,14 +174,14 @@ AVAILABLE → ASSIGNED → ACTIVE ⇄ PAUSED
                      DEACTIVATED (permanent)
 ```
 
-| Status | Meaning | Who can set it | Reversible? |
-|---|---|---|---|
-| `AVAILABLE` | Generated, unclaimed | System (on generation) | — |
-| `ASSIGNED` | Claimed, profile not yet published | System (on claim) | — |
-| `ACTIVE` | Public profile is live | System (on publish) / Customer (resume) | Yes → `PAUSED` |
-| `PAUSED` **(new)** | Customer-initiated, instant, public page hidden, account and profile untouched | Customer | Yes → `ACTIVE` |
-| `SUSPENDED` | Admin-initiated hold (policy, dispute, investigation) | Admin only | Yes → `ACTIVE`, admin only |
-| `DEACTIVATED` | Permanent — lost/replaced card, terminated relationship | Admin | No |
+| Status             | Meaning                                                                        | Who can set it                          | Reversible?                |
+| ------------------ | ------------------------------------------------------------------------------ | --------------------------------------- | -------------------------- |
+| `AVAILABLE`        | Generated, unclaimed                                                           | System (on generation)                  | —                          |
+| `ASSIGNED`         | Claimed, profile not yet published                                             | System (on claim)                       | —                          |
+| `ACTIVE`           | Public profile is live                                                         | System (on publish) / Customer (resume) | Yes → `PAUSED`             |
+| `PAUSED` **(new)** | Customer-initiated, instant, public page hidden, account and profile untouched | Customer                                | Yes → `ACTIVE`             |
+| `SUSPENDED`        | Admin-initiated hold (policy, dispute, investigation)                          | Admin only                              | Yes → `ACTIVE`, admin only |
+| `DEACTIVATED`      | Permanent — lost/replaced card, terminated relationship                        | Admin                                   | No                         |
 
 `PAUSED` exists specifically so a customer who loses a card can kill the public page in one tap, without a support ticket and without going through full card replacement. `SUSPENDED` stays admin-only and is for platform-side reasons, not customer self-service.
 
@@ -239,7 +243,7 @@ The claim operation must be transactional and locked so two people tapping the s
 
 ## 12. Profile Onboarding
 
-The onboarding form shown to the customer is generated from the claimed card's `CardType.fieldSchema` (§7.1) — there is one onboarding *component*, not one per vertical. After submitting required fields, the customer chooses a template (§13) scoped to that card type.
+The onboarding form shown to the customer is generated from the claimed card's `CardType.fieldSchema` (§7.1) — there is one onboarding _component_, not one per vertical. After submitting required fields, the customer chooses a template (§13) scoped to that card type.
 
 ---
 
@@ -269,6 +273,7 @@ https://yourdomain.com/b/8xK29Lm92Pq
 Changing phone, photo, company, socials, or template never changes this URL, and the physical card is never rewritten.
 
 **Rendering (updated in v2):** this specific route is server-rendered via Next.js App Router Server Components (`app/p/[type]/[token]/page.tsx`) so that:
+
 - first paint is fast on mobile networks right after a tap, and
 - Open Graph / meta tags are present via `generateMetadata()` for link previews (§25).
 
@@ -309,7 +314,7 @@ Public URL: yourdomain.com/b/8xK29Lm92Pq
 
 Every card also gets a QR code encoding the same public URL, for visitors without NFC-capable phones or with NFC disabled — NFC and QR always resolve to the identical profile.
 
-Public profiles support **Save Contact**, generating a `.vcf` from the customer's currently *public* fields only (name, company, designation, phone, email, website).
+Public profiles support **Save Contact**, generating a `.vcf` from the customer's currently _public_ fields only (name, company, designation, phone, email, website).
 
 ---
 
@@ -330,6 +335,7 @@ Public profiles support **Save Contact**, generating a `.vcf` from the customer'
 Customer dashboard shows views (today/week/month/total) and button-click breakdowns; admin dashboard aggregates across the platform and per card type.
 
 **v2 additions:**
+
 - **Bot/crawler filtering** — events from known crawler user agents are flagged (`isBot`) at write time and excluded from customer-facing counts, so numbers aren't inflated by link-preview fetchers.
 - **Dedup window** — repeated scans from the same visitor within a short window count as one `PROFILE_VIEW`, not one per tap.
 
@@ -342,12 +348,12 @@ Customer dashboard shows views (today/week/month/total) and button-click breakdo
 Conceptual model (exact Prisma schema lives in `.agents/architecture.md` — not duplicated here to avoid the two documents drifting apart).
 
 - **User** — id, name, email, phone, role, status, timestamps.
-- **Organization** *(new, schema-only in MVP)* — id, name, status, timestamps. Nullable owner of a pool of cards; unused by any UI until post-MVP org features ship.
+- **Organization** _(new, schema-only in MVP)_ — id, name, status, timestamps. Nullable owner of a pool of cards; unused by any UI until post-MVP org features ship.
 - **CardType** — id, name, slug, description, **fieldSchema (JSON, new)**, status, timestamps.
 - **NFCCard** — id, cardNumber, publicToken, cardTypeId, **organizationId (nullable, new)**, status, batchId, timestamps.
 - **CardAssignment** — id, cardId, userId, assignedAt, unassignedAt, status, timestamps. Doubles as assignment history (unchanged from v1).
 - **Template** — id, cardTypeId, name, slug, thumbnail, isActive, isPremium, configuration, timestamps.
-- **Profile** *(replaces `BusinessProfile`/`CollegeProfile`/… — new in v2)* — id, userId, cardTypeId, templateId, **data (JSONB)**, **fieldVisibility (JSONB)**, status (draft/published), timestamps.
+- **Profile** _(replaces `BusinessProfile`/`CollegeProfile`/… — new in v2)_ — id, userId, cardTypeId, templateId, **data (JSONB)**, **fieldVisibility (JSONB)**, status (draft/published), timestamps.
 - **ProfileEvent** — id, cardId, profileId, eventType, timestamp, metadata, **isBot (boolean, new)**.
 
 One `Profile` table serves every card type; `data` holds field values keyed by the owning `CardType.fieldSchema`, and `fieldVisibility` holds the per-field public/hidden override (§16).
@@ -403,15 +409,15 @@ GET  /p/:type/:token
 
 ## 23. Error Scenarios
 
-| Case | Behavior |
-|---|---|
-| Invalid token | "Card not found." |
-| `AVAILABLE` (unclaimed) | "Card not activated." + Activate CTA |
-| `PAUSED` **(new)** | "This card is currently unavailable." (customer-facing message, distinct from suspended) |
-| `SUSPENDED` | "This card is temporarily unavailable." |
-| `DEACTIVATED` | "This card is no longer active." |
-| Incomplete profile | Route to setup screen |
-| Deleted customer/profile | Never expose stale private data |
+| Case                     | Behavior                                                                                 |
+| ------------------------ | ---------------------------------------------------------------------------------------- |
+| Invalid token            | "Card not found."                                                                        |
+| `AVAILABLE` (unclaimed)  | "Card not activated." + Activate CTA                                                     |
+| `PAUSED` **(new)**       | "This card is currently unavailable." (customer-facing message, distinct from suspended) |
+| `SUSPENDED`              | "This card is temporarily unavailable."                                                  |
+| `DEACTIVATED`            | "This card is no longer active."                                                         |
+| Incomplete profile       | Route to setup screen                                                                    |
+| Deleted customer/profile | Never expose stale private data                                                          |
 
 ---
 
@@ -448,6 +454,7 @@ GET  /p/:type/:token
 **MVP verticals:** Business Card and College/Student Card only, 3 templates each. Doctor, Freelancer, Employee (pilot-only, see §7.3), and further verticals come after the architecture is proven — and now, thanks to §7.1, adding them is materially cheaper than it was in v1.
 
 **Success criteria (v1 list retained, additions marked):**
+
 - Admin can generate 1,000+ cards in bulk without blocking the request (§9).
 - Every card has a unique, secure token.
 - Admin can export card URLs for the manufacturer.
@@ -478,7 +485,7 @@ Restructured from v1's per-vertical stages to reflect the config-driven model �
 7. Card lifecycle ops: pause, suspend, replace, lost-card, account recovery
 8. Analytics (event capture, bot filtering, dashboards)
 9. Hardening: rate limiting, image validation, SEO/OG, caching, mobile pass
-10. *(post-MVP)* Additional verticals as config; Organization bulk-assign UI
+10. _(post-MVP)_ Additional verticals as config; Organization bulk-assign UI
 
 ---
 

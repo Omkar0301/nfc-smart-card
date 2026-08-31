@@ -92,11 +92,14 @@ All future backend features must follow this layering; Prisma calls in controlle
 ## Request & Response Format
 
 ### Request Format
+
 - All mutating endpoints expect `Content-Type: application/json`.
 - File uploads use `multipart/form-data` handled by `multer` (in-memory buffer).
 
 ### Standard Success Response (`sendSuccess`)
+
 All successful API responses wrap data inside a standard envelope:
+
 ```json
 {
   "success": true,
@@ -106,7 +109,9 @@ All successful API responses wrap data inside a standard envelope:
 ```
 
 ### Standard Error Response (`sendError`)
+
 All API error responses follow a uniform structure:
+
 ```json
 {
   "success": false,
@@ -123,7 +128,9 @@ All API error responses follow a uniform structure:
 ## Environment Configuration & Logging
 
 ### Environment Variables
+
 Environment variables are strictly validated using Zod in [`apps/api/src/config.ts`](file:///d:/nfc-new/nfc-card-platform/apps/api/src/config.ts). Do not read raw `process.env` directly; import `config` instead.
+
 - `NODE_ENV`: `"development" | "production" | "test"`
 - `PORT`: HTTP listener port (default `4000`)
 - `LOG_LEVEL`: Log verbosity (`debug`, `info`, `warn`, `error`)
@@ -132,7 +139,9 @@ Environment variables are strictly validated using Zod in [`apps/api/src/config.
 - `OTP_PEPPER`: HMAC secret for hashing OTP codes
 
 ### Structured & File-Based Logging
+
 Logging is powered by **Pino** (`apps/api/src/lib/logger.ts`).
+
 - **HTTP Request Logging:** `pino-http` middleware automatically logs incoming requests with status code, response time, and method.
 - **Console Output:** Formatted with `pino-pretty` in development, raw JSON in production.
 - **File Output:**
@@ -148,6 +157,7 @@ A master Postman collection is maintained at [`docs/postman_collection.json`](fi
 
 > [!IMPORTANT]
 > **Developer Requirement:**
+
 ---
 
 ## Testing & Feature Verification Structure
@@ -167,6 +177,7 @@ apps/api/tests/
 ```
 
 ### Test Commands
+
 - `npm test`: Runs all Vitest test suites (`vitest run`).
 - `npm run test:unit`: Runs Vitest unit tests (`vitest run tests/unit`).
 - `npm run test:integration`: Runs Vitest integration tests (`vitest run tests/integration`).
@@ -175,25 +186,26 @@ apps/api/tests/
 
 ## HTTP Status Conventions
 
-| Code | Usage |
-|---|---|
-| `200 OK` | Successful GET, PUT, or POST action |
-| `201 Created` | Successful creation (claim, generation enqueue, upload) |
-| `202 Accepted` | Async job accepted (bulk card generation) |
-| `400 Bad Request` | Validation failure, missing required fields |
-| `401 Unauthorized` | Missing or invalid JWT token |
-| `403 Forbidden` | Valid JWT but insufficient permissions or wrong resource owner |
-| `404 Not Found` | Resource does not exist |
-| `409 Conflict` | Business rule violation (e.g. card already claimed, invalid lifecycle transition) |
-| `415 Unsupported Media Type` | File upload fails magic-byte validation |
-| `429 Too Many Requests` | Rate limit exceeded |
-| `500 Internal Error` | Unhandled server error |
+| Code                         | Usage                                                                             |
+| ---------------------------- | --------------------------------------------------------------------------------- |
+| `200 OK`                     | Successful GET, PUT, or POST action                                               |
+| `201 Created`                | Successful creation (claim, generation enqueue, upload)                           |
+| `202 Accepted`               | Async job accepted (bulk card generation)                                         |
+| `400 Bad Request`            | Validation failure, missing required fields                                       |
+| `401 Unauthorized`           | Missing or invalid JWT token                                                      |
+| `403 Forbidden`              | Valid JWT but insufficient permissions or wrong resource owner                    |
+| `404 Not Found`              | Resource does not exist                                                           |
+| `409 Conflict`               | Business rule violation (e.g. card already claimed, invalid lifecycle transition) |
+| `415 Unsupported Media Type` | File upload fails magic-byte validation                                           |
+| `429 Too Many Requests`      | Rate limit exceeded                                                               |
+| `500 Internal Error`         | Unhandled server error                                                            |
 
 ---
 
 ## Request Validation
 
 Handled using **Zod** (`zod` package).
+
 - Schemas run at the start of the route handler.
 - Validation failures return `400 Bad Request` with `code: "VALIDATION_ERROR"`.
 
@@ -209,22 +221,22 @@ Handled using **Zod** (`zod` package).
 
 ## Endpoint Summary (PRD Mapping)
 
-| Method | Endpoint | Auth | Feature PRD |
-|---|---|---|---|
-| `GET` | `/health` | None | Existing |
-| `POST` | `/auth/send-otp` | Rate-limited | [F-002](file:///d:/nfc-new/nfc-card-platform/docs/features/F-002-authentication-otp-jwt.md) |
-| `POST` | `/auth/verify-otp` | Rate-limited | [F-002](file:///d:/nfc-new/nfc-card-platform/docs/features/F-002-authentication-otp-jwt.md) |
-| `POST` | `/auth/recover/request` | Rate-limited | [F-003](file:///d:/nfc-new/nfc-card-platform/docs/features/F-003-account-recovery.md) |
-| `POST` | `/auth/recover/verify` | None | [F-003](file:///d:/nfc-new/nfc-card-platform/docs/features/F-003-account-recovery.md) |
-| `GET` | `/cards/:token` | None | [F-007](file:///d:/nfc-new/nfc-card-platform/docs/features/F-007-card-claiming-activation.md) |
-| `POST` | `/cards/:token/claim` | `requireAuth` | [F-007](file:///d:/nfc-new/nfc-card-platform/docs/features/F-007-card-claiming-activation.md) |
-| `GET` | `/profile` | `requireAuth` | [F-008](file:///d:/nfc-new/nfc-card-platform/docs/features/F-008-profile-management.md) |
-| `PUT` | `/profile` | `requireAuth` | [F-008](file:///d:/nfc-new/nfc-card-platform/docs/features/F-008-profile-management.md) |
-| `POST` | `/profile/pause` | `requireAuth` | [F-015](file:///d:/nfc-new/nfc-card-platform/docs/features/F-015-customer-card-lifecycle.md) |
-| `POST` | `/profile/resume` | `requireAuth` | [F-015](file:///d:/nfc-new/nfc-card-platform/docs/features/F-015-customer-card-lifecycle.md) |
-| `GET` | `/templates` | None | [F-009](file:///d:/nfc-new/nfc-card-platform/docs/features/F-009-template-system.md) |
-| `POST` | `/analytics/event` | Rate-limited | [F-014](file:///d:/nfc-new/nfc-card-platform/docs/features/F-014-analytics.md) |
-| `GET` | `/analytics/summary` | `requireAuth` | [F-014](file:///d:/nfc-new/nfc-card-platform/docs/features/F-014-analytics.md) |
-| `POST` | `/upload/profile-photo` | `requireAuth` | [F-016](file:///d:/nfc-new/nfc-card-platform/docs/features/F-016-file-storage-upload.md) |
-| `GET/POST` | `/admin/cards/*` | `requireAdmin` | [F-005](file:///d:/nfc-new/nfc-card-platform/docs/features/F-005-bulk-card-generation.md), [F-006](file:///d:/nfc-new/nfc-card-platform/docs/features/F-006-admin-card-lifecycle.md) |
-| `GET/POST` | `/admin/card-types/*` | `requireAdmin` | [F-004](file:///d:/nfc-new/nfc-card-platform/docs/features/F-004-card-type-field-schema.md) |
+| Method     | Endpoint                | Auth           | Feature PRD                                                                                                                                                                          |
+| ---------- | ----------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GET`      | `/health`               | None           | Existing                                                                                                                                                                             |
+| `POST`     | `/auth/send-otp`        | Rate-limited   | [F-002](file:///d:/nfc-new/nfc-card-platform/docs/features/F-002-authentication-otp-jwt.md)                                                                                          |
+| `POST`     | `/auth/verify-otp`      | Rate-limited   | [F-002](file:///d:/nfc-new/nfc-card-platform/docs/features/F-002-authentication-otp-jwt.md)                                                                                          |
+| `POST`     | `/auth/recover/request` | Rate-limited   | [F-003](file:///d:/nfc-new/nfc-card-platform/docs/features/F-003-account-recovery.md)                                                                                                |
+| `POST`     | `/auth/recover/verify`  | None           | [F-003](file:///d:/nfc-new/nfc-card-platform/docs/features/F-003-account-recovery.md)                                                                                                |
+| `GET`      | `/cards/:token`         | None           | [F-007](file:///d:/nfc-new/nfc-card-platform/docs/features/F-007-card-claiming-activation.md)                                                                                        |
+| `POST`     | `/cards/:token/claim`   | `requireAuth`  | [F-007](file:///d:/nfc-new/nfc-card-platform/docs/features/F-007-card-claiming-activation.md)                                                                                        |
+| `GET`      | `/profile`              | `requireAuth`  | [F-008](file:///d:/nfc-new/nfc-card-platform/docs/features/F-008-profile-management.md)                                                                                              |
+| `PUT`      | `/profile`              | `requireAuth`  | [F-008](file:///d:/nfc-new/nfc-card-platform/docs/features/F-008-profile-management.md)                                                                                              |
+| `POST`     | `/profile/pause`        | `requireAuth`  | [F-015](file:///d:/nfc-new/nfc-card-platform/docs/features/F-015-customer-card-lifecycle.md)                                                                                         |
+| `POST`     | `/profile/resume`       | `requireAuth`  | [F-015](file:///d:/nfc-new/nfc-card-platform/docs/features/F-015-customer-card-lifecycle.md)                                                                                         |
+| `GET`      | `/templates`            | None           | [F-009](file:///d:/nfc-new/nfc-card-platform/docs/features/F-009-template-system.md)                                                                                                 |
+| `POST`     | `/analytics/event`      | Rate-limited   | [F-014](file:///d:/nfc-new/nfc-card-platform/docs/features/F-014-analytics.md)                                                                                                       |
+| `GET`      | `/analytics/summary`    | `requireAuth`  | [F-014](file:///d:/nfc-new/nfc-card-platform/docs/features/F-014-analytics.md)                                                                                                       |
+| `POST`     | `/upload/profile-photo` | `requireAuth`  | [F-016](file:///d:/nfc-new/nfc-card-platform/docs/features/F-016-file-storage-upload.md)                                                                                             |
+| `GET/POST` | `/admin/cards/*`        | `requireAdmin` | [F-005](file:///d:/nfc-new/nfc-card-platform/docs/features/F-005-bulk-card-generation.md), [F-006](file:///d:/nfc-new/nfc-card-platform/docs/features/F-006-admin-card-lifecycle.md) |
+| `GET/POST` | `/admin/card-types/*`   | `requireAdmin` | [F-004](file:///d:/nfc-new/nfc-card-platform/docs/features/F-004-card-type-field-schema.md)                                                                                          |

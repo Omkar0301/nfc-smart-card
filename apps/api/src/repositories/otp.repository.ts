@@ -1,4 +1,4 @@
-import { prisma } from "../lib/prisma.js";
+import { prisma } from '../lib/prisma.js';
 
 export const otpRepository = {
   countRecent(phone: string, windowStart: Date) {
@@ -10,7 +10,7 @@ export const otpRepository = {
   findLatestByPhone(phone: string) {
     return prisma.otpVerification.findFirst({
       where: { phone },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
     });
   },
 

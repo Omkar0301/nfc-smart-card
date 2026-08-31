@@ -1,1 +1,1 @@
-export { OtpFlow } from "./OtpFlow";
+export { OtpFlow } from './OtpFlow';
