@@ -20,6 +20,15 @@ export interface User {
   role: Role;
 }
 
+export interface AuthUser {
+  id: string;
+  name: string;
+  phone: string;
+  email: string | null;
+  role: Role;
+  status: string;
+}
+
 export interface Card {
   id: string;
   token: string;

@@ -8,8 +8,11 @@
   ],
   "scripts": {
     "dev": "concurrently \"npm run dev -w apps/api\" \"npm run dev -w apps/web\"",
-    "build": "npm run build -ws",
-    "typecheck": "npm run typecheck -ws",
+    "build": "npm run build --ws",
+    "typecheck": "npm run typecheck --ws",
+    "test": "npm run test -w apps/api",
+    "test:unit": "npm run test:unit -w apps/api",
+    "test:integration": "npm run test:integration -w apps/api",
     "db:generate": "npm run prisma:generate -w apps/api",
     "db:migrate": "npm run prisma:migrate -w apps/api",
     "db:studio": "npm run prisma:studio -w apps/api",

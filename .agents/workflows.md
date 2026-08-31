@@ -6,9 +6,9 @@ Repeatable, multi-step procedures for feature execution and system tasks.
 
 ## Workflow: Feature Development Cycle
 
-1. **Plan** — Read the target feature PRD in [`/docs/features/`](file:///d:/nfc-new/nfc-card-platform/docs/features/), and consult [`/docs/PROJECT_CONTEXT.md`](file:///d:/nfc-new/nfc-card-platform/docs/PROJECT_CONTEXT.md), [`/docs/ARCHITECTURE.md`](file:///d:/nfc-new/nfc-card-platform/docs/ARCHITECTURE.md), [`/docs/DATABASE_CONTEXT.md`](file:///d:/nfc-new/nfc-card-platform/docs/DATABASE_CONTEXT.md), and [`/docs/DEVELOPMENT_RULES.md`](file:///d:/nfc-new/nfc-card-platform/docs/DEVELOPMENT_RULES.md). Check `.agents/features.md` for completed dependencies.
-2. **Implement** — Build the feature per scope using existing patterns (`.agents/skills.md`).
-3. **Review** — Self-check against `/docs/DEVELOPMENT_RULES.md`. (No automated test suite required).
+1. **Plan** — Read the target feature PRD in [`/docs/features/`](file:///d:/nfc-new/nfc-card-platform/docs/features/), and consult [`/docs/PROJECT_CONTEXT.md`](file:///d:/nfc-new/nfc-card-platform/docs/PROJECT_CONTEXT.md), [`/docs/ARCHITECTURE.md`](file:///d:/nfc-new/nfc-card-platform/docs/ARCHITECTURE.md), [`/docs/DATABASE_CONTEXT.md`](file:///d:/nfc-new/nfc-card-platform/docs/DATABASE_CONTEXT.md), and [`/docs/DEVELOPMENT_RULES.md`](file:///d:/nfc-new/nfc-card-platform/docs/DEVELOPMENT_RULES.md). Check `.agents/features.md` for completed dependencies. Confirm Controller → Service → Repository layering for the feature.
+2. **Implement** — Build the feature per scope using existing patterns (`.agents/skills.md`) and the mandatory Controller → Service → Repository layering: create `controllers/*.controller.ts` (HTTP only), `services/*.service.ts` (business logic), `repositories/*.repository.ts` (Prisma only), `routes/*.routes.ts` (bindings), and `validators/*.validator.ts` (Zod schemas).
+3. **Review** — Self-check against `/docs/DEVELOPMENT_RULES.md` — verify no Prisma calls in controllers/services, no business logic in repositories, no `req`/`res` in services, and all responses use `sendSuccess`/`sendError`.
 4. **Update Documentation** — Append an entry to `.agents/features.md`. If architectural patterns or database schema changed, update the relevant `/docs/` context files per `/docs/DEVELOPMENT_RULES.md`.
 5. **Commit** — Commit code and updated documentation together.
 

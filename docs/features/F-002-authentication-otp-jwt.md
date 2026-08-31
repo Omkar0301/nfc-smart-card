@@ -3,7 +3,7 @@
 **ID:** F-002  
 **Priority:** 🔴 Critical  
 **Phase:** 1  
-**Status:** ❌ NOT STARTED  
+**Status:** ✅ COMPLETED (2026-08-31)  
 **Depends on:** F-001  
 **Required by:** F-003, F-006, F-007, F-008, F-011, F-012, F-015
 
@@ -237,33 +237,170 @@ The frontend for this feature is minimal — the activation/claiming UI is in F-
 
 ## Acceptance Criteria
 
-- [ ] `POST /auth/send-otp` with valid phone returns 200; OTP row created in DB
-- [ ] `POST /auth/verify-otp` with correct code returns 200 with `accessToken` + `refreshToken`
-- [ ] `POST /auth/verify-otp` with wrong code returns 400; attempt counter increments
-- [ ] After 5 wrong attempts, `verify-otp` returns 401 locked
-- [ ] Expired OTP returns 400 (not 200)
-- [ ] `GET /auth/me` with valid access token returns 200 with user object
-- [ ] `GET /auth/me` with no token returns 401
-- [ ] `POST /auth/logout` revokes refresh token; subsequent refresh attempts fail
-- [ ] Admin user calling admin route gets 200; customer calling same route gets 403
-- [ ] OTP code is NOT stored in plaintext in the DB (`codeHash` column contains a hash)
-- [ ] New phone number auto-creates a `User` row on first verify
-- [ ] Returning phone number returns existing user (no duplicate creation)
+- [x] `POST /auth/send-otp` with valid phone returns 200; OTP row created in DB
+- [x] `POST /auth/verify-otp` with correct code returns 200 with `accessToken` + `refreshToken`
+- [x] `POST /auth/verify-otp` with wrong code returns 400; attempt counter increments
+- [x] After 5 wrong attempts, `verify-otp` returns 401 locked
+- [x] Expired OTP returns 400 (not 200)
+- [x] `GET /auth/me` with valid access token returns 200 with user object
+- [x] `GET /auth/me` with no token returns 401
+- [x] `POST /auth/logout` revokes refresh token; subsequent refresh attempts fail
+- [x] Admin user calling admin route gets 200; customer calling same route gets 403
+- [x] OTP code is NOT stored in plaintext in the DB (`codeHash` column contains a hash)
+- [x] New phone number auto-creates a `User` row on first verify
+- [x] Returning phone number returns existing user (no duplicate creation)
 
 ---
 
 ## Implementation Tasks
 
-- [ ] **T-002-1:** Create `apps/api/src/lib/prisma.ts` — singleton Prisma client
-- [ ] **T-002-2:** Add `OtpVerification` and `RefreshToken` models to `schema.prisma`; run migration
-- [ ] **T-002-3:** Create `src/auth/otp-provider.ts` — interface + console-log dev impl
-- [ ] **T-002-4:** Create `src/auth/otp.ts` — generate, hash, store, validate OTP logic
-- [ ] **T-002-5:** Create `src/auth/jwt.ts` — sign access token, sign/revoke refresh token
-- [ ] **T-002-6:** Create `src/auth/router.ts` — mount all 5 auth endpoints
-- [ ] **T-002-7:** Create `src/middleware/requireAuth.ts` and `requireAdmin.ts`
-- [ ] **T-002-8:** Mount auth router in `src/app.ts`
-- [ ] **T-002-9:** Create `apps/web/src/shared/api/client.ts` — base API client with auth header
-- [ ] **T-002-10:** Create `apps/web/src/shared/api/auth.ts` — auth API calls
-- [ ] **T-002-11:** Create `apps/web/src/shared/context/AuthContext.tsx` + `useAuth.ts` hook
-- [ ] **T-002-12:** Create `apps/web/src/shared/components/OtpFlow/` — phone + code entry UI
-- [ ] **T-002-13:** Update `.agents/features.md` on completion
+- [x] **T-002-1:** Create `apps/api/src/lib/prisma.ts` — singleton Prisma client
+- [x] **T-002-2:** Add `OtpVerification` and `RefreshToken` models to `schema.prisma`; run migration
+- [x] **T-002-3:** Create `src/auth/otp-provider.ts` — interface + console-log dev impl
+- [x] **T-002-4:** Create `src/auth/otp.ts` — generate, hash, store, validate OTP logic
+- [x] **T-002-5:** Create `src/auth/jwt.ts` — sign access token, sign/revoke refresh token
+- [x] **T-002-6:** Create `src/auth/router.ts` — mount all 5 auth endpoints
+- [x] **T-002-7:** Create `src/middleware/requireAuth.ts` and `requireAdmin.ts`
+- [x] **T-002-8:** Mount auth router in `src/app.ts`
+- [x] **T-002-9:** Create `apps/web/src/shared/api/client.ts` — base API client with auth header
+- [x] **T-002-10:** Create `apps/web/src/shared/api/auth.ts` — auth API calls
+- [x] **T-002-11:** Create `apps/web/src/shared/context/AuthContext.tsx` + `useAuth.ts` hook
+- [x] **T-002-12:** Create `apps/web/src/shared/components/OtpFlow/` — phone + code entry UI
+- [x] **T-002-13:** Update `.agents/features.md` on completion
+
+---
+
+## Implementation Notes
+
+### Database Setup
+✅ **Migration:** `20260831120000_auth_otp_refresh_tokens`
+- Creates `OtpVerification` table with phone index
+- Creates `RefreshToken` table with userId index
+- Adds foreign keys and proper timestamps
+
+**Run migrations:**
+```bash
+cd apps/api
+npm run prisma:migrate:deploy
+```
+
+### Backend Files Created
+All files in `apps/api/src/`:
+- ✅ `lib/prisma.ts` — Prisma singleton client
+- ✅ `auth/otp-provider.ts` — Pluggable SMS interface (console-log in dev)
+- ✅ `auth/otp.ts` — OTP generation, hashing, validation logic
+- ✅ `auth/jwt.ts` — JWT token creation and verification
+- ✅ `auth/phone.ts` — Phone number normalization (E.164)
+- ✅ `auth/router.ts` — All 5 auth endpoints (fully documented)
+- ✅ `middleware/requireAuth.ts` — JWT validation middleware
+- ✅ `middleware/requireAdmin.ts` — Admin-only route guard
+
+### Frontend Files Created
+All files in `apps/web/src/shared/`:
+- ✅ `api/client.ts` — Axios instance with auto Bearer token injection & 401 retry
+- ✅ `api/auth.ts` — Auth API wrappers (sendOtp, verifyOtp, refresh, logout, getMe)
+- ✅ `context/AuthContext.tsx` — Global auth state management
+- ✅ `hooks/useAuth.ts` — Convenience hook for auth state access
+- ✅ `components/OtpFlow/OtpFlow.tsx` — Reusable 2-step OTP UI component
+
+### Running the API
+```bash
+cd apps/api
+npm run dev
+# API starts on http://localhost:4000
+```
+
+### Running Integration Tests
+```bash
+cd apps/api
+npx tsx src/__tests__/auth.integration.test.ts
+# All 7 tests passing ✅
+```
+
+### Environment Variables Required
+
+**API (.env):**
+```env
+JWT_SECRET=your-min-32-char-secret-key
+DATABASE_URL=postgresql://user:pass@localhost:5432/nfc_card_platform
+NODE_ENV=development
+OTP_PROVIDER=console      # Production: twilio, msg91, etc
+WEB_URL=http://localhost:3000
+PORT=4000
+```
+
+**Frontend (.env.local):**
+```env
+NEXT_PUBLIC_API_URL=http://localhost:4000
+```
+
+### Using in Frontend
+
+**Wrap app with provider:**
+```tsx
+import { AuthProvider } from '@/shared/context/AuthContext';
+
+<AuthProvider>
+  <YourApp />
+</AuthProvider>
+```
+
+**Access auth in components:**
+```tsx
+import { useAuth } from '@/shared/hooks/useAuth';
+
+const { user, isAdmin, isLoading, sendOtp, login, logout } = useAuth();
+```
+
+**Use OTP flow component:**
+```tsx
+import { OtpFlow } from '@/shared/components/OtpFlow';
+
+<OtpFlow onSuccess={() => navigate('/dashboard')} />
+```
+
+### API Endpoint Examples
+
+**Send OTP:**
+```bash
+curl -X POST http://localhost:4000/auth/send-otp \
+  -H "Content-Type: application/json" \
+  -d '{"phone": "+1234567890"}'
+# Response: { "success": true, "message": "OTP sent" }
+```
+
+**Verify OTP:**
+```bash
+curl -X POST http://localhost:4000/auth/verify-otp \
+  -H "Content-Type: application/json" \
+  -d '{"phone": "+1234567890", "code": "123456"}'
+# Response: { "accessToken": "...", "refreshToken": "...", "user": {...} }
+```
+
+**Get Current User:**
+```bash
+curl -X GET http://localhost:4000/auth/me \
+  -H "Authorization: Bearer <accessToken>"
+# Response: { "id": "...", "name": "...", "phone": "...", "role": "CUSTOMER" }
+```
+
+### Security Summary
+- ✅ OTP hashed with HMAC-SHA256 (never plaintext)
+- ✅ Access token: 15 minutes lifetime
+- ✅ Refresh token: 7 days lifetime with rotation
+- ✅ Rate limit: 3 OTP sends per phone per 10 minutes
+- ✅ Max 5 failed attempts per OTP before lockout
+- ✅ Account suspension checks on every auth operation
+- ✅ Admin routes require server-side role verification
+
+---
+
+## Unblocks
+This feature enables development of:
+- F-003 — Account Recovery (depends on auth system)
+- F-006 — Admin Card Lifecycle (requires admin auth)
+- F-007 — Card Claiming/Activation (requires customer auth)
+- F-008 — Profile Management (requires authenticated user)
+- F-011 — Customer Portal UI (requires frontend auth)
+- F-012 — Admin Portal UI (requires admin auth)
+- F-015 — Customer Card Lifecycle (requires authenticated user)

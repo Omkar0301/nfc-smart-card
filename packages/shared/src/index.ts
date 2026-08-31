@@ -1,2 +1,2 @@
-export * from "./types";
-export * from "./fieldSchema";
+export * from "./types.js";
+export * from "./fieldSchema.js";

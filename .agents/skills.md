@@ -31,3 +31,7 @@ Reusable, project-specific implementation patterns. Each entry is a capability t
 ### Field-Level Visibility Enforcement
 **Trigger:** any code path that builds a response the public visitor will see.
 **Pattern:** filter `Profile.data` against `Profile.fieldVisibility` (falling back to `CardType.fieldSchema[].defaultVisible`) on the server before the response leaves the API layer. Never send the full `data` object to the client and hide fields in the frontend — that's a security bug.
+
+### Controller → Service → Repository Layering
+**Trigger:** creating or touching any backend endpoint, service, or repository in `apps/api`.
+**Pattern:** Controllers (`src/controllers/*.controller.ts`) handle only HTTP — Zod parse via `src/validators/`, call service, `sendSuccess`/`sendError`, set/clear cookies. Services (`src/services/*.service.ts`) contain business logic (hashing, rate-limits, JWT, suspension checks) and call repositories/providers, never Prisma or `req`/`res`. Repositories (`src/repositories/*.repository.ts`) handle Prisma queries only, no hashing or business rules. Routes (`src/routes/*.routes.ts` aggregated in `src/routes/index.ts`) bind `Router` paths to controller methods + `requireAuth`/`requireAdmin`.

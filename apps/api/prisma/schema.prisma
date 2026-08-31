@@ -31,6 +31,7 @@ model User {
   updatedAt     DateTime @updatedAt
   assignments   CardAssignment[]
   profiles      Profile[]
+  refreshTokens RefreshToken[]
 }
 
 model Organization {           // schema-only in MVP — no UI yet, PRD §6.4 / §28
@@ -133,4 +134,28 @@ model ProfileEvent {
   isBot     Boolean  @default(false)
 
   @@index([cardId, timestamp])
+}
+
+model OtpVerification {
+  id        String    @id @default(cuid())
+  phone     String
+  codeHash  String
+  expiresAt DateTime
+  usedAt    DateTime?
+  attempts  Int       @default(0)
+  createdAt DateTime  @default(now())
+
+  @@index([phone])
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  tokenHash String
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
 }

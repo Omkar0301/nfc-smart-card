@@ -60,13 +60,19 @@ nfc-card-platform/
 │   │   ├── next.config.ts        ← Next.js configuration (headers, rewrites)
 │   │   └── package.json          ← Next.js dependencies
 │   │
-│   └── api/                      ← Express REST API Server
+│   └── api/                      ← Express REST API Server (Controller → Service → Repository)
 │       ├── src/
-│       │   ├── app.ts            ← Express app (CORS, JSON, routes)
+│       │   ├── app.ts            ← Express app (CORS, JSON, routes/index.ts)
 │       │   ├── server.ts         ← HTTP server & pg-boss job worker runner
-│       │   ├── auth/             ← OTP, JWT, recovery handlers
-│       │   ├── routes/           ← REST endpoints (/cards, /profile, /admin/*)
-│       │   └── services/         ← Business logic & Prisma operations
+│       │   ├── controllers/      ← HTTP layer (auth.controller.ts, etc.)
+│       │   ├── services/         ← Business logic (auth.service.ts, otp.service.ts, token.service.ts)
+│       │   ├── repositories/     ← Prisma-only (user.repository.ts, otp.repository.ts, token.repository.ts)
+│       │   ├── routes/           ← REST route bindings (index.ts, auth.routes.ts, etc.)
+│       │   ├── validators/       ← Zod schemas (auth.validator.ts)
+│       │   ├── providers/        ← External I/O (otp.provider.ts)
+│       │   ├── utils/            ← Pure helpers (phone.ts)
+│       │   ├── middleware/       ← requireAuth, requireAdmin
+│       │   └── lib/              ← prisma, logger, http
 │       ├── prisma/
 │       │   ├── schema.prisma     ← Database schema (7 existing + planned models)
 │       │   └── migrations/       ← Database migrations

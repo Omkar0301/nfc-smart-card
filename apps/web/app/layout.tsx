@@ -1,8 +1,9 @@
-import type { Metadata } from 'next';
+import type { Metadata } from "next";
+import { AuthProvider } from "@/src/shared/context/AuthContext";
 
 export const metadata: Metadata = {
-  title: 'NFC Digital Card Platform',
-  description: 'Manage and share your digital NFC profile',
+  title: "NFC Digital Card Platform",
+  description: "Manage and share your digital NFC profile",
 };
 
 export default function RootLayout({
@@ -12,7 +13,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <AuthProvider>{children}</AuthProvider>
+      </body>
     </html>
   );
 }

@@ -66,10 +66,30 @@ https://{domain}/p/{cardType.slug}/{publicToken}
 
 ## Express API Service (`apps/api`)
 
-`apps/api` remains a dedicated Node.js/Express REST server:
+`apps/api` remains a dedicated Node.js/Express REST server and **must follow the Controller → Service → Repository (C-S-R) pattern** for all features:
+
 - **`src/app.ts`**: CORS, JSON body parser, rate limiters, security headers (`helmet`), route mounting.
 - **`src/server.ts`**: HTTP server listening on `PORT` (default `4000`) + `pg-boss` worker startup.
-- **Data Access:** All database queries go through Prisma (`apps/api/prisma/schema.prisma`).
+- **Controllers (`src/controllers/*.controller.ts`)**: Handle only HTTP concerns — Zod validation, `req`/`res` parsing, cookie handling, `sendSuccess`/`sendError` envelopes. No business logic or Prisma calls.
+- **Services (`src/services/*.service.ts`)**: Contain all business logic — OTP hashing/generation, rate-limit checks, JWT signing/verification, suspension checks, transaction orchestration. Call repositories, never Prisma directly.
+- **Repositories (`src/repositories/*.repository.ts`)**: Handle Prisma/database operations only — `findUnique`, `create`, `update`, `count`, transactions. No business rules, hashing, or HTTP concerns.
+- **Routes (`src/routes/*.routes.ts`)**: Define `Router` and bind paths to controller handlers + middleware (`requireAuth`, `requireAdmin`).
+- **Validators (`src/validators/*.validator.ts`)**: Zod schemas for request bodies/queries.
+- **Providers/Utils (`src/providers/`, `src/utils/`)**: External I/O (OTP delivery) and pure helpers (`normalizePhone`).
+- **Data Access:** All database queries go through Prisma via repositories (`apps/api/prisma/schema.prisma`).
+
+### Mandatory Controller → Service → Repository Flow
+
+```
+HTTP Request
+  → Routes (src/routes/*.routes.ts) — path + middleware binding
+  → Controller (src/controllers/*.controller.ts) — Zod parse, call service, sendSuccess/sendError, set cookies
+  → Service (src/services/*.service.ts) — business logic, orchestration, call repositories/providers
+  → Repository (src/repositories/*.repository.ts) — Prisma queries only
+  → PostgreSQL
+```
+
+New backend features must create or update files in these layers; do not place Prisma calls in controllers/services or business logic in repositories.
 
 ### Planned Express Middleware Stack
 
@@ -89,18 +109,70 @@ app.use('/admin', requireAdmin, adminRoutes)
 
 ---
 
-## Planned Route → Handler Flow
+## Authentication System (F-002)
+
+### OTP & JWT Flow
+
+The platform uses **OTP-based authentication** (no passwords) with **JWT tokens** for session management.
+
+**Auth Flow:**
+1. **Send OTP** → `POST /auth/send-otp` with phone number
+   - Validates phone (E.164 format)
+   - Generates 6-digit random OTP
+   - Hashes OTP with HMAC-SHA256 (stores only hash in `OtpVerification` table)
+   - Rate limited: max 3 sends per phone per 10 minutes
+2. **Verify OTP** → `POST /auth/verify-otp` with phone + 6-digit code
+   - Compares code against stored hash
+   - Max 5 failed attempts before lockout
+   - Auto-creates `User` with CUSTOMER role if first-time login
+   - Issues JWT access token (15 min expiry) + refresh token (7 days expiry)
+3. **Use Access Token** → All authenticated requests include `Authorization: Bearer <accessToken>`
+4. **Refresh Token** → `POST /auth/refresh` when access token expires
+   - Validates refresh token signature + checks database (not revoked)
+   - Issues new access token + rotates refresh token
+5. **Logout** → `POST /auth/logout` revokes refresh token in database
+
+**Tokens:**
+- **Access Token:** Stateless JWT containing `{ sub: userId, role: Role, typ: "access" }`. No DB lookup on use.
+- **Refresh Token:** JWT with JTI (JWT ID). Hash stored in `RefreshToken` table. Enables revocation and rotation.
+- **Refresh Token Storage:** httpOnly cookie (secure, auto-sent by browser). Also accepted in request body for mobile clients.
+
+**Security:**
+- OTP never stored plaintext (HMAC-SHA256 hash required by Rule #14)
+- JWT signed with `JWT_SECRET` environment variable (minimum 32 characters)
+- Account suspension (`User.status = 'SUSPENDED'`) checked on every auth operation
+- Role embedded in JWT; admin routes verify `role === 'ADMIN'` server-side (Rule #10)
+- Token rotation: old refresh tokens revoked when new one issued
+
+**Files (Feature F-002) — Controller → Service → Repository:**
+- Controllers: `apps/api/src/controllers/auth.controller.ts`
+- Services: `apps/api/src/services/auth.service.ts`, `services/otp.service.ts`, `services/token.service.ts`
+- Repositories: `apps/api/src/repositories/user.repository.ts`, `repositories/otp.repository.ts`, `repositories/token.repository.ts`
+- Routes: `apps/api/src/routes/auth.routes.ts`, `routes/index.ts` (aggregates `/auth`, `/health`, `/admin/health`)
+- Validators: `apps/api/src/validators/auth.validator.ts`
+- Providers/Utils: `apps/api/src/providers/otp.provider.ts`, `utils/phone.ts`
+- Middleware: `apps/api/src/middleware/requireAuth.ts`, `middleware/requireAdmin.ts` (delegates to `user.repository` + `token.service`)
+- Frontend: `apps/web/src/shared/api/auth.ts`, `context/AuthContext.tsx`, `hooks/useAuth.ts`, `components/OtpFlow/`
+- Database: `OtpVerification` & `RefreshToken` tables (migration: `20260831120000_auth_otp_refresh_tokens`)
+
+**See Also:**
+- Detailed implementation: [docs/features/F-002-authentication-otp-jwt.md](./features/F-002-authentication-otp-jwt.md)
+- Frontend integration: Implementation notes in F-002 feature doc
+
+---
+
+## Route → Handler Flow (Controller → Service → Repository)
 
 ```
 HTTP Request (from Next.js Frontend or API client)
      ↓
-Express Route Handler (apps/api/src/routes/*.ts)
+Routes (apps/api/src/routes/*.routes.ts) — binds path + middleware
      ↓
-Zod Validation (parse body/query)
+Controller (apps/api/src/controllers/*.controller.ts) — Zod validation (via validators/), calls service, handles HTTP response/cookies
      ↓
-Service Layer (apps/api/src/services/*Service.ts)
+Service (apps/api/src/services/*.service.ts) — business logic + orchestration, calls repositories
      ↓
-Prisma ORM
+Repository (apps/api/src/repositories/*.repository.ts) — Prisma ORM only
      ↓
 PostgreSQL Database
 ```
