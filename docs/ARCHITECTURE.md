@@ -134,9 +134,18 @@ Next.js Data Cache for /p/[type]/[token] is purged instantly
 
 ---
 
-## Known Issues (To be fixed in F-001)
+## Data Model (Prisma)
 
-1. **`CardStatus` enum mismatch:** Schema has `LOST, REPLACED` (wrong); needs `ASSIGNED, SUSPENDED, DEACTIVATED` (correct per PRD §8).
-2. **`types.ts` enum mismatch:** `packages/shared/src/types.ts` has outdated `CardStatus` enum values.
-3. **Missing Prisma Relations:** `CardAssignment.userId` and `Profile.userId` require `@relation` attributes.
-4. **`fieldSchema.ts` taxonomy:** Needs alignment to `long_text` and `list_of_strings`.
+Canonical schema: `apps/api/prisma/schema.prisma`. Shared TypeScript `CardStatus` lives in `packages/shared/src/types.ts` and must stay in lockstep with the Prisma enum.
+
+**`CardStatus`:** `AVAILABLE` → `ASSIGNED` → `ACTIVE` ⇄ `PAUSED`; admin `SUSPENDED`; terminal `DEACTIVATED`. Not `LOST` / `REPLACED`.
+
+**Relations:** `CardAssignment.userId` and `Profile.userId` are Prisma `@relation`s to `User` (`assignments`, `profiles` back-relations). Indexes exist on `NFCCard(batchId, status)`, `CardAssignment(userId, cardId)`, and `ProfileEvent(cardId, timestamp)`.
+
+**Profile lookup:** no `Profile.cardId`. Tap → `NFCCard.publicToken` → `CardAssignment` → `User` → `Profile` by `cardTypeId`. See `docs/DATABASE_CONTEXT.md`.
+
+---
+
+## Known Issues
+
+1. **`fieldSchema.ts` taxonomy:** Needs alignment to `long_text` and `list_of_strings` (F-004).

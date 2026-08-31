@@ -111,7 +111,7 @@ nfc-card-platform/
 
 ```bash
 # Root workspace
-npm run dev          # concurrently: web (next dev) + api (tsx watch)
+npm run dev          # concurrently: web (next dev) + api (migrate deploy, then tsx watch)
 npm run db:migrate   # prisma migrate dev (in apps/api)
 npm run db:seed      # tsx prisma/seed.ts (in apps/api)
 npm run db:studio    # prisma studio

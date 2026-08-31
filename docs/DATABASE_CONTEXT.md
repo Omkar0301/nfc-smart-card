@@ -16,10 +16,15 @@ The platform uses a single PostgreSQL database managed via **Prisma ORM**.
 - `ADMIN`
 
 ### `CardStatus`
-> ⚠️ **Known Schema Divergence:** The current `schema.prisma` defines `AVAILABLE, ACTIVE, PAUSED, LOST, REPLACED`.
-> Per PRD §8 and audit ([F-001](file:///d:/nfc-new/nfc-card-platform/docs/features/F-001-database-schema-foundation.md)), the canonical lifecycle enum is:
-> `AVAILABLE, ASSIGNED, ACTIVE, PAUSED, SUSPENDED, DEACTIVATED`.
-> `F-001` must be applied before lifecycle-dependent code is built.
+Canonical NFC card lifecycle (PRD §8):
+- `AVAILABLE` — generated, unclaimed
+- `ASSIGNED` — claimed, profile not yet published
+- `ACTIVE` — public profile is live
+- `PAUSED` — customer-initiated hide (reversible)
+- `SUSPENDED` — admin-initiated hold (reversible, admin only)
+- `DEACTIVATED` — permanent end-state, no reversal
+
+`LOST` and `REPLACED` are not card statuses. A lost card is `PAUSED` (customer) or `DEACTIVATED` plus a new physical card (permanent replacement).
 
 ---
 
@@ -34,6 +39,8 @@ Accounts for customers and super admins.
 - `role`: Role (`CUSTOMER` | `ADMIN`)
 - `status`: String (default `"ACTIVE"`)
 - `createdAt`, `updatedAt`
+- `assignments`: `CardAssignment[]`
+- `profiles`: `Profile[]`
 
 ### 2. `Organization`
 Reserved for B2B multi-card enterprise accounts (Schema-only in MVP, PRD §6.4).
@@ -65,15 +72,17 @@ Physical card inventory item.
 - `status`: CardStatus (default `AVAILABLE`)
 - `assignments`: `CardAssignment[]`
 - `events`: `ProfileEvent[]`
+- Indexes: `batchId`, `status`
 
 ### 5. `CardAssignment`
 Links a user to an NFC card; doubles as assignment history.
 - `id`: String (cuid, Primary Key)
 - `cardId`: String (Foreign Key → `NFCCard.id`)
-- `userId`: String (Foreign Key → `User.id`) — ⚠️ *Needs `@relation` attribute fix in F-001*
+- `userId`: String (Foreign Key → `User.id`)
 - `assignedAt`: DateTime (default `now()`)
 - `unassignedAt`: DateTime? (populated when card is unassigned/replaced)
 - `status`: String (default `"ACTIVE"`)
+- Indexes: `userId`, `cardId`
 
 ### 6. `Template`
 Visual layouts scoped to a `CardType`.
@@ -90,7 +99,7 @@ Visual layouts scoped to a `CardType`.
 ### 7. `Profile`
 Single profile model replacing vertical-specific tables.
 - `id`: String (cuid, Primary Key)
-- `userId`: String — ⚠️ *Needs `@relation` attribute fix in F-001*
+- `userId`: String (Foreign Key → `User.id`)
 - `cardTypeId`: String (Foreign Key → `CardType.id`)
 - `templateId`: String? (Foreign Key → `Template.id`)
 - `data`: Json (field values keyed by `fieldSchema[].key`)
@@ -106,6 +115,17 @@ Analytics interaction records.
 - `timestamp`: DateTime (default `now()`)
 - `metadata`: Json? (sessionId, referrer, clickTarget)
 - `isBot`: Boolean (default `false`)
+- Index: composite `(cardId, timestamp)` for analytics time-range queries
+
+---
+
+## Public Profile Resolution (no `Profile.cardId`)
+
+There is no direct `Profile` ↔ `NFCCard` foreign key. The PRD data model resolves a tap through:
+
+`NFCCard.publicToken` → `NFCCard` → active `CardAssignment` → `userId` → `Profile` (filtered by `cardTypeId`)
+
+Public profile and analytics code must use this join chain, not add a `cardId` column on `Profile`.
 
 ---
 

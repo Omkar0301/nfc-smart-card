@@ -3,7 +3,7 @@
 **ID:** F-001  
 **Priority:** 🔴 Critical  
 **Phase:** 0 (Blocker — must ship before any other feature)  
-**Status:** 🚫 CONFLICT (schema exists but contains incorrect enum values)  
+**Status:** ✅ IMPLEMENTED (2026-08-31)  
 **Depends on:** None  
 **Blocks:** Every other feature (F-002 through F-017)
 

@@ -1,9 +1,10 @@
 export enum CardStatus {
   AVAILABLE = "AVAILABLE",
+  ASSIGNED = "ASSIGNED",
   ACTIVE = "ACTIVE",
   PAUSED = "PAUSED",
-  LOST = "LOST",
-  REPLACED = "REPLACED"
+  SUSPENDED = "SUSPENDED",
+  DEACTIVATED = "DEACTIVATED"
 }
 
 export enum Role {

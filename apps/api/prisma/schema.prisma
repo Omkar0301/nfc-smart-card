@@ -13,10 +13,11 @@ enum Role {
 
 enum CardStatus {
   AVAILABLE
+  ASSIGNED
   ACTIVE
   PAUSED
-  LOST
-  REPLACED
+  SUSPENDED
+  DEACTIVATED
 }
 
 model User {
@@ -28,6 +29,8 @@ model User {
   status        String   @default("ACTIVE")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  assignments   CardAssignment[]
+  profiles      Profile[]
 }
 
 model Organization {           // schema-only in MVP — no UI yet, PRD §6.4 / §28
@@ -67,6 +70,9 @@ model NFCCard {
   updatedAt      DateTime @updatedAt
   assignments    CardAssignment[]
   events         ProfileEvent[]
+
+  @@index([batchId])
+  @@index([status])
 }
 
 model CardAssignment {
@@ -74,12 +80,16 @@ model CardAssignment {
   cardId       String
   card         NFCCard   @relation(fields: [cardId], references: [id])
   userId       String
+  user         User      @relation(fields: [userId], references: [id])
   assignedAt   DateTime  @default(now())
   unassignedAt DateTime?
   status       String    @default("ACTIVE")
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   // doubles as assignment history — no separate history table
+
+  @@index([userId])
+  @@index([cardId])
 }
 
 model Template {
@@ -100,6 +110,7 @@ model Template {
 model Profile {                 // replaces BusinessProfile/CollegeProfile/etc — PRD §21
   id              String   @id @default(cuid())
   userId          String
+  user            User     @relation(fields: [userId], references: [id])
   cardTypeId      String
   cardType        CardType @relation(fields: [cardTypeId], references: [id])
   templateId      String?
@@ -120,4 +131,6 @@ model ProfileEvent {
   timestamp DateTime @default(now())
   metadata  Json?
   isBot     Boolean  @default(false)
+
+  @@index([cardId, timestamp])
 }
