@@ -12,6 +12,8 @@ coverage/
 
 .prisma/
 
+.agents/
+
 
 # TypeScript build info cache
 **/*.tsbuildinfo
