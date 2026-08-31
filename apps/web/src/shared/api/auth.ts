@@ -1,5 +1,5 @@
 import type { AuthUser, Role } from "@nfc-card/shared";
-import { apiFetch, setAccessToken, setRefreshToken } from "./client";
+import { ApiError, apiFetch, getAccessToken, setAccessToken, setRefreshToken, tryRefresh } from "./client";
 import { API_ROUTES } from "./routes";
 
 export type SessionUser = {
@@ -37,12 +37,15 @@ export async function verifyOtp(phone: string, code: string): Promise<VerifyOtpR
 }
 
 export async function refresh(): Promise<{ accessToken: string }> {
-  return apiFetch(API_ROUTES.auth.refresh, {
-    method: "POST",
-    skipAuth: true,
-    skipRefresh: true,
-    body: JSON.stringify({}),
-  });
+  const ok = await tryRefresh();
+  if (!ok) {
+    throw new ApiError(401, "UNAUTHORIZED", "Refresh failed");
+  }
+  const token = getAccessToken();
+  if (!token) {
+    throw new ApiError(401, "UNAUTHORIZED", "Refresh failed");
+  }
+  return { accessToken: token };
 }
 
 export async function logout(): Promise<void> {

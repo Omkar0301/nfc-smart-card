@@ -62,7 +62,15 @@ async function tryRefresh(): Promise<boolean> {
       return false;
     }
 
-    const data = (await res.json()) as { accessToken: string; refreshToken?: string };
+    const body = (await res.json()) as
+      | { success: true; data: { accessToken: string; refreshToken?: string } }
+      | { accessToken: string; refreshToken?: string };
+    const data = (body as { data?: { accessToken: string; refreshToken?: string } }).data ?? (body as { accessToken: string; refreshToken?: string });
+    if (!data?.accessToken) {
+      setAccessToken(null);
+      setRefreshToken(null);
+      return false;
+    }
     setAccessToken(data.accessToken);
     if (data.refreshToken) {
       setRefreshToken(data.refreshToken);
@@ -109,7 +117,7 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
     const errorBody = (await res.clone().json().catch(() => ({}))) as {
       error?: { code?: string };
     };
-    if (errorBody.error?.code === "TOKEN_EXPIRED" || !skipAuth) {
+    if (!skipAuth && errorBody.error?.code === "TOKEN_EXPIRED") {
       const refreshed = await tryRefresh();
       if (refreshed) {
         res = await request();
