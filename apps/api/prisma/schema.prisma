@@ -1,0 +1,123 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum CardStatus {
+  AVAILABLE
+  ACTIVE
+  PAUSED
+  LOST
+  REPLACED
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String?  @unique   // used for account recovery, PRD §10.2
+  phone         String   @unique
+  role          Role     @default(CUSTOMER) // SUPER_ADMIN | CUSTOMER
+  status        String   @default("ACTIVE")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Organization {           // schema-only in MVP — no UI yet, PRD §6.4 / §28
+  id        String   @id @default(cuid())
+  name      String
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  cards     NFCCard[]
+}
+
+model CardType {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique      // "business" | "college" | ...
+  description String?
+  fieldSchema Json                  // [{ key, label, type, required, defaultVisible }]
+  status      String   @default("ACTIVE")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  cards       NFCCard[]
+  templates   Template[]
+  profiles    Profile[]
+}
+
+model NFCCard {
+  id             String   @id @default(cuid())
+  cardNumber     String   @unique     // "BC-000001"
+  publicToken    String   @unique     // crypto-random, never sequential
+  cardTypeId     String
+  cardType       CardType @relation(fields: [cardTypeId], references: [id])
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  batchId        String?
+  status         CardStatus @default(AVAILABLE) // AVAILABLE|ASSIGNED|ACTIVE|PAUSED|SUSPENDED|DEACTIVATED
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  assignments    CardAssignment[]
+  events         ProfileEvent[]
+}
+
+model CardAssignment {
+  id           String    @id @default(cuid())
+  cardId       String
+  card         NFCCard   @relation(fields: [cardId], references: [id])
+  userId       String
+  assignedAt   DateTime  @default(now())
+  unassignedAt DateTime?
+  status       String    @default("ACTIVE")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  // doubles as assignment history — no separate history table
+}
+
+model Template {
+  id            String   @id @default(cuid())
+  cardTypeId    String
+  cardType      CardType @relation(fields: [cardTypeId], references: [id])
+  name          String
+  slug          String
+  thumbnail     String?
+  isActive      Boolean  @default(true)
+  isPremium     Boolean  @default(false)
+  configuration Json
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  profiles      Profile[]
+}
+
+model Profile {                 // replaces BusinessProfile/CollegeProfile/etc — PRD §21
+  id              String   @id @default(cuid())
+  userId          String
+  cardTypeId      String
+  cardType        CardType @relation(fields: [cardTypeId], references: [id])
+  templateId      String?
+  template        Template? @relation(fields: [templateId], references: [id])
+  data            Json      // field values keyed by CardType.fieldSchema[].key
+  fieldVisibility Json      // { [fieldKey]: boolean } — overrides defaultVisible
+  status          String    @default("draft") // draft | published
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model ProfileEvent {
+  id        String   @id @default(cuid())
+  cardId    String
+  card      NFCCard  @relation(fields: [cardId], references: [id])
+  profileId String?
+  eventType String   // SCAN | PROFILE_VIEW | PHONE_CLICK | ... (PRD §20)
+  timestamp DateTime @default(now())
+  metadata  Json?
+  isBot     Boolean  @default(false)
+}
