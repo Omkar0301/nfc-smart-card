@@ -1,5 +1,6 @@
 import type { AuthUser, Role } from "@nfc-card/shared";
 import { apiFetch, setAccessToken, setRefreshToken } from "./client";
+import { API_ROUTES } from "./routes";
 
 export type SessionUser = {
   id: string;
@@ -15,7 +16,7 @@ export type VerifyOtpResponse = {
 };
 
 export async function sendOtp(phone: string): Promise<{ success: true; message: string }> {
-  return apiFetch("/auth/send-otp", {
+  return apiFetch(API_ROUTES.auth.sendOtp, {
     method: "POST",
     skipAuth: true,
     skipRefresh: true,
@@ -24,7 +25,7 @@ export async function sendOtp(phone: string): Promise<{ success: true; message: 
 }
 
 export async function verifyOtp(phone: string, code: string): Promise<VerifyOtpResponse> {
-  const data = await apiFetch<VerifyOtpResponse>("/auth/verify-otp", {
+  const data = await apiFetch<VerifyOtpResponse>(API_ROUTES.auth.verifyOtp, {
     method: "POST",
     skipAuth: true,
     skipRefresh: true,
@@ -36,7 +37,7 @@ export async function verifyOtp(phone: string, code: string): Promise<VerifyOtpR
 }
 
 export async function refresh(): Promise<{ accessToken: string }> {
-  return apiFetch("/auth/refresh", {
+  return apiFetch(API_ROUTES.auth.refresh, {
     method: "POST",
     skipAuth: true,
     skipRefresh: true,
@@ -46,7 +47,7 @@ export async function refresh(): Promise<{ accessToken: string }> {
 
 export async function logout(): Promise<void> {
   try {
-    await apiFetch("/auth/logout", { method: "POST", body: JSON.stringify({}) });
+    await apiFetch(API_ROUTES.auth.logout, { method: "POST", body: JSON.stringify({}) });
   } finally {
     setAccessToken(null);
     setRefreshToken(null);
@@ -54,5 +55,5 @@ export async function logout(): Promise<void> {
 }
 
 export async function getMe(): Promise<AuthUser> {
-  return apiFetch("/auth/me");
+  return apiFetch(API_ROUTES.auth.me);
 }

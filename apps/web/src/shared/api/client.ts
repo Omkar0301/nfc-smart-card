@@ -1,3 +1,5 @@
+import { API_ROUTES } from "./routes";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 export class ApiError extends Error {
@@ -47,7 +49,7 @@ async function tryRefresh(): Promise<boolean> {
   }
 
   refreshInFlight = (async () => {
-    const res = await fetch(`${API_URL}/auth/refresh`, {
+    const res = await fetch(`${API_URL}${API_ROUTES.auth.refresh}`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -103,7 +105,7 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
 
   let res = await request();
 
-  if (res.status === 401 && !skipRefresh && !path.startsWith("/auth/refresh")) {
+  if (res.status === 401 && !skipRefresh && !path.startsWith(API_ROUTES.auth.refresh)) {
     const errorBody = (await res.clone().json().catch(() => ({}))) as {
       error?: { code?: string };
     };
