@@ -1,4 +1,4 @@
-import type { AuthUser, Role } from '@nfc-card/shared';
+import { ErrorCode, type AuthUser, type Role } from '@nfc-card/shared';
 import {
   ApiError,
   apiFetch,
@@ -46,11 +46,11 @@ export async function verifyOtp(phone: string, code: string): Promise<VerifyOtpR
 export async function refresh(): Promise<{ accessToken: string }> {
   const ok = await tryRefresh();
   if (!ok) {
-    throw new ApiError(401, 'UNAUTHORIZED', 'Refresh failed');
+    throw new ApiError(401, ErrorCode.UNAUTHORIZED, 'Refresh failed');
   }
   const token = getAccessToken();
   if (!token) {
-    throw new ApiError(401, 'UNAUTHORIZED', 'Refresh failed');
+    throw new ApiError(401, ErrorCode.UNAUTHORIZED, 'Refresh failed');
   }
   return { accessToken: token };
 }
@@ -66,4 +66,44 @@ export async function logout(): Promise<void> {
 
 export async function getMe(): Promise<AuthUser> {
   return apiFetch(API_ROUTES.auth.me);
+}
+
+export async function requestRecovery(email: string): Promise<{ message: string }> {
+  return apiFetch(API_ROUTES.auth.recoverRequest, {
+    method: 'POST',
+    skipAuth: true,
+    skipRefresh: true,
+    body: JSON.stringify({ email }),
+  });
+}
+
+export async function verifyRecovery(token: string): Promise<VerifyOtpResponse> {
+  const data = await apiFetch<VerifyOtpResponse>(API_ROUTES.auth.recoverVerify, {
+    method: 'POST',
+    skipAuth: true,
+    skipRefresh: true,
+    body: JSON.stringify({ token }),
+  });
+  setAccessToken(data.accessToken);
+  setRefreshToken(data.refreshToken);
+  return data;
+}
+
+export async function updateRecoveryPhone(
+  phone: string,
+  code: string
+): Promise<{ success: true; phone: string }> {
+  return apiFetch(API_ROUTES.auth.recoverPhone, {
+    method: 'PUT',
+    body: JSON.stringify({ phone, code }),
+  });
+}
+
+export async function updateRecoveryEmail(
+  email: string | null
+): Promise<{ success: true; email: string | null }> {
+  return apiFetch(API_ROUTES.auth.updateEmail, {
+    method: 'PUT',
+    body: JSON.stringify({ email }),
+  });
 }

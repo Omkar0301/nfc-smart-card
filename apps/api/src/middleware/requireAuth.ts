@@ -1,4 +1,4 @@
-import { Role } from '@nfc-card/shared';
+import { ErrorCode, Role, UserStatus } from '@nfc-card/shared';
 import type { NextFunction, Request, Response } from 'express';
 import { sendError } from '../lib/http.js';
 import { userRepository } from '../repositories/user.repository.js';
@@ -16,14 +16,14 @@ function bearerToken(req: Request): string | null {
 export async function requireAuth(req: Request, res: Response, next: NextFunction) {
   const token = bearerToken(req);
   if (!token) {
-    sendError(res, 401, 'UNAUTHORIZED', 'Authentication required.');
+    sendError(res, 401, ErrorCode.UNAUTHORIZED, 'Authentication required.');
     return;
   }
 
   const verified = verifyAccessToken(token);
   if (!verified.ok) {
     const message =
-      verified.code === 'TOKEN_EXPIRED' ? 'Access token expired.' : 'Invalid access token.';
+      verified.code === ErrorCode.TOKEN_EXPIRED ? 'Access token expired.' : 'Invalid access token.';
     sendError(res, 401, verified.code, message);
     return;
   }
@@ -31,12 +31,12 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
   const user = await userRepository.findByIdWithAuthFields(verified.userId);
 
   if (!user) {
-    sendError(res, 401, 'UNAUTHORIZED', 'Invalid access token.');
+    sendError(res, 401, ErrorCode.UNAUTHORIZED, 'Invalid access token.');
     return;
   }
 
-  if (user.status === 'SUSPENDED') {
-    sendError(res, 403, 'ACCOUNT_SUSPENDED', 'This account is suspended.');
+  if (user.status === UserStatus.SUSPENDED) {
+    sendError(res, 403, ErrorCode.ACCOUNT_SUSPENDED, 'This account is suspended.');
     return;
   }
 
@@ -47,7 +47,6 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 export async function requireAdmin(req: Request, res: Response, next: NextFunction) {
   await requireAuth(req, res, () => {
     if (req.user?.role !== Role.ADMIN) {
-      sendError(res, 403, 'FORBIDDEN', 'Admin access required.');
       return;
     }
     next();

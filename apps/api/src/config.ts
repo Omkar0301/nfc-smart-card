@@ -33,6 +33,18 @@ const envSchema = z.object({
   OTP_SEND_MAX: z.coerce.number().int().positive().default(3),
   OTP_MAX_ATTEMPTS: z.coerce.number().int().positive().default(5),
   OTP_DIGITS: z.coerce.number().int().positive().min(4).max(8).default(6),
+  EMAIL_PROVIDER: z.enum(['console']).default('console'),
+  RECOVERY_TOKEN_TTL_MS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(60 * 60 * 1000),
+  RECOVERY_SEND_WINDOW_MS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(60 * 60 * 1000),
+  RECOVERY_SEND_MAX: z.coerce.number().int().positive().default(3),
   WEB_URL: z.string().default('http://localhost:3000,http://localhost:3001'),
   S3_ENDPOINT: z.string().optional(),
   S3_BUCKET: z.string().optional(),

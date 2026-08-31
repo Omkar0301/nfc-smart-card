@@ -1,3 +1,4 @@
+import { ErrorCode } from '@nfc-card/shared';
 import { API_ROUTES } from './routes';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
@@ -5,7 +6,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 export class ApiError extends Error {
   constructor(
     public status: number,
-    public code: string,
+    public code: ErrorCode | string,
     message: string,
     public extra?: Record<string, unknown>
   ) {
@@ -32,7 +33,7 @@ export function setRefreshToken(token: string | null): void {
 
 async function readError(res: Response): Promise<never> {
   const body = (await res.json().catch(() => ({}))) as {
-    error?: { code?: string; message?: string } & Record<string, unknown>;
+    error?: { code?: ErrorCode | string; message?: string } & Record<string, unknown>;
   };
   const err = body.error ?? {};
   throw new ApiError(res.status, err.code ?? 'UNKNOWN', err.message ?? res.statusText, err);
@@ -117,7 +118,7 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
       .catch(() => ({}))) as {
       error?: { code?: string };
     };
-    if (!skipAuth && errorBody.error?.code === 'TOKEN_EXPIRED') {
+    if (!skipAuth && errorBody.error?.code === ErrorCode.TOKEN_EXPIRED) {
       const refreshed = await tryRefresh();
       if (refreshed) {
         res = await request();

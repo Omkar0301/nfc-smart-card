@@ -43,7 +43,7 @@ Accounts for customers and super admins.
 - `email`: String? (Unique, used for account recovery PRD §10.2)
 - `phone`: String (Unique, primary OTP login identifier)
 - `role`: Role (`CUSTOMER` | `ADMIN`)
-- `status`: String (default `"ACTIVE"`)
+- `status`: UserStatus (`ACTIVE` | `SUSPENDED` | `DEACTIVATED`, default `ACTIVE`)
 - `createdAt`, `updatedAt`
 - `assignments`: `CardAssignment[]`
 - `profiles`: `Profile[]`

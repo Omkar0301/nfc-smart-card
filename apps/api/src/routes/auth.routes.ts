@@ -10,4 +10,9 @@ router.post('/refresh', authController.refresh);
 router.post('/logout', requireAuth, authController.logout);
 router.get('/me', requireAuth, authController.me);
 
+router.post('/recover/request', authController.requestRecovery);
+router.post('/recover/verify', authController.verifyRecovery);
+router.put('/recover/phone', requireAuth, authController.updatePhone);
+router.put('/email', requireAuth, authController.updateEmail);
+
 export default router;

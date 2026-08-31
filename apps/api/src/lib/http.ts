@@ -1,4 +1,5 @@
 import type { Response } from 'express';
+import type { ErrorCode } from '@nfc-card/shared';
 
 export interface ApiResponseSuccess<T = unknown> {
   success: true;
@@ -9,7 +10,7 @@ export interface ApiResponseSuccess<T = unknown> {
 export interface ApiResponseError {
   success: false;
   error: {
-    code: string;
+    code: ErrorCode | string;
     message: string;
     details?: Record<string, unknown>;
   };
@@ -27,7 +28,7 @@ export function sendSuccess<T>(res: Response, status = 200, data: T, message?: s
 export function sendError(
   res: Response,
   status: number,
-  code: string,
+  code: ErrorCode | string,
   message: string,
   details?: Record<string, unknown>
 ) {

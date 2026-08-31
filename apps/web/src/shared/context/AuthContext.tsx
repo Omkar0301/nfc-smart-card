@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Role, type AuthUser } from '@nfc-card/shared';
+import { Role, UserStatus, type AuthUser } from '@nfc-card/shared';
 import { ApiError, setAccessToken, setRefreshToken, tryRefresh } from '../api/client';
 import * as authApi from '../api/auth';
 
@@ -11,6 +11,8 @@ type AuthContextValue = {
   isAdmin: boolean;
   sendOtp: (phone: string) => ReturnType<typeof authApi.sendOtp>;
   login: (phone: string, code: string) => Promise<AuthUser>;
+  loginWithRecovery: (token: string) => Promise<AuthUser>;
+  refreshUser: () => Promise<AuthUser | null>;
   logout: () => Promise<void>;
 };
 
@@ -50,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       phone: session.user.phone,
       email: null,
       role: session.user.role,
-      status: 'ACTIVE',
+      status: UserStatus.ACTIVE,
     };
     try {
       const full = await authApi.getMe();
@@ -62,6 +64,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setUser(me);
       return me;
+    }
+  }, []);
+
+  const loginWithRecovery = useCallback(async (token: string) => {
+    const session = await authApi.verifyRecovery(token);
+    const me: AuthUser = {
+      id: session.user.id,
+      name: session.user.name,
+      phone: session.user.phone,
+      email: null,
+      role: session.user.role,
+      status: UserStatus.ACTIVE,
+    };
+    try {
+      const full = await authApi.getMe();
+      setUser(full);
+      return full;
+    } catch (err) {
+      if (err instanceof ApiError) {
+        throw err;
+      }
+      setUser(me);
+      return me;
+    }
+  }, []);
+
+  const refreshUser = useCallback(async () => {
+    try {
+      const full = await authApi.getMe();
+      setUser(full);
+      return full;
+    } catch {
+      return null;
     }
   }, []);
 
@@ -77,9 +112,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAdmin: user?.role === Role.ADMIN,
       sendOtp: authApi.sendOtp,
       login,
+      loginWithRecovery,
+      refreshUser,
       logout,
     }),
-    [user, isLoading, login, logout]
+    [user, isLoading, login, loginWithRecovery, refreshUser, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

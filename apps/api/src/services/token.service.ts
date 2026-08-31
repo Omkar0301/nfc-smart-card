@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import jwt, { type SignOptions } from 'jsonwebtoken';
 import type { CookieOptions, Response } from 'express';
-import { Role } from '@nfc-card/shared';
+import { ErrorCode, Role } from '@nfc-card/shared';
 import { config } from '../config.js';
 import { tokenRepository } from '../repositories/token.repository.js';
 
@@ -69,7 +69,8 @@ export function clearRefreshCookie(res: Response): void {
 }
 
 export type AccessVerifyResult =
-  { ok: true; userId: string; role: Role } | { ok: false; code: 'TOKEN_EXPIRED' | 'UNAUTHORIZED' };
+  | { ok: true; userId: string; role: Role }
+  | { ok: false; code: ErrorCode.TOKEN_EXPIRED | ErrorCode.UNAUTHORIZED };
 
 export function verifyAccessToken(token: string): AccessVerifyResult {
   try {
@@ -79,23 +80,23 @@ export function verifyAccessToken(token: string): AccessVerifyResult {
       typeof decoded.sub !== 'string' ||
       typeof decoded.role !== 'string'
     ) {
-      return { ok: false, code: 'UNAUTHORIZED' };
+      return { ok: false, code: ErrorCode.UNAUTHORIZED };
     }
     if (decoded.role !== Role.ADMIN && decoded.role !== Role.CUSTOMER) {
-      return { ok: false, code: 'UNAUTHORIZED' };
+      return { ok: false, code: ErrorCode.UNAUTHORIZED };
     }
     return { ok: true, userId: decoded.sub, role: decoded.role };
   } catch (err) {
     if (err instanceof jwt.TokenExpiredError) {
-      return { ok: false, code: 'TOKEN_EXPIRED' };
+      return { ok: false, code: ErrorCode.TOKEN_EXPIRED };
     }
-    return { ok: false, code: 'UNAUTHORIZED' };
+    return { ok: false, code: ErrorCode.UNAUTHORIZED };
   }
 }
 
 export type RefreshLookupResult =
   | { ok: true; userId: string; tokenId: string }
-  | { ok: false; code: 'UNAUTHORIZED' | 'TOKEN_EXPIRED' };
+  | { ok: false; code: ErrorCode.UNAUTHORIZED | ErrorCode.TOKEN_EXPIRED };
 
 export async function verifyStoredRefreshToken(token: string): Promise<RefreshLookupResult> {
   let decoded: jwt.JwtPayload;
@@ -103,9 +104,9 @@ export async function verifyStoredRefreshToken(token: string): Promise<RefreshLo
     decoded = jwt.verify(token, refreshSecret()) as jwt.JwtPayload;
   } catch (err) {
     if (err instanceof jwt.TokenExpiredError) {
-      return { ok: false, code: 'TOKEN_EXPIRED' };
+      return { ok: false, code: ErrorCode.TOKEN_EXPIRED };
     }
-    return { ok: false, code: 'UNAUTHORIZED' };
+    return { ok: false, code: ErrorCode.UNAUTHORIZED };
   }
 
   if (
@@ -113,18 +114,17 @@ export async function verifyStoredRefreshToken(token: string): Promise<RefreshLo
     typeof decoded.sub !== 'string' ||
     typeof decoded.jti !== 'string'
   ) {
-    return { ok: false, code: 'UNAUTHORIZED' };
+    return { ok: false, code: ErrorCode.UNAUTHORIZED };
   }
 
   const row = await tokenRepository.findById(decoded.jti);
   if (!row || row.userId !== decoded.sub || row.revokedAt) {
-    return { ok: false, code: 'UNAUTHORIZED' };
+    return { ok: false, code: ErrorCode.UNAUTHORIZED };
   }
   if (row.expiresAt.getTime() <= Date.now()) {
-    return { ok: false, code: 'TOKEN_EXPIRED' };
+    return { ok: false, code: ErrorCode.TOKEN_EXPIRED };
   }
   if (row.tokenHash !== hashToken(token)) {
-    return { ok: false, code: 'UNAUTHORIZED' };
   }
 
   return { ok: true, userId: row.userId, tokenId: row.id };

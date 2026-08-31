@@ -1,4 +1,4 @@
-import { Role } from '@nfc-card/shared';
+import { ErrorCode, Role, UserStatus } from '@nfc-card/shared';
 import { normalizePhone } from '../utils/phone.js';
 import { userRepository } from '../repositories/user.repository.js';
 import { countRecentSends, isSendRateLimited, issueOtp, verifyOtp } from './otp.service.js';
@@ -12,7 +12,13 @@ import {
 
 export type ServiceResult<T> =
   | { ok: true; data: T }
-  | { ok: false; status: number; code: string; message: string; details?: Record<string, unknown> };
+  | {
+      ok: false;
+      status: number;
+      code: ErrorCode;
+      message: string;
+      details?: Record<string, unknown>;
+    };
 
 export const authService = {
   async sendOtp(rawPhone: string): Promise<ServiceResult<{ sent: true }>> {
@@ -21,7 +27,7 @@ export const authService = {
       return {
         ok: false,
         status: 400,
-        code: 'INVALID_PHONE',
+        code: ErrorCode.INVALID_PHONE,
         message: 'Enter a valid phone number in E.164 format.',
       };
     }
@@ -31,7 +37,7 @@ export const authService = {
       return {
         ok: false,
         status: 429,
-        code: 'RATE_LIMITED',
+        code: ErrorCode.RATE_LIMITED,
         message: 'Too many OTP requests. Try again later.',
       };
     }
@@ -55,7 +61,7 @@ export const authService = {
       return {
         ok: false,
         status: 400,
-        code: 'INVALID_PHONE',
+        code: ErrorCode.INVALID_PHONE,
         message: 'Enter a valid phone number in E.164 format.',
       };
     }
@@ -78,11 +84,11 @@ export const authService = {
       user = await userRepository.create({ phone, name: '', role: Role.CUSTOMER });
     }
 
-    if (user.status === 'SUSPENDED') {
+    if (user.status === UserStatus.SUSPENDED) {
       return {
         ok: false,
         status: 403,
-        code: 'ACCOUNT_SUSPENDED',
+        code: ErrorCode.ACCOUNT_SUSPENDED,
         message: 'This account is suspended.',
       };
     }
@@ -104,25 +110,37 @@ export const authService = {
     token: string | undefined
   ): Promise<ServiceResult<{ accessToken: string; refreshToken: string }>> {
     if (!token) {
-      return { ok: false, status: 401, code: 'UNAUTHORIZED', message: 'Refresh token required.' };
+      return {
+        ok: false,
+        status: 401,
+        code: ErrorCode.UNAUTHORIZED,
+        message: 'Refresh token required.',
+      };
     }
 
     const verified = await verifyStoredRefreshToken(token);
     if (!verified.ok) {
       const message =
-        verified.code === 'TOKEN_EXPIRED' ? 'Refresh token expired.' : 'Invalid refresh token.';
+        verified.code === ErrorCode.TOKEN_EXPIRED
+          ? 'Refresh token expired.'
+          : 'Invalid refresh token.';
       return { ok: false, status: 401, code: verified.code, message };
     }
 
     const user = await userRepository.findById(verified.userId);
     if (!user) {
-      return { ok: false, status: 401, code: 'UNAUTHORIZED', message: 'Invalid refresh token.' };
+      return {
+        ok: false,
+        status: 401,
+        code: ErrorCode.UNAUTHORIZED,
+        message: 'Invalid refresh token.',
+      };
     }
-    if (user.status === 'SUSPENDED') {
+    if (user.status === UserStatus.SUSPENDED) {
       return {
         ok: false,
         status: 403,
-        code: 'ACCOUNT_SUSPENDED',
+        code: ErrorCode.ACCOUNT_SUSPENDED,
         message: 'This account is suspended.',
       };
     }
@@ -151,22 +169,27 @@ export const authService = {
       phone: string;
       email: string | null;
       role: Role;
-      status: string;
+      status: UserStatus;
     }>
   > {
     const user = await userRepository.findMeById(userId);
     if (!user) {
-      return { ok: false, status: 401, code: 'UNAUTHORIZED', message: 'User not found.' };
+      return {
+        ok: false,
+        status: 401,
+        code: ErrorCode.UNAUTHORIZED,
+        message: 'User not found.',
+      };
     }
     return {
       ok: true,
-      data: user as {
-        id: string;
-        name: string;
-        phone: string;
-        email: string | null;
-        role: Role;
-        status: string;
+      data: {
+        id: user.id,
+        name: user.name,
+        phone: user.phone,
+        email: user.email,
+        role: user.role as Role,
+        status: user.status as UserStatus,
       },
     };
   },

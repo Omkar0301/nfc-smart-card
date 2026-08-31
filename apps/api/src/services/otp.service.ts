@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { ErrorCode } from '@nfc-card/shared';
 import { config } from '../config.js';
 import { otpRepository } from '../repositories/otp.repository.js';
 import { createOtpProvider } from '../providers/otp.provider.js';
@@ -43,7 +44,7 @@ export async function issueOtp(phone: string): Promise<void> {
 
 export type VerifyOtpResult =
   | { ok: true }
-  | { ok: false; status: number; code: string; message: string; attemptsLeft?: number };
+  | { ok: false; status: number; code: ErrorCode; message: string; attemptsLeft?: number };
 
 export async function verifyOtp(phone: string, code: string): Promise<VerifyOtpResult> {
   const record = await otpRepository.findLatestByPhone(phone);
@@ -52,7 +53,7 @@ export async function verifyOtp(phone: string, code: string): Promise<VerifyOtpR
     return {
       ok: false,
       status: 400,
-      code: 'OTP_INVALID',
+      code: ErrorCode.OTP_INVALID,
       message: 'Invalid or already used verification code.',
     };
   }
@@ -61,7 +62,7 @@ export async function verifyOtp(phone: string, code: string): Promise<VerifyOtpR
     return {
       ok: false,
       status: 400,
-      code: 'OTP_EXPIRED',
+      code: ErrorCode.OTP_EXPIRED,
       message: 'This verification code has expired.',
     };
   }
@@ -70,7 +71,7 @@ export async function verifyOtp(phone: string, code: string): Promise<VerifyOtpR
     return {
       ok: false,
       status: 401,
-      code: 'OTP_LOCKED',
+      code: ErrorCode.OTP_LOCKED,
       message: 'Too many incorrect attempts. Request a new code.',
     };
   }
@@ -86,7 +87,7 @@ export async function verifyOtp(phone: string, code: string): Promise<VerifyOtpR
       return {
         ok: false,
         status: 401,
-        code: 'OTP_LOCKED',
+        code: ErrorCode.OTP_LOCKED,
         message: 'Too many incorrect attempts. Request a new code.',
       };
     }
@@ -94,7 +95,7 @@ export async function verifyOtp(phone: string, code: string): Promise<VerifyOtpR
     return {
       ok: false,
       status: 400,
-      code: 'OTP_INVALID',
+      code: ErrorCode.OTP_INVALID,
       message: 'Invalid verification code.',
       attemptsLeft: config.OTP_MAX_ATTEMPTS - attempts,
     };

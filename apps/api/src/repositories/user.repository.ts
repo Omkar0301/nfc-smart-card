@@ -31,7 +31,25 @@ export const userRepository = {
     });
   },
 
-  create(data: { phone: string; name: string; role: Role }) {
+  findByEmail(email: string) {
+    return prisma.user.findUnique({ where: { email } });
+  },
+
+  updatePhone(id: string, phone: string) {
+    return prisma.user.update({
+      where: { id },
+      data: { phone },
+    });
+  },
+
+  updateEmail(id: string, email: string | null) {
+    return prisma.user.update({
+      where: { id },
+      data: { email },
+    });
+  },
+
+  create(data: { phone: string; name: string; role: Role; email?: string | null }) {
     return prisma.user.create({ data });
   },
 };

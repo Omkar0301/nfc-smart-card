@@ -153,10 +153,16 @@ Logging is powered by **Pino** (`apps/api/src/lib/logger.ts`).
 
 ## Postman Collection Maintenance
 
-A master Postman collection is maintained at [`docs/postman_collection.json`](file:///d:/nfc-new/nfc-card-platform/docs/postman_collection.json).
+A master Postman collection is maintained at [`misc/postman_collection.json`](file:///f:/React%20Practice/nfc-smart-card/nfc-smart-card/misc/postman_collection.json).
 
 > [!IMPORTANT]
-> **Developer Requirement:**
+> **Mandatory Postman Maintenance Rule:**
+> Every AI agent or developer implementing, updating, or deleting endpoints in `apps/api` must update `misc/postman_collection.json`. The collection must include:
+>
+> - Full path with `{{baseUrl}}`
+> - Required headers (e.g. `Content-Type: application/json`, `Authorization: Bearer {{accessToken}}`)
+> - Example request bodies (raw JSON)
+> - Test scripts to automatically capture and persist `accessToken` and `refreshToken` variables where applicable (e.g., Verify OTP, Verify Recovery).
 
 ---
 
@@ -226,8 +232,13 @@ Handled using **Zod** (`zod` package).
 | `GET`      | `/health`               | None           | Existing                                                                                                                                                                             |
 | `POST`     | `/auth/send-otp`        | Rate-limited   | [F-002](file:///d:/nfc-new/nfc-card-platform/docs/features/F-002-authentication-otp-jwt.md)                                                                                          |
 | `POST`     | `/auth/verify-otp`      | Rate-limited   | [F-002](file:///d:/nfc-new/nfc-card-platform/docs/features/F-002-authentication-otp-jwt.md)                                                                                          |
+| `POST`     | `/auth/refresh`         | None           | [F-002](file:///d:/nfc-new/nfc-card-platform/docs/features/F-002-authentication-otp-jwt.md)                                                                                          |
+| `GET`      | `/auth/me`              | `requireAuth`  | [F-002](file:///d:/nfc-new/nfc-card-platform/docs/features/F-002-authentication-otp-jwt.md)                                                                                          |
+| `POST`     | `/auth/logout`          | `requireAuth`  | [F-002](file:///d:/nfc-new/nfc-card-platform/docs/features/F-002-authentication-otp-jwt.md)                                                                                          |
 | `POST`     | `/auth/recover/request` | Rate-limited   | [F-003](file:///d:/nfc-new/nfc-card-platform/docs/features/F-003-account-recovery.md)                                                                                                |
 | `POST`     | `/auth/recover/verify`  | None           | [F-003](file:///d:/nfc-new/nfc-card-platform/docs/features/F-003-account-recovery.md)                                                                                                |
+| `PUT`      | `/auth/recover/phone`   | `requireAuth`  | [F-003](file:///d:/nfc-new/nfc-card-platform/docs/features/F-003-account-recovery.md)                                                                                                |
+| `PUT`      | `/auth/email`           | `requireAuth`  | [F-003](file:///d:/nfc-new/nfc-card-platform/docs/features/F-003-account-recovery.md)                                                                                                |
 | `GET`      | `/cards/:token`         | None           | [F-007](file:///d:/nfc-new/nfc-card-platform/docs/features/F-007-card-claiming-activation.md)                                                                                        |
 | `POST`     | `/cards/:token/claim`   | `requireAuth`  | [F-007](file:///d:/nfc-new/nfc-card-platform/docs/features/F-007-card-claiming-activation.md)                                                                                        |
 | `GET`      | `/profile`              | `requireAuth`  | [F-008](file:///d:/nfc-new/nfc-card-platform/docs/features/F-008-profile-management.md)                                                                                              |

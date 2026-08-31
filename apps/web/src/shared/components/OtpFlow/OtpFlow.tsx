@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
+import Link from 'next/link';
 import { ApiError } from '../../api/client';
 import { useAuth } from '../../hooks/useAuth';
 import styles from './OtpFlow.module.css';
@@ -68,6 +69,14 @@ export function OtpFlow({ title = 'Sign in', onAuthenticated }: OtpFlowProps) {
         <button className={styles.button} type="submit" disabled={pending}>
           {pending ? 'Sending…' : 'Send OTP'}
         </button>
+        <div style={{ marginTop: 8, textAlign: 'center' }}>
+          <Link
+            href="/portal/recover"
+            style={{ fontSize: 13, color: '#0066cc', textDecoration: 'none' }}
+          >
+            Lost access to your phone? Recover account
+          </Link>
+        </div>
       </form>
     );
   }

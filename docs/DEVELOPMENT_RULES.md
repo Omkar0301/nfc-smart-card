@@ -53,12 +53,15 @@ This document outlines mandatory engineering rules for all AI agents and develop
 25. **Feature Tests Requirement:** For every feature created or updated in `apps/api`, write unit tests (`apps/api/tests/unit/`) or integration tests (`apps/api/tests/integration/`) and ensure `npm test` passes cleanly. Tests for services/repositories should mock or isolate Prisma where appropriate.
 26. **No Assumptions:** If a requirement is ambiguous or underspecified, consult `PRD_NFC_Digital_Card_Platform.md` or `.agents/references.md`. If still unclear, ask for clarification.
 27. **Architectural Enforcement:** Any PR or feature that places Prisma calls in controllers/services or business logic in repositories must be rejected and refactored before merge.
+28. **Postman Collection Updates (Mandatory):** Whenever an endpoint is created, updated, or deleted in `apps/api`, the master Postman collection at `misc/postman_collection.json` MUST be updated with the exact route, headers, request body, query params, and test scripts (e.g. saving auth tokens).
 
 ---
 
 ## 6. Context Maintenance Rules
 
-> **MANDATORY CONTEXT UPDATE RULE:**
-> Whenever a completed feature introduces a new architectural pattern, database convention, API convention, shared utility, or important project-level rule, update the relevant context document (`PROJECT_CONTEXT.md`, `ARCHITECTURE.md`, `DATABASE_CONTEXT.md`, `API_CONTEXT.md`, or `DEVELOPMENT_RULES.md`).
+> **MANDATORY CONTEXT & POSTMAN UPDATE RULE:**
+>
+> 1. Whenever a completed feature introduces a new architectural pattern, database convention, API convention, shared utility, or important project-level rule, update the relevant context document (`PROJECT_CONTEXT.md`, `ARCHITECTURE.md`, `DATABASE_CONTEXT.md`, `API_CONTEXT.md`, or `DEVELOPMENT_RULES.md`).
+> 2. Whenever an API route is added or changed, update `misc/postman_collection.json` and `docs/API_CONTEXT.md`.
 
 Do not update the context documents for trivial feature-specific implementation details. Keep context concise, factual, and aligned with actual code.

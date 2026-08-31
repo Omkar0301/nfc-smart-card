@@ -11,6 +11,12 @@ enum Role {
   ADMIN
 }
 
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
+}
+
 enum CardStatus {
   AVAILABLE
   ASSIGNED
@@ -21,17 +27,18 @@ enum CardStatus {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  name          String
-  email         String?  @unique   // used for account recovery, PRD §10.2
-  phone         String   @unique
-  role          Role     @default(CUSTOMER) // SUPER_ADMIN | CUSTOMER
-  status        String   @default("ACTIVE")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  assignments   CardAssignment[]
-  profiles      Profile[]
-  refreshTokens RefreshToken[]
+  id             String                 @id @default(cuid())
+  name           String
+  email          String?                @unique // used for account recovery, PRD §10.2
+  phone          String                 @unique
+  role           Role                   @default(CUSTOMER) // SUPER_ADMIN | CUSTOMER
+  status         UserStatus             @default(ACTIVE)
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  assignments    CardAssignment[]
+  profiles       Profile[]
+  refreshTokens  RefreshToken[]
+  recoveryTokens AccountRecoveryToken[]
 }
 
 model Organization {           // schema-only in MVP — no UI yet, PRD §6.4 / §28
@@ -158,4 +165,17 @@ model RefreshToken {
   createdAt DateTime  @default(now())
 
   @@index([userId])
+}
+
+model AccountRecoveryToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  tokenHash String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([tokenHash])
 }
