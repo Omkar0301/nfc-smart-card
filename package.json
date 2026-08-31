@@ -20,13 +20,21 @@
     "db:generate": "npm run prisma:generate -w apps/api",
     "db:migrate": "npm run prisma:migrate -w apps/api",
     "db:studio": "npm run prisma:studio -w apps/api",
-    "db:seed": "npm run prisma:seed -w apps/api"
+    "db:seed": "npm run prisma:seed -w apps/api",
+    "prepare": "husky"
   },
   "devDependencies": {
     "concurrently": "^9.0.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.4.1",
     "oxlint": "^1.80.0",
     "prettier": "^3.9.6",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0"
+  },
+  "allowScripts": {
+    "@prisma/engines@7.10.0": true,
+    "esbuild@0.28.2": true,
+    "prisma@7.10.0": true
   }
 }

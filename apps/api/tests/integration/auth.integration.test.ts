@@ -41,9 +41,6 @@ function get(baseUrl: string, endpoint: string, token?: string) {
       url,
       {
         method: 'GET',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       },
       (res) => {

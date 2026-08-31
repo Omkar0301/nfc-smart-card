@@ -13,10 +13,6 @@ describe('JWT Token Utilities (jwt.ts)', () => {
 
     const verified = verifyAccessToken(token);
     expect(verified.ok).toBe(true);
-    if (verified.ok) {
-      expect(verified.userId).toBe(userId);
-      expect(verified.role).toBe(Role.CUSTOMER);
-    }
     if (!verified.ok) throw new Error('Token verification failed');
     expect(verified.userId).toBe(userId);
     expect(verified.role).toBe(Role.CUSTOMER);
@@ -25,9 +21,6 @@ describe('JWT Token Utilities (jwt.ts)', () => {
   it('should reject tampered or invalid access tokens', () => {
     const invalid = verifyAccessToken('invalid.token.payload');
     expect(invalid.ok).toBe(false);
-    if (!invalid.ok) {
-      expect(invalid.code).toBe('UNAUTHORIZED');
-    }
     if (invalid.ok) throw new Error('Expected token verification to fail');
     expect(invalid.code).toBe('UNAUTHORIZED');
   });
