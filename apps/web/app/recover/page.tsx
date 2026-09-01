@@ -1,9 +1,9 @@
-import { RecoverAccount } from '@/src/shared/pages/RecoverAccount';
+import RecoverClient from './RecoverClient';
 
 export default function RecoverPage() {
   return (
     <main style={{ padding: 24 }}>
-      <RecoverAccount />
+      <RecoverClient />
     </main>
   );
 }

@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { AuthProvider } from '@/src/shared/context/AuthContext';
 
 export const metadata: Metadata = {
   title: 'NFC Digital Card Platform',
@@ -9,9 +8,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>
-        <AuthProvider>{children}</AuthProvider>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

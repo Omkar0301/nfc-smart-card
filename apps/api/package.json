@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "npm run prisma:migrate:deploy && tsx watch src/server.ts",
+    "dev": "npm run prisma:generate && npm run prisma:migrate:deploy && tsx watch src/server.ts",
     "build": "tsc",
-    "start": "npm run prisma:migrate:deploy && node dist/server.js",
+    "start": "npm run prisma:generate && npm run prisma:migrate:deploy && node dist/server.js",
     "test": "vitest run",
     "test:unit": "vitest run tests/unit",
     "test:integration": "vitest run tests/integration",

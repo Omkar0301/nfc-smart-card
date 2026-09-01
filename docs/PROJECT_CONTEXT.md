@@ -91,8 +91,15 @@ nfc-card-platform/
 
 ## Architecture Summary (Option B)
 
-- **`apps/web` (Next.js App Router):** Manages all visual surfaces. Public profile URLs (`/p/[type]/[token]`) are React Server Components that fetch data from the API/database, render with `generateMetadata()` for Open Graph tags, and revalidate via Next.js Data Cache tags (`revalidateTag`). Customer and Admin portals are client-interactive Next.js routes.
+- **`apps/web` (Next.js App Router):** Manages all visual surfaces. Public profile URLs (`/p/[type]/[token]`) are React Server Components that fetch data from the API/database, render with `generateMetadata()` for Open Graph tags, and revalidate via Next.js Data Cache tags (`revalidateTag`). Customer and Admin portals are built with a server-first App Router pattern: server pages for route shells and data, small client-only widgets for interaction and browser state.
 - **`apps/api` (Express REST Server):** Serves JSON REST API endpoints (`/auth`, `/profile`, `/cards`, `/admin/*`), manages database transactions via Prisma, enforces security middleware, and runs `pg-boss` background workers.
+
+## Server/Client Component Convention
+
+- **Server Components by default:** Fetch data, render metadata, handle redirects, and keep route-level logic server-side.
+- **Client Components only when needed:** Use `'use client'` only for forms, inputs, routing events, local state, browser APIs, and other interactive UI.
+- **Never use client on the whole app shell:** Global providers and application wrappers should not force the entire application tree into client rendering. Prefer route-scoped interaction boundaries.
+- **Design goal:** Smaller client bundle, better SEO, lower hydration cost, and clearer security boundaries.
 
 ---
 

@@ -1,8 +1,8 @@
 'use client';
 
-import { createContext, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useMemo, useState, type ReactNode } from 'react';
 import { Role, UserStatus, type AuthUser } from '@nfc-card/shared';
-import { ApiError, setAccessToken, setRefreshToken, tryRefresh } from '../api/client';
+import { ApiError } from '../api/client';
 import * as authApi from '../api/auth';
 
 type AuthContextValue = {
@@ -20,29 +20,7 @@ export const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const restore = useCallback(async () => {
-    try {
-      const refreshed = await tryRefresh();
-      if (!refreshed) {
-        setUser(null);
-        return;
-      }
-      const me = await authApi.getMe();
-      setUser(me);
-    } catch {
-      setAccessToken(null);
-      setRefreshToken(null);
-      setUser(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void restore();
-  }, [restore]);
+  const [isLoading] = useState(false);
 
   const login = useCallback(async (phone: string, code: string) => {
     const session = await authApi.verifyOtp(phone, code);

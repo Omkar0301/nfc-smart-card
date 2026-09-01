@@ -3,7 +3,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import routes from './routes/index.js';
 import { config } from './config.js';
-import { httpLogger } from './lib/logger.js';
+import { httpLogger, errorLoggerMiddleware } from './lib/logger.js';
 
 const app = express();
 
@@ -30,5 +30,8 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use('/', routes);
+
+// Error logger middleware (must come after routes)
+app.use(errorLoggerMiddleware);
 
 export default app;

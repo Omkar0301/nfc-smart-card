@@ -53,16 +53,26 @@ https://{domain}/p/{cardType.slug}/{publicToken}
 - **Caching & Revalidation:** Next.js Data Cache tagged with `profile-${token}`. Invalidated using `revalidateTag("profile-${token}")` when a cardholder updates their profile, switches templates, or pauses/resumes their card.
 - **Visibility Enforcement:** Profile fields are filtered server-side (in `apps/api` or during Server Component data fetching) before rendering.
 
-### 2. Customer Portal — `/portal/*`
+### 2. Server vs Client Component Boundaries — App Router Rule
+
+The App Router uses a strict server-first model:
+
+- **Server Components (default):** All route pages and data-heavy tree segments should default to server components. This includes page shells, route-level auth checks, metadata, SEO, server fetches, redirects, and server-driven rendering.
+- **Client Components (`'use client'`):** Only add this directive to leaf components that require browser interaction or hooks, such as OTP forms, local input state, route transitions, and browser-only APIs.
+- **Rule:** A page should not be marked `'use client'` just because it renders a client child. Prefer a server page that renders a small client wrapper with the interactive logic.
+- **Example pattern:** `app/portal/login/page.tsx` stays a Server Component and renders `PortalLoginClient.tsx`; the client file contains the actual OTP form and router navigation logic.
+- **Purpose:** This keeps bundles smaller, avoids unnecessary hydration, improves SEO, and reduces global client-side complexity.
+
+### 3. Customer Portal — `/portal/*`
 
 - **Location:** `apps/web/app/portal/` _(F-011)_
-- **Rendering:** Client-interactive Next.js components (`'use client'`).
-- **Auth:** JWT Bearer token attached to API requests via HTTP client.
+- **Rendering:** Route shells and non-interactive pages remain Server Components; interactive auth and settings UI is isolated into client components (`'use client'`).
+- **Auth:** JWT Bearer token attached to API requests via HTTP client; route protection should be enforced server-side when possible.
 
-### 3. Admin Portal — `/admin/*`
+### 4. Admin Portal — `/admin/*`
 
 - **Location:** `apps/web/app/admin/` _(F-012)_
-- **Rendering:** Client-interactive Next.js components (`'use client'`).
+- **Rendering:** Route shells and non-interactive pages remain Server Components; interactive tables, filters, forms, and actions live in client components.
 - **Auth:** JWT Bearer token + server-enforced `role === 'ADMIN'` check.
 
 ---
