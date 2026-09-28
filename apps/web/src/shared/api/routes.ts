@@ -3,6 +3,7 @@ export const API_ROUTES = {
 
   admin: {
     health: '/admin/health',
+    cardTypes: '/admin/card-types',
   },
 
   auth: {

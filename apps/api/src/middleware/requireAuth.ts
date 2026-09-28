@@ -47,6 +47,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 export async function requireAdmin(req: Request, res: Response, next: NextFunction) {
   await requireAuth(req, res, () => {
     if (req.user?.role !== Role.ADMIN) {
+      sendError(res, 403, ErrorCode.FORBIDDEN, 'Admin privileges required.');
       return;
     }
     next();

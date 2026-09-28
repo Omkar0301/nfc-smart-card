@@ -2,8 +2,8 @@
 
 **ID:** F-004  
 **Priority:** 🔴 Critical  
-**Phase:** 2  
-**Status:** ⚠️ PARTIAL (model exists; no seed data, no API, no UI)  
+**Phase:** 3  
+**Status:** ✅ COMPLETED  
 **Depends on:** F-001, F-002  
 **Required by:** F-005, F-007, F-008, F-009, F-010, F-011
 
@@ -228,30 +228,30 @@ Seeds:
 
 ## Acceptance Criteria
 
-- [ ] `db:seed` runs without error and creates Business + College `CardType` rows
-- [ ] Business CardType has `slug = "business"`, 16 fields, `address` defaultVisible = false
-- [ ] College CardType has `slug = "college"`, 14 fields, `student_id` defaultVisible = false
-- [ ] All other contact/social fields in both types have `defaultVisible = true`
-- [ ] `GET /admin/card-types` (admin auth) returns both seeded types with full fieldSchema
-- [ ] `POST /admin/card-types` creates a new card type with valid input
-- [ ] `POST /admin/card-types` rejects duplicate slug with 409
-- [ ] `PUT /admin/card-types/:id` updates name, description, and fieldSchema
-- [ ] `FieldSchemaItem` TypeScript type is exported from `packages/shared`
-- [ ] Admin UI lists card types and allows create/edit
-- [ ] Field schema builder allows adding, removing, and reordering fields with type and visibility settings
+- [x] `db:seed` runs without error and creates Business + College `CardType` rows
+- [x] Business CardType has `slug = "business"`, 16 fields, `address` defaultVisible = false
+- [x] College CardType has `slug = "college"`, 14 fields, `student_id` defaultVisible = false
+- [x] All other contact/social fields in both types have `defaultVisible = true`
+- [x] `GET /admin/card-types` (admin auth) returns both seeded types with full fieldSchema
+- [x] `POST /admin/card-types` creates a new card type with valid input
+- [x] `POST /admin/card-types` rejects duplicate slug with 409
+- [x] `PUT /admin/card-types/:id` updates name, description, and fieldSchema
+- [x] `FieldSchemaItem` TypeScript type is exported from `packages/shared`
+- [x] Admin UI lists card types and allows create/edit
+- [x] Field schema builder allows adding, removing, and reordering fields with type and visibility settings
 
 ---
 
 ## Implementation Tasks
 
-- [ ] **T-004-1:** Create `packages/shared/src/types/fieldSchema.ts` with `FieldType`, `FieldSchemaItem`, `FieldSchema` types
-- [ ] **T-004-2:** Create `apps/api/prisma/seed.ts` with Business CardType seed
-- [ ] **T-004-3:** Add College CardType to seed script
-- [ ] **T-004-4:** Run `npm run db:seed` to verify seed works
-- [ ] **T-004-5:** Create `src/services/cardTypeService.ts`
-- [ ] **T-004-6:** Create `src/routes/admin/cardTypes.ts` with all 3 endpoints
-- [ ] **T-004-7:** Mount card-type routes in `app.ts` under `/admin/card-types`
-- [ ] **T-004-8:** Create `src/admin/CardTypeManagement/CardTypeList.tsx`
-- [ ] **T-004-9:** Create `src/admin/CardTypeManagement/CardTypeForm.tsx`
-- [ ] **T-004-10:** Create `src/shared/api/cardTypes.ts`
-- [ ] **T-004-11:** Update `.agents/features.md` on completion
+- [x] **T-004-1:** Create `packages/shared/src/types/fieldSchema.ts` with `FieldType`, `FieldSchemaItem`, `FieldSchema` types
+- [x] **T-004-2:** Create `apps/api/prisma/seed.ts` with Business CardType seed
+- [x] **T-004-3:** Add College CardType to seed script
+- [x] **T-004-4:** Run `npm run db:seed` to verify seed works
+- [x] **T-004-5:** Create `src/services/cardTypeService.ts`
+- [x] **T-004-6:** Create `src/routes/admin/cardTypes.ts` with all 3 endpoints
+- [x] **T-004-7:** Mount card-type routes in `app.ts` under `/admin/card-types`
+- [x] **T-004-8:** Create `src/admin/CardTypeManagement/CardTypeList.tsx`
+- [x] **T-004-9:** Create `src/admin/CardTypeManagement/CardTypeForm.tsx`
+- [x] **T-004-10:** Create `src/shared/api/cardTypes.ts`
+- [x] **T-004-11:** Update `.agents/features.md` on completion

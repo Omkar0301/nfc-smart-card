@@ -313,6 +313,115 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Card Types (Admin)",
+      "item": [
+        {
+          "name": "List Card Types",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/card-types",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "card-types"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Card Type by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/card-types/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "card-types", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Card Type",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Doctor Profile\",\n  \"slug\": \"doctor\",\n  \"description\": \"Specialized profile for healthcare professionals\",\n  \"fieldSchema\": [\n    {\n      \"key\": \"name\",\n      \"label\": \"Full Name\",\n      \"type\": \"text\",\n      \"required\": true,\n      \"defaultVisible\": true,\n      \"placeholder\": \"Dr. Jane Doe\"\n    },\n    {\n      \"key\": \"specialty\",\n      \"label\": \"Medical Specialty\",\n      \"type\": \"text\",\n      \"required\": true,\n      \"defaultVisible\": true,\n      \"placeholder\": \"Cardiology\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/card-types",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "card-types"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Card Type",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Doctor Profile Pro\",\n  \"description\": \"Updated description\",\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/card-types/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "card-types", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [
