@@ -18,6 +18,7 @@ export async function initQueue(): Promise<PgBoss> {
   });
 
   await boss.start();
+  await boss.createQueue(CARD_GENERATION_QUEUE);
   logger.info('[pg-boss] queue started successfully');
   return boss;
 }
@@ -42,6 +43,7 @@ export async function enqueueJob<T extends object>(
     logger.warn(`[pg-boss] Attempted to enqueue on '${queueName}' but queue is not running`);
     return null;
   }
+  await boss.createQueue(queueName);
   return boss.send(queueName, data);
 }
 
@@ -53,6 +55,8 @@ export async function registerWorker<T extends object>(
     logger.warn(`[pg-boss] Cannot register worker for '${queueName}': queue not running`);
     return null;
   }
+
+  await boss.createQueue(queueName);
 
   return boss.work<T>(queueName, async (jobs) => {
     for (const job of jobs) {
