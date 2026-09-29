@@ -3,7 +3,7 @@
 **ID:** F-006  
 **Priority:** 🟡 High  
 **Phase:** 3  
-**Status:** ❌ NOT STARTED  
+**Status:** ✅ COMPLETE  
 **Depends on:** F-005 (cards must exist), F-002 (admin auth)  
 **Required by:** F-012 (admin portal UI)
 
@@ -196,31 +196,31 @@ Allows admin to manually assign an `AVAILABLE` card to an existing user (e.g. if
 
 ## Acceptance Criteria
 
-- [ ] `GET /admin/cards` returns paginated list with search and filter support
-- [ ] `GET /admin/cards/:id` returns card with full assignment history
-- [ ] `POST /admin/cards/:id/suspend` sets status to SUSPENDED; public profile shows unavailable
-- [ ] `POST /admin/cards/:id/unsuspend` returns card to ACTIVE
-- [ ] `POST /admin/cards/:id/deactivate` is permanent; no reverse endpoint exists
-- [ ] `POST /admin/cards/:id/replace` deactivates old card and assigns replacement in one transaction
-- [ ] Customer's Profile is unchanged after replacement (same data, same template, new card)
-- [ ] Invalid lifecycle transitions return 409 with clear error code
-- [ ] All admin card endpoints require admin auth (401/403 without valid admin token)
-- [ ] Admin card list UI shows correct status badges and action buttons per card state
+- [x] `GET /admin/cards` returns paginated list with search and filter support
+- [x] `GET /admin/cards/:id` returns card with full assignment history
+- [x] `POST /admin/cards/:id/suspend` sets status to SUSPENDED; public profile shows unavailable
+- [x] `POST /admin/cards/:id/unsuspend` returns card to ACTIVE
+- [x] `POST /admin/cards/:id/deactivate` is permanent; no reverse endpoint exists
+- [x] `POST /admin/cards/:id/replace` deactivates old card and assigns replacement in one transaction
+- [x] Customer's Profile is unchanged after replacement (same data, same template, new card)
+- [x] Invalid lifecycle transitions return 409 with clear error code
+- [x] All admin card endpoints require admin auth (401/403 without valid admin token)
+- [x] Admin card list UI shows correct status badges and action buttons per card state
 
 ---
 
 ## Implementation Tasks
 
-- [ ] **T-006-1:** Add `GET /admin/cards` with pagination, search, filter (in `src/routes/admin/cards.ts`)
-- [ ] **T-006-2:** Add `GET /admin/cards/:id` with full history
-- [ ] **T-006-3:** Implement lifecycle transition validator in `src/services/cardService.ts`
-- [ ] **T-006-4:** Add `POST /admin/cards/:id/suspend` + `unsuspend`
-- [ ] **T-006-5:** Add `POST /admin/cards/:id/deactivate`
-- [ ] **T-006-6:** Add `POST /admin/cards/:id/activate`
-- [ ] **T-006-7:** Implement replace flow in `cardService.ts`
-- [ ] **T-006-8:** Add `POST /admin/cards/:id/replace` endpoint
-- [ ] **T-006-9:** Add `POST /admin/cards/:id/assign` endpoint
-- [ ] **T-006-10:** Create `src/admin/CardManagement/CardList.tsx`
-- [ ] **T-006-11:** Create `src/admin/CardManagement/CardDetail.tsx`
-- [ ] **T-006-12:** Create modal components (Replace, Suspend, Deactivate)
-- [ ] **T-006-13:** Update `.agents/features.md` on completion
+- [x] **T-006-1:** Add `GET /admin/cards` with pagination, search, filter (in `src/routes/admin/cards.ts`)
+- [x] **T-006-2:** Add `GET /admin/cards/:id` with full history
+- [x] **T-006-3:** Implement lifecycle transition validator in `src/services/cardService.ts`
+- [x] **T-006-4:** Add `POST /admin/cards/:id/suspend` + `unsuspend`
+- [x] **T-006-5:** Add `POST /admin/cards/:id/deactivate`
+- [x] **T-006-6:** Add `POST /admin/cards/:id/activate`
+- [x] **T-006-7:** Implement replace flow in `cardService.ts`
+- [x] **T-006-8:** Add `POST /admin/cards/:id/replace` endpoint
+- [x] **T-006-9:** Add `POST /admin/cards/:id/assign` endpoint
+- [x] **T-006-10:** Create `src/admin/CardManagement/CardList.tsx`
+- [x] **T-006-11:** Create `src/admin/CardManagement/CardDetail.tsx`
+- [x] **T-006-12:** Create modal components (Replace, Suspend, Deactivate)
+- [x] **T-006-13:** Update `.agents/features.md` on completion

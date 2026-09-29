@@ -52,4 +52,26 @@ export const userRepository = {
   create(data: { phone: string; name: string; role: Role; email?: string | null }) {
     return prisma.user.create({ data });
   },
+
+  searchUsers(query: string, limit = 10) {
+    return prisma.user.findMany({
+      where: {
+        OR: [
+          { name: { contains: query, mode: 'insensitive' } },
+          { phone: { contains: query } },
+          { email: { contains: query, mode: 'insensitive' } },
+        ],
+      },
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+        email: true,
+        role: true,
+        status: true,
+      },
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+    });
+  },
 };

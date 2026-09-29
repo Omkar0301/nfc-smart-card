@@ -2,27 +2,37 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { CardList } from './CardList';
+import { CardDetail } from './CardDetail';
 import { GenerateCards } from './GenerateCards';
 import { JobStatus } from './JobStatus';
 import { BatchInvalidate } from './BatchInvalidate';
 import { CardExport } from './CardExport';
 import styles from './CardManagement.module.css';
 
-type ActiveTab = 'generate' | 'jobs' | 'export' | 'invalidate';
+type ActiveTab = 'inventory' | 'generate' | 'jobs' | 'export' | 'invalidate';
 
 export function CardManagement() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('generate');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('inventory');
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
   const [invalidationBatchId, setInvalidationBatchId] = useState<string>('');
 
   const handleJobStarted = (jobId: string) => {
     setActiveJobId(jobId);
+    setSelectedCardId(null);
     setActiveTab('jobs');
   };
 
   const handleSelectBatchForInvalidation = (batchId: string) => {
     setInvalidationBatchId(batchId);
+    setSelectedCardId(null);
     setActiveTab('invalidate');
+  };
+
+  const handleSelectTab = (tab: ActiveTab) => {
+    setSelectedCardId(null);
+    setActiveTab(tab);
   };
 
   return (
@@ -34,10 +44,10 @@ export function CardManagement() {
               ← Admin Dashboard
             </Link>
           </div>
-          <h1 className={styles.title}>NFC Card Inventory & Generation</h1>
+          <h1 className={styles.title}>NFC Card Inventory & Lifecycle Management</h1>
           <p className={styles.subtitle}>
-            Manage bulk card generation jobs, export printing CSVs for manufacturers, and perform QC
-            batch invalidations.
+            Search, filter, and manage card lifecycles (assign, activate, suspend, replace,
+            deactivate), bulk generation background jobs, and CSV export for manufacturers.
           </p>
         </div>
       </div>
@@ -46,51 +56,68 @@ export function CardManagement() {
       <div className={styles.tabNav}>
         <button
           type="button"
+          className={`${styles.tabButton} ${activeTab === 'inventory' && !selectedCardId ? styles.tabButtonActive : ''}`}
+          onClick={() => handleSelectTab('inventory')}
+        >
+          📇 Card Inventory
+        </button>
+        <button
+          type="button"
           className={`${styles.tabButton} ${activeTab === 'generate' ? styles.tabButtonActive : ''}`}
-          onClick={() => setActiveTab('generate')}
+          onClick={() => handleSelectTab('generate')}
         >
           ⚡ Generate Cards
         </button>
         <button
           type="button"
           className={`${styles.tabButton} ${activeTab === 'jobs' ? styles.tabButtonActive : ''}`}
-          onClick={() => setActiveTab('jobs')}
+          onClick={() => handleSelectTab('jobs')}
         >
           📊 Jobs & History {activeJobId ? '●' : ''}
         </button>
         <button
           type="button"
           className={`${styles.tabButton} ${activeTab === 'export' ? styles.tabButtonActive : ''}`}
-          onClick={() => setActiveTab('export')}
+          onClick={() => handleSelectTab('export')}
         >
           📥 CSV Export
         </button>
         <button
           type="button"
           className={`${styles.tabButton} ${activeTab === 'invalidate' ? styles.tabButtonActive : ''}`}
-          onClick={() => setActiveTab('invalidate')}
+          onClick={() => handleSelectTab('invalidate')}
         >
           🚨 Defective Batch QC
         </button>
       </div>
 
       {/* Tab Contents */}
-      {activeTab === 'generate' && <GenerateCards onJobStarted={handleJobStarted} />}
+      {selectedCardId ? (
+        <CardDetail cardId={selectedCardId} onBack={() => setSelectedCardId(null)} />
+      ) : (
+        <>
+          {activeTab === 'inventory' && (
+            <CardList onSelectCard={(cardId) => setSelectedCardId(cardId)} />
+          )}
 
-      {activeTab === 'jobs' && (
-        <JobStatus
-          activeJobId={activeJobId}
-          onSelectBatchForInvalidation={handleSelectBatchForInvalidation}
-        />
-      )}
+          {activeTab === 'generate' && <GenerateCards onJobStarted={handleJobStarted} />}
 
-      {activeTab === 'export' && <CardExport />}
+          {activeTab === 'jobs' && (
+            <JobStatus
+              activeJobId={activeJobId}
+              onSelectBatchForInvalidation={handleSelectBatchForInvalidation}
+            />
+          )}
 
-      {activeTab === 'invalidate' && (
-        <BatchInvalidate
-          initialBatchId={invalidationBatchId}
-          onSuccess={() => setInvalidationBatchId('')}
-        />
+          {activeTab === 'export' && <CardExport />}
+
+          {activeTab === 'invalidate' && (
+            <BatchInvalidate
+              initialBatchId={invalidationBatchId}
+              onSuccess={() => setInvalidationBatchId('')}
+            />
+          )}
+        </>
       )}
     </div>
   );

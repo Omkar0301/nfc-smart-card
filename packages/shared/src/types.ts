@@ -60,6 +60,16 @@ export enum ErrorCode {
   CARD_TYPE_INACTIVE = 'CARD_TYPE_INACTIVE',
   JOB_NOT_FOUND = 'JOB_NOT_FOUND',
   BATCH_NOT_FOUND = 'BATCH_NOT_FOUND',
+
+  // Admin Card Lifecycle & Inventory (F-006)
+  INVALID_TRANSITION = 'INVALID_TRANSITION',
+  CARD_NOT_FOUND = 'CARD_NOT_FOUND',
+  REPLACEMENT_NOT_AVAILABLE = 'REPLACEMENT_NOT_AVAILABLE',
+  CARD_TYPE_MISMATCH = 'CARD_TYPE_MISMATCH',
+  USER_NOT_FOUND = 'USER_NOT_FOUND',
+  USER_ALREADY_HAS_CARD = 'USER_ALREADY_HAS_CARD',
+  CARD_DEACTIVATED_PERMANENT = 'CARD_DEACTIVATED_PERMANENT',
+  ACTIVE_ASSIGNMENT_NOT_FOUND = 'ACTIVE_ASSIGNMENT_NOT_FOUND',
 }
 
 export type CardTypeCode = 'BUSINESS' | 'COLLEGE';
@@ -103,4 +113,64 @@ export interface GenerationJob {
   errorMessage: string | null;
   createdAt: Date | string;
   updatedAt: Date | string;
+}
+
+export interface CardTypeSummary {
+  id: string;
+  name: string;
+  slug: string;
+  cardNumberPrefix?: string;
+  status?: string;
+}
+
+export interface AssignedUserSummary {
+  id: string;
+  name: string;
+  phone: string;
+  email: string | null;
+  status?: string;
+}
+
+export interface CardAssignmentItem {
+  id: string;
+  cardId: string;
+  userId: string;
+  status: string;
+  assignedAt: Date | string;
+  unassignedAt: Date | string | null;
+  user: AssignedUserSummary;
+}
+
+export interface CardInventoryItem {
+  id: string;
+  cardNumber: string;
+  publicToken: string;
+  batchId: string | null;
+  status: CardStatus;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  cardType: CardTypeSummary;
+  assignments: CardAssignmentItem[];
+  activeAssignment?: CardAssignmentItem | null;
+}
+
+export interface ProfileEventItem {
+  id: string;
+  cardId: string;
+  profileId: string | null;
+  eventType: string;
+  timestamp: Date | string;
+}
+
+export interface CardDetail {
+  id: string;
+  cardNumber: string;
+  publicToken: string;
+  batchId: string | null;
+  status: CardStatus;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  cardType: CardTypeSummary;
+  assignments: CardAssignmentItem[];
+  events: ProfileEventItem[];
 }

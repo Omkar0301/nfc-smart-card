@@ -10,6 +10,7 @@
     "./templates": "./src/templates/index.ts"
   },
   "scripts": {
+    "build": "echo shared-ok",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",

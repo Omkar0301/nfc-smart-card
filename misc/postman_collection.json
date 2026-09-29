@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "nfc-card-platform-collection-v1",
     "name": "NFC Card Platform API",
-    "description": "Postman collection for NFC Digital Card Platform API endpoints. MUST be updated whenever new requests or endpoints are added.",
+    "description": "Postman collection for NFC Digital Card Platform API endpoints. Fully updated with System, Authentication, Card Types (Admin), Card Generation & Batch Operations (Admin - F-005), and Card Inventory & Lifecycle Management (Admin - F-006).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -378,7 +378,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Doctor Profile\",\n  \"slug\": \"doctor\",\n  \"description\": \"Specialized profile for healthcare professionals\",\n  \"fieldSchema\": [\n    {\n      \"key\": \"name\",\n      \"label\": \"Full Name\",\n      \"type\": \"text\",\n      \"required\": true,\n      \"defaultVisible\": true,\n      \"placeholder\": \"Dr. Jane Doe\"\n    },\n    {\n      \"key\": \"specialty\",\n      \"label\": \"Medical Specialty\",\n      \"type\": \"text\",\n      \"required\": true,\n      \"defaultVisible\": true,\n      \"placeholder\": \"Cardiology\"\n    }\n  ]\n}"
+              "raw": "{\n  \"name\": \"Doctor Profile\",\n  \"slug\": \"doctor\",\n  \"cardNumberPrefix\": \"DR\",\n  \"description\": \"Specialized profile for healthcare professionals\",\n  \"fieldSchema\": [\n    {\n      \"key\": \"name\",\n      \"label\": \"Full Name\",\n      \"type\": \"text\",\n      \"required\": true,\n      \"defaultVisible\": true,\n      \"placeholder\": \"Dr. Jane Doe\"\n    },\n    {\n      \"key\": \"specialty\",\n      \"label\": \"Medical Specialty\",\n      \"type\": \"text\",\n      \"required\": true,\n      \"defaultVisible\": true,\n      \"placeholder\": \"Cardiology\"\n    }\n  ]\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/admin/card-types",
@@ -415,6 +415,523 @@
                 {
                   "key": "id",
                   "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Card Inventory & Lifecycle (Admin)",
+      "item": [
+        {
+          "name": "List Cards (Search & Filter)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/cards?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "cards"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (defaults to 1)"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page (max 100)"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search card number, public token, customer name, phone, or email",
+                  "disabled": true
+                },
+                {
+                  "key": "cardTypeId",
+                  "value": "",
+                  "description": "Filter by Card Type ID",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "AVAILABLE | ASSIGNED | ACTIVE | PAUSED | SUSPENDED | DEACTIVATED",
+                  "disabled": true
+                },
+                {
+                  "key": "batchId",
+                  "value": "",
+                  "description": "Filter by generation batch UUID",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Card Details by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/cards/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "cards", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "NFC Card ID (cuid)"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Assign Card to User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"<user-cuid>\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/cards/:id/assign",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "cards", ":id", "assign"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Card ID (must be AVAILABLE status)"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Activate Card",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/cards/:id/activate",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "cards", ":id", "activate"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Card ID (must be ASSIGNED status)"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Suspend Card",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Suspicious activity under review\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/cards/:id/suspend",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "cards", ":id", "suspend"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Card ID (must be ACTIVE, ASSIGNED, or PAUSED)"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Unsuspend Card (Reinstate to ACTIVE)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/cards/:id/unsuspend",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "cards", ":id", "unsuspend"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Card ID (must be SUSPENDED status)"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Permanently Deactivate Card",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Lost card permanently revoked\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/cards/:id/deactivate",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "cards", ":id", "deactivate"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Card ID (cannot reverse once deactivated)"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Replace Card Atomically",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"replacementCardId\": \"<available-card-cuid>\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/cards/:id/replace",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "cards", ":id", "replace"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Original Card ID (ASSIGNED, ACTIVE, PAUSED, or SUSPENDED)"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Available Replacement Cards",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/cards/replacements/available?cardTypeId=<card-type-cuid>",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "cards", "replacements", "available"],
+              "query": [
+                {
+                  "key": "cardTypeId",
+                  "value": "<card-type-cuid>",
+                  "description": "Required Card Type ID"
+                },
+                {
+                  "key": "excludeCardId",
+                  "value": "",
+                  "description": "Exclude specific card from results",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Filter by card number pattern",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Max results (default 20)",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Users for Card Assignment",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/cards/users/search?query=John",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "cards", "users", "search"],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "John",
+                  "description": "Search by customer name, phone (+E.164), or email"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Max results (default 10)",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Card Generation & Batch Operations (Admin)",
+      "item": [
+        {
+          "name": "Generate Bulk Cards (Async Job)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardTypeId\": \"<card-type-cuid>\",\n  \"quantity\": 100\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/cards/generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "cards", "generate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Recent Generation Jobs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/cards/jobs",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "cards", "jobs"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Generation Job Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/cards/jobs/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "cards", "jobs", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Generation Job ID (cuid)"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Generation Job Status (Root Alias)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/jobs/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "jobs", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Generation Job ID (cuid)"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Invalidate Defective Batch (QC)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/cards/batches/:batchId/invalidate",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "cards", "batches", ":batchId", "invalidate"],
+              "variable": [
+                {
+                  "key": "batchId",
+                  "value": "",
+                  "description": "Batch UUID to invalidate (deactivates AVAILABLE cards only)"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Export Cards CSV for Manufacturer",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/cards/export?status=AVAILABLE",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "cards", "export"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "AVAILABLE",
+                  "description": "Filter by status (AVAILABLE, ACTIVE, etc.)"
+                },
+                {
+                  "key": "cardTypeId",
+                  "value": "",
+                  "description": "Filter by Card Type ID",
+                  "disabled": true
+                },
+                {
+                  "key": "batchId",
+                  "value": "",
+                  "description": "Filter by Batch UUID",
+                  "disabled": true
                 }
               ]
             }

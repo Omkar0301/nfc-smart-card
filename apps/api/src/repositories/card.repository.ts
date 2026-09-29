@@ -107,4 +107,335 @@ export const cardRepository = {
       },
     });
   },
+
+  findById(id: string) {
+    return prisma.nFCCard.findUnique({
+      where: { id },
+      include: {
+        cardType: true,
+      },
+    });
+  },
+
+  findCardDetailById(id: string) {
+    return prisma.nFCCard.findUnique({
+      where: { id },
+      include: {
+        cardType: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            cardNumberPrefix: true,
+            status: true,
+          },
+        },
+        assignments: {
+          orderBy: { assignedAt: 'desc' },
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                phone: true,
+                email: true,
+                status: true,
+              },
+            },
+          },
+        },
+        events: {
+          orderBy: { timestamp: 'desc' },
+          take: 20,
+        },
+      },
+    });
+  },
+
+  async findCards(filters: {
+    cardTypeId?: string;
+    status?: CardStatus;
+    batchId?: string;
+    search?: string;
+    page: number;
+    limit: number;
+  }) {
+    const where: any = {};
+
+    if (filters.cardTypeId) {
+      where.cardTypeId = filters.cardTypeId;
+    }
+    if (filters.status) {
+      where.status = filters.status;
+    }
+    if (filters.batchId) {
+      where.batchId = filters.batchId;
+    }
+
+    if (filters.search && filters.search.trim()) {
+      const q = filters.search.trim();
+      where.OR = [
+        { cardNumber: { contains: q, mode: 'insensitive' } },
+        { publicToken: { contains: q, mode: 'insensitive' } },
+        {
+          assignments: {
+            some: {
+              status: 'ACTIVE',
+              user: {
+                OR: [
+                  { name: { contains: q, mode: 'insensitive' } },
+                  { phone: { contains: q } },
+                  { email: { contains: q, mode: 'insensitive' } },
+                ],
+              },
+            },
+          },
+        },
+      ];
+    }
+
+    const skip = (filters.page - 1) * filters.limit;
+    const take = filters.limit;
+
+    const [total, cards] = await Promise.all([
+      prisma.nFCCard.count({ where }),
+      prisma.nFCCard.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          cardType: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              cardNumberPrefix: true,
+            },
+          },
+          assignments: {
+            where: { status: 'ACTIVE' },
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  phone: true,
+                  email: true,
+                },
+              },
+            },
+            take: 1,
+          },
+        },
+      }),
+    ]);
+
+    return {
+      cards,
+      total,
+      page: filters.page,
+      limit: filters.limit,
+    };
+  },
+
+  findActiveAssignmentByUserIdAndCardTypeId(userId: string, cardTypeId: string) {
+    return prisma.cardAssignment.findFirst({
+      where: {
+        userId,
+        status: 'ACTIVE',
+        card: {
+          cardTypeId,
+          status: {
+            not: CardStatus.DEACTIVATED,
+          },
+        },
+      },
+      include: {
+        card: true,
+      },
+    });
+  },
+
+  findActiveAssignmentByCardId(cardId: string) {
+    return prisma.cardAssignment.findFirst({
+      where: {
+        cardId,
+        status: 'ACTIVE',
+      },
+      include: {
+        user: true,
+      },
+    });
+  },
+
+  findAvailableReplacementCards(
+    cardTypeId: string,
+    excludeCardId: string,
+    search?: string,
+    limit = 20
+  ) {
+    const where: any = {
+      cardTypeId,
+      id: { not: excludeCardId },
+      status: CardStatus.AVAILABLE,
+    };
+
+    if (search && search.trim()) {
+      where.cardNumber = { contains: search.trim(), mode: 'insensitive' };
+    }
+
+    return prisma.nFCCard.findMany({
+      where,
+      select: {
+        id: true,
+        cardNumber: true,
+        publicToken: true,
+        batchId: true,
+        status: true,
+        createdAt: true,
+      },
+      take: limit,
+      orderBy: { cardNumber: 'asc' },
+    });
+  },
+
+  updateStatus(cardId: string, status: CardStatus) {
+    return prisma.nFCCard.update({
+      where: { id: cardId },
+      data: { status },
+      include: {
+        cardType: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+      },
+    });
+  },
+
+  assignCardTransaction(cardId: string, userId: string) {
+    return prisma.$transaction(async (tx) => {
+      const card = await tx.nFCCard.update({
+        where: { id: cardId },
+        data: { status: CardStatus.ASSIGNED },
+        include: {
+          cardType: true,
+        },
+      });
+
+      const assignment = await tx.cardAssignment.create({
+        data: {
+          cardId,
+          userId,
+          status: 'ACTIVE',
+          assignedAt: new Date(),
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              phone: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+      return {
+        card,
+        assignment,
+      };
+    });
+  },
+
+  deactivateCardTransaction(cardId: string) {
+    return prisma.$transaction(async (tx) => {
+      const card = await tx.nFCCard.update({
+        where: { id: cardId },
+        data: { status: CardStatus.DEACTIVATED },
+        include: {
+          cardType: true,
+        },
+      });
+
+      await tx.cardAssignment.updateMany({
+        where: {
+          cardId,
+          status: 'ACTIVE',
+        },
+        data: {
+          status: 'INACTIVE',
+          unassignedAt: new Date(),
+        },
+      });
+
+      return card;
+    });
+  },
+
+  replaceCardTransaction(params: {
+    oldCardId: string;
+    replacementCardId: string;
+    userId: string;
+    newCardStatus: CardStatus;
+  }) {
+    return prisma.$transaction(async (tx) => {
+      // 1. Deactivate old card
+      const oldCard = await tx.nFCCard.update({
+        where: { id: params.oldCardId },
+        data: { status: CardStatus.DEACTIVATED },
+      });
+
+      // 2. Inactivate previous active assignment
+      await tx.cardAssignment.updateMany({
+        where: {
+          cardId: params.oldCardId,
+          status: 'ACTIVE',
+        },
+        data: {
+          status: 'INACTIVE',
+          unassignedAt: new Date(),
+        },
+      });
+
+      // 3. Set replacement card status
+      const newCard = await tx.nFCCard.update({
+        where: { id: params.replacementCardId },
+        data: { status: params.newCardStatus },
+        include: {
+          cardType: true,
+        },
+      });
+
+      // 4. Create new assignment for the replacement card
+      const assignment = await tx.cardAssignment.create({
+        data: {
+          cardId: params.replacementCardId,
+          userId: params.userId,
+          status: 'ACTIVE',
+          assignedAt: new Date(),
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              phone: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+      return {
+        oldCard,
+        newCard,
+        assignment,
+      };
+    });
+  },
 };

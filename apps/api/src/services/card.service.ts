@@ -7,6 +7,8 @@ import { CARD_GENERATION_QUEUE, enqueueJob } from '../lib/queue.js';
 import { cardRepository, type CreateCardData } from '../repositories/card.repository.js';
 import { cardTypeRepository } from '../repositories/cardType.repository.js';
 import { generationJobRepository } from '../repositories/generationJob.repository.js';
+import { userRepository } from '../repositories/user.repository.js';
+import type { ListCardsQuery } from '../validators/card.validator.js';
 
 export interface GenerateCardsInput {
   cardTypeId: string;
@@ -207,6 +209,478 @@ export const cardService = {
     });
 
     return header + rows.join('\n');
+  },
+
+  async listCards(filters: ListCardsQuery): Promise<
+    ServiceResult<{
+      cards: any[];
+      total: number;
+      page: number;
+      limit: number;
+    }>
+  > {
+    const result = await cardRepository.findCards(filters);
+    const primaryWebUrl = config.WEB_URL.split(',')[0].trim().replace(/\/+$/, '');
+
+    const formattedCards = result.cards.map((card) => {
+      const activeAssignment = card.assignments[0] || null;
+      const nfcUrl = `${primaryWebUrl}/p/${card.cardType.slug}/${card.publicToken}`;
+      return {
+        id: card.id,
+        cardNumber: card.cardNumber,
+        publicToken: card.publicToken,
+        nfcUrl,
+        batchId: card.batchId,
+        status: card.status,
+        createdAt: card.createdAt,
+        updatedAt: card.updatedAt,
+        cardType: card.cardType,
+        assignments: card.assignments,
+        activeAssignment,
+      };
+    });
+
+    return {
+      ok: true,
+      data: {
+        cards: formattedCards,
+        total: result.total,
+        page: result.page,
+        limit: result.limit,
+      },
+    };
+  },
+
+  async getCardById(id: string): Promise<ServiceResult<{ card: any }>> {
+    const card = await cardRepository.findCardDetailById(id);
+    if (!card) {
+      return {
+        ok: false,
+        status: 404,
+        code: ErrorCode.CARD_NOT_FOUND,
+        message: 'Card not found.',
+      };
+    }
+
+    const primaryWebUrl = config.WEB_URL.split(',')[0].trim().replace(/\/+$/, '');
+    const nfcUrl = `${primaryWebUrl}/p/${card.cardType.slug}/${card.publicToken}`;
+
+    return {
+      ok: true,
+      data: {
+        card: {
+          ...card,
+          nfcUrl,
+        },
+      },
+    };
+  },
+
+  async assignCard(
+    cardId: string,
+    userId: string
+  ): Promise<ServiceResult<{ card: any; assignment: any; message: string }>> {
+    const card = await cardRepository.findById(cardId);
+    if (!card) {
+      return {
+        ok: false,
+        status: 404,
+        code: ErrorCode.CARD_NOT_FOUND,
+        message: 'Card not found.',
+      };
+    }
+
+    if (card.status === CardStatus.DEACTIVATED) {
+      return {
+        ok: false,
+        status: 409,
+        code: ErrorCode.CARD_DEACTIVATED_PERMANENT,
+        message: 'Card has been permanently deactivated.',
+      };
+    }
+
+    if (card.status !== CardStatus.AVAILABLE) {
+      return {
+        ok: false,
+        status: 409,
+        code: ErrorCode.INVALID_TRANSITION,
+        message: `Cannot manually assign card with status '${card.status}'. Only AVAILABLE cards can be assigned.`,
+        details: { from: card.status, to: CardStatus.ASSIGNED },
+      };
+    }
+
+    const user = await userRepository.findById(userId);
+    if (!user) {
+      return {
+        ok: false,
+        status: 404,
+        code: ErrorCode.USER_NOT_FOUND,
+        message: 'Target user not found.',
+      };
+    }
+
+    if (user.status !== 'ACTIVE') {
+      return {
+        ok: false,
+        status: 400,
+        code: ErrorCode.ACCOUNT_SUSPENDED,
+        message: 'Cannot assign card to an inactive or suspended user account.',
+      };
+    }
+
+    const existingAssignment = await cardRepository.findActiveAssignmentByUserIdAndCardTypeId(
+      userId,
+      card.cardTypeId
+    );
+    if (existingAssignment) {
+      return {
+        ok: false,
+        status: 409,
+        code: ErrorCode.USER_ALREADY_HAS_CARD,
+        message: 'User already has an active card of this card type.',
+      };
+    }
+
+    const result = await cardRepository.assignCardTransaction(cardId, userId);
+    logger.info(
+      { cardId, userId, cardNumber: card.cardNumber },
+      '[cardLifecycle] card manually assigned to user'
+    );
+
+    return {
+      ok: true,
+      data: {
+        card: result.card,
+        assignment: result.assignment,
+        message: `Card ${card.cardNumber} successfully assigned to ${user.name || user.phone}.`,
+      },
+    };
+  },
+
+  async activateCard(cardId: string): Promise<ServiceResult<{ card: any; message: string }>> {
+    const card = await cardRepository.findById(cardId);
+    if (!card) {
+      return {
+        ok: false,
+        status: 404,
+        code: ErrorCode.CARD_NOT_FOUND,
+        message: 'Card not found.',
+      };
+    }
+
+    if (card.status === CardStatus.ACTIVE) {
+      return {
+        ok: false,
+        status: 409,
+        code: ErrorCode.INVALID_TRANSITION,
+        message: 'Card is already active.',
+      };
+    }
+
+    if (card.status === CardStatus.DEACTIVATED) {
+      return {
+        ok: false,
+        status: 409,
+        code: ErrorCode.CARD_DEACTIVATED_PERMANENT,
+        message: 'Card has been permanently deactivated.',
+      };
+    }
+
+    if (card.status !== CardStatus.ASSIGNED) {
+      return {
+        ok: false,
+        status: 409,
+        code: ErrorCode.INVALID_TRANSITION,
+        message: `Cannot manually activate card with status '${card.status}'. Only ASSIGNED cards can be activated.`,
+        details: { from: card.status, to: CardStatus.ACTIVE },
+      };
+    }
+
+    const updated = await cardRepository.updateStatus(cardId, CardStatus.ACTIVE);
+    logger.info(
+      { cardId, cardNumber: card.cardNumber },
+      '[cardLifecycle] card manually activated by admin'
+    );
+
+    return {
+      ok: true,
+      data: {
+        card: updated,
+        message: `Card ${card.cardNumber} activated successfully.`,
+      },
+    };
+  },
+
+  async suspendCard(
+    cardId: string,
+    reason?: string
+  ): Promise<ServiceResult<{ card: any; reason?: string; message: string }>> {
+    const card = await cardRepository.findById(cardId);
+    if (!card) {
+      return {
+        ok: false,
+        status: 404,
+        code: ErrorCode.CARD_NOT_FOUND,
+        message: 'Card not found.',
+      };
+    }
+
+    if (card.status === CardStatus.DEACTIVATED) {
+      return {
+        ok: false,
+        status: 409,
+        code: ErrorCode.CARD_DEACTIVATED_PERMANENT,
+        message: 'Cannot suspend a permanently deactivated card.',
+      };
+    }
+
+    if (card.status === CardStatus.SUSPENDED) {
+      return {
+        ok: false,
+        status: 409,
+        code: ErrorCode.INVALID_TRANSITION,
+        message: 'Card is already suspended.',
+      };
+    }
+
+    if (card.status === CardStatus.AVAILABLE) {
+      return {
+        ok: false,
+        status: 409,
+        code: ErrorCode.INVALID_TRANSITION,
+        message: 'Cannot suspend an unassigned available card.',
+      };
+    }
+
+    const updated = await cardRepository.updateStatus(cardId, CardStatus.SUSPENDED);
+    logger.info(
+      { cardId, cardNumber: card.cardNumber, reason },
+      '[cardLifecycle] card suspended by admin'
+    );
+
+    return {
+      ok: true,
+      data: {
+        card: updated,
+        reason,
+        message: `Card ${card.cardNumber} suspended successfully.`,
+      },
+    };
+  },
+
+  async unsuspendCard(cardId: string): Promise<ServiceResult<{ card: any; message: string }>> {
+    const card = await cardRepository.findById(cardId);
+    if (!card) {
+      return {
+        ok: false,
+        status: 404,
+        code: ErrorCode.CARD_NOT_FOUND,
+        message: 'Card not found.',
+      };
+    }
+
+    if (card.status !== CardStatus.SUSPENDED) {
+      return {
+        ok: false,
+        status: 409,
+        code: ErrorCode.INVALID_TRANSITION,
+        message: `Only SUSPENDED cards can be unsuspended. Current status is '${card.status}'.`,
+        details: { from: card.status, to: CardStatus.ACTIVE },
+      };
+    }
+
+    const updated = await cardRepository.updateStatus(cardId, CardStatus.ACTIVE);
+    logger.info(
+      { cardId, cardNumber: card.cardNumber },
+      '[cardLifecycle] card unsuspended by admin'
+    );
+
+    return {
+      ok: true,
+      data: {
+        card: updated,
+        message: `Card ${card.cardNumber} unsuspended and reinstated to ACTIVE.`,
+      },
+    };
+  },
+
+  async deactivateCard(
+    cardId: string,
+    reason?: string
+  ): Promise<ServiceResult<{ card: any; reason?: string; message: string }>> {
+    const card = await cardRepository.findById(cardId);
+    if (!card) {
+      return {
+        ok: false,
+        status: 404,
+        code: ErrorCode.CARD_NOT_FOUND,
+        message: 'Card not found.',
+      };
+    }
+
+    if (card.status === CardStatus.DEACTIVATED) {
+      return {
+        ok: false,
+        status: 409,
+        code: ErrorCode.CARD_DEACTIVATED_PERMANENT,
+        message: 'Card has already been permanently deactivated.',
+      };
+    }
+
+    const updated = await cardRepository.deactivateCardTransaction(cardId);
+    logger.info(
+      { cardId, cardNumber: card.cardNumber, reason },
+      '[cardLifecycle] card permanently deactivated by admin'
+    );
+
+    return {
+      ok: true,
+      data: {
+        card: updated,
+        reason,
+        message: `Card ${card.cardNumber} permanently deactivated.`,
+      },
+    };
+  },
+
+  async replaceCard(
+    cardId: string,
+    replacementCardId: string
+  ): Promise<
+    ServiceResult<{
+      oldCard: any;
+      newCard: any;
+      assignment: any;
+      message: string;
+    }>
+  > {
+    const oldCard = await cardRepository.findById(cardId);
+    if (!oldCard) {
+      return {
+        ok: false,
+        status: 404,
+        code: ErrorCode.CARD_NOT_FOUND,
+        message: 'Original card not found.',
+      };
+    }
+
+    if (oldCard.status === CardStatus.DEACTIVATED) {
+      return {
+        ok: false,
+        status: 409,
+        code: ErrorCode.CARD_DEACTIVATED_PERMANENT,
+        message: 'Cannot replace a permanently deactivated card.',
+      };
+    }
+
+    if (oldCard.status === CardStatus.AVAILABLE) {
+      return {
+        ok: false,
+        status: 409,
+        code: ErrorCode.INVALID_TRANSITION,
+        message: 'Cannot replace an unassigned available card.',
+      };
+    }
+
+    const activeAssignment = await cardRepository.findActiveAssignmentByCardId(cardId);
+    if (!activeAssignment) {
+      return {
+        ok: false,
+        status: 409,
+        code: ErrorCode.ACTIVE_ASSIGNMENT_NOT_FOUND,
+        message: 'No active user assignment found on the original card to carry over.',
+      };
+    }
+
+    const replacementCard = await cardRepository.findById(replacementCardId);
+    if (!replacementCard) {
+      return {
+        ok: false,
+        status: 404,
+        code: ErrorCode.CARD_NOT_FOUND,
+        message: 'Replacement card not found.',
+      };
+    }
+
+    if (replacementCard.status !== CardStatus.AVAILABLE) {
+      return {
+        ok: false,
+        status: 409,
+        code: ErrorCode.REPLACEMENT_NOT_AVAILABLE,
+        message: `Replacement card is not in AVAILABLE status (currently '${replacementCard.status}').`,
+      };
+    }
+
+    if (replacementCard.cardTypeId !== oldCard.cardTypeId) {
+      return {
+        ok: false,
+        status: 409,
+        code: ErrorCode.CARD_TYPE_MISMATCH,
+        message: 'Replacement card must be of the exact same card type as the original card.',
+      };
+    }
+
+    // Determine replacement status:
+    // If old card was ACTIVE or PAUSED, new card immediately becomes ACTIVE (profile is already published).
+    // If old card was ASSIGNED or SUSPENDED, new card becomes ASSIGNED.
+    const newCardStatus =
+      oldCard.status === CardStatus.ACTIVE || oldCard.status === CardStatus.PAUSED
+        ? CardStatus.ACTIVE
+        : CardStatus.ASSIGNED;
+
+    const result = await cardRepository.replaceCardTransaction({
+      oldCardId: cardId,
+      replacementCardId,
+      userId: activeAssignment.userId,
+      newCardStatus,
+    });
+
+    logger.info(
+      {
+        oldCardId: cardId,
+        oldCardNumber: oldCard.cardNumber,
+        replacementCardId,
+        replacementCardNumber: replacementCard.cardNumber,
+        userId: activeAssignment.userId,
+      },
+      '[cardLifecycle] card replaced successfully'
+    );
+
+    return {
+      ok: true,
+      data: {
+        oldCard: result.oldCard,
+        newCard: result.newCard,
+        assignment: result.assignment,
+        message: `Card ${oldCard.cardNumber} replaced with ${replacementCard.cardNumber}. Profile and user data carried over.`,
+      },
+    };
+  },
+
+  async getAvailableReplacementCards(
+    cardTypeId: string,
+    excludeCardId: string,
+    search?: string,
+    limit?: number
+  ): Promise<ServiceResult<{ cards: any[] }>> {
+    const cards = await cardRepository.findAvailableReplacementCards(
+      cardTypeId,
+      excludeCardId,
+      search,
+      limit
+    );
+    return {
+      ok: true,
+      data: { cards },
+    };
+  },
+
+  async searchUsers(query: string, limit?: number): Promise<ServiceResult<{ users: any[] }>> {
+    const users = await userRepository.searchUsers(query, limit);
+    return {
+      ok: true,
+      data: { users },
+    };
   },
 
   async processCardGenerationJob(payload: CardGenerationJobPayload): Promise<void> {
