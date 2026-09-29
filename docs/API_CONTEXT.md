@@ -42,7 +42,7 @@ apps/api/src/
 ├── routes/                ← Router bindings (path + middleware → controller)
 │   ├── index.ts           ← Aggregates all route modules + /health + /admin/health
 │   ├── auth.routes.ts     ← /auth/* [F-002, F-003]
-│   ├── cards.routes.ts    ← Public token lookup & claiming (/cards/*) [F-007, F-015] (planned)
+│   ├── cards.routes.ts    ← Public token lookup & claiming (/cards/*) [F-007]
 │   ├── profile.routes.ts  ← Customer profile CRUD & lifecycle (/profile/*) [F-008, F-015] (planned)
 │   ├── templates.routes.ts← Template listing (/templates) [F-009] (planned)
 │   ├── analytics.routes.ts← Customer & event analytics (/analytics/*) [F-014] (planned)

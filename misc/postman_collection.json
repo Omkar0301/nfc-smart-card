@@ -939,6 +939,61 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Cards & Activation (F-007)",
+      "item": [
+        {
+          "name": "Public Card Token Lookup",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/cards/:token",
+              "host": ["{{baseUrl}}"],
+              "path": ["cards", ":token"],
+              "variable": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "description": "Public Card Token"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Claim & Activate Card",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cards/:token/claim",
+              "host": ["{{baseUrl}}"],
+              "path": ["cards", ":token", "claim"],
+              "variable": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "description": "Public Card Token to claim"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [

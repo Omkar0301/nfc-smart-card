@@ -1,4 +1,10 @@
-import type { CardDetail, CardInventoryItem, GenerationJob } from '@nfc-card/shared';
+import type {
+  CardDetail,
+  CardInventoryItem,
+  ClaimCardResponse,
+  GenerationJob,
+  PublicCardLookupResponse,
+} from '@nfc-card/shared';
 import { apiFetch, getAccessToken } from './client';
 import { API_ROUTES } from './routes';
 import type { ApiResponseEnvelope } from './cardTypes';
@@ -265,4 +271,22 @@ export async function searchUsers(query: string): Promise<SearchUserItem[]> {
     `${API_ROUTES.admin.cards.searchUsers}?${params.toString()}`
   );
   return res.data.users;
+}
+
+export async function getCardByToken(token: string): Promise<PublicCardLookupResponse> {
+  const res = await apiFetch<ApiResponseEnvelope<PublicCardLookupResponse>>(
+    API_ROUTES.cards.lookup(token)
+  );
+  return res.data;
+}
+
+export async function claimCard(token: string): Promise<ClaimCardResponse> {
+  const res = await apiFetch<ApiResponseEnvelope<ClaimCardResponse>>(
+    API_ROUTES.cards.claim(token),
+    {
+      method: 'POST',
+      body: JSON.stringify({}),
+    }
+  );
+  return res.data;
 }

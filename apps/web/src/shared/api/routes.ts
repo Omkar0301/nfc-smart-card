@@ -34,6 +34,11 @@ export const API_ROUTES = {
     recoverPhone: '/auth/recover/phone',
     updateEmail: '/auth/email',
   },
+
+  cards: {
+    lookup: (token: string) => `/cards/${token}`,
+    claim: (token: string) => `/cards/${token}/claim`,
+  },
 } as const;
 
 export type ApiRoute = string;

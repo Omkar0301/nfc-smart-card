@@ -3,7 +3,7 @@
 **ID:** F-007  
 **Priority:** 🔴 Critical  
 **Phase:** 4  
-**Status:** ❌ NOT STARTED  
+**Status:** ✅ Complete  
 **Depends on:** F-005 (cards must exist), F-002 (auth)  
 **Required by:** F-008 (profile), F-010 (public page), F-015 (customer lifecycle)
 
@@ -173,29 +173,29 @@ Or the SSR route itself handles all states (AVAILABLE = redirect to /activate/:t
 
 ## Acceptance Criteria
 
-- [ ] `GET /cards/:token` returns correct `status` and `cardType` for each card state
-- [ ] `GET /cards/:token` returns 404 for unknown token
-- [ ] `GET /cards/:token` does NOT require authentication
-- [ ] `POST /cards/:token/claim` requires a valid JWT (401 without it)
-- [ ] Successful claim changes `NFCCard.status` from `AVAILABLE` to `ASSIGNED`
-- [ ] Successful claim creates a `CardAssignment` row
-- [ ] Successful claim creates a `Profile` row with `status = "draft"`, `data = {}`
-- [ ] Simultaneous claim of same card by two users: exactly one succeeds, the other gets 409
-- [ ] A user who already has an active Business card cannot claim another Business card
-- [ ] Activation UI shows correct message for PAUSED / SUSPENDED / DEACTIVATED cards
-- [ ] After claim, user is navigated to profile setup (F-008)
+- [x] `GET /cards/:token` returns correct `status` and `cardType` for each card state
+- [x] `GET /cards/:token` returns 404 for unknown token
+- [x] `GET /cards/:token` does NOT require authentication
+- [x] `POST /cards/:token/claim` requires a valid JWT (401 without it)
+- [x] Successful claim changes `NFCCard.status` from `AVAILABLE` to `ASSIGNED`
+- [x] Successful claim creates a `CardAssignment` row
+- [x] Successful claim creates a `Profile` row with `status = "draft"`, `data = {}`
+- [x] Simultaneous claim of same card by two users: exactly one succeeds, the other gets 409
+- [x] A user who already has an active Business card cannot claim another Business card
+- [x] Activation UI shows correct message for PAUSED / SUSPENDED / DEACTIVATED cards
+- [x] After claim, user is navigated to profile setup (F-008)
 
 ---
 
 ## Implementation Tasks
 
-- [ ] **T-007-1:** Create `src/services/claimService.ts` with transactional claim using row lock
-- [ ] **T-007-2:** Create `src/routes/cards.ts` with `GET /cards/:token` and `POST /cards/:token/claim`
-- [ ] **T-007-3:** Mount card routes in `app.ts` (public, no global auth middleware)
-- [ ] **T-007-4:** Create `src/portal/Activate/ActivatePage.tsx`
-- [ ] **T-007-5:** Create `src/portal/Activate/ClaimCard.tsx` — integrates OtpFlow from F-002
-- [ ] **T-007-6:** Create `src/portal/Activate/UnavailableCard.tsx`
-- [ ] **T-007-7:** Create `src/portal/Activate/ClaimSuccess.tsx`
-- [ ] **T-007-8:** Add `getCardByToken()` and `claimCard()` to `src/shared/api/cards.ts`
-- [ ] **T-007-9:** Set up frontend routing: `/activate/:token` → ActivatePage
-- [ ] **T-007-10:** Update `.agents/features.md` on completion
+- [x] **T-007-1:** Create `src/services/claimService.ts` with transactional claim using row lock
+- [x] **T-007-2:** Create `src/routes/cards.ts` with `GET /cards/:token` and `POST /cards/:token/claim`
+- [x] **T-007-3:** Mount card routes in `app.ts` (public, no global auth middleware)
+- [x] **T-007-4:** Create `src/portal/Activate/ActivatePage.tsx`
+- [x] **T-007-5:** Create `src/portal/Activate/ClaimCard.tsx` — integrates OtpFlow from F-002
+- [x] **T-007-6:** Create `src/portal/Activate/UnavailableCard.tsx`
+- [x] **T-007-7:** Create `src/portal/Activate/ClaimSuccess.tsx`
+- [x] **T-007-8:** Add `getCardByToken()` and `claimCard()` to `src/shared/api/cards.ts`
+- [x] **T-007-9:** Set up frontend routing: `/activate/:token` → ActivatePage
+- [x] **T-007-10:** Update `.agents/features.md` on completion

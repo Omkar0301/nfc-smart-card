@@ -64,6 +64,10 @@ export const searchUsersQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(10),
 });
 
+export const cardTokenParamSchema = z.object({
+  token: z.string().min(1, 'Card token is required'),
+});
+
 export type GenerateCardsInput = z.infer<typeof generateCardsSchema>;
 export type ExportCardsQuery = z.infer<typeof exportCardsQuerySchema>;
 export type ListCardsQuery = z.infer<typeof listCardsQuerySchema>;
@@ -71,3 +75,4 @@ export type AssignCardInput = z.infer<typeof assignCardSchema>;
 export type SuspendCardInput = z.infer<typeof suspendCardSchema>;
 export type DeactivateCardInput = z.infer<typeof deactivateCardSchema>;
 export type ReplaceCardInput = z.infer<typeof replaceCardSchema>;
+export type CardTokenParam = z.infer<typeof cardTokenParamSchema>;

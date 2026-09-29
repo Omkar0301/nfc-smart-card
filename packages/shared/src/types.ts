@@ -70,6 +70,10 @@ export enum ErrorCode {
   USER_ALREADY_HAS_CARD = 'USER_ALREADY_HAS_CARD',
   CARD_DEACTIVATED_PERMANENT = 'CARD_DEACTIVATED_PERMANENT',
   ACTIVE_ASSIGNMENT_NOT_FOUND = 'ACTIVE_ASSIGNMENT_NOT_FOUND',
+
+  // Card Claiming & Activation (F-007)
+  CARD_NOT_AVAILABLE = 'CARD_NOT_AVAILABLE',
+  CARD_ALREADY_CLAIMED = 'CARD_ALREADY_CLAIMED',
 }
 
 export type CardTypeCode = 'BUSINESS' | 'COLLEGE';
@@ -173,4 +177,30 @@ export interface CardDetail {
   cardType: CardTypeSummary;
   assignments: CardAssignmentItem[];
   events: ProfileEventItem[];
+}
+
+export interface PublicCardLookupResponse {
+  status: CardStatus;
+  cardType?: {
+    slug: string;
+    name: string;
+  };
+  publicToken?: string;
+}
+
+export interface ClaimCardResponse {
+  card: {
+    id: string;
+    cardNumber: string;
+    publicToken: string;
+    status: CardStatus;
+  };
+  profile: {
+    id: string;
+    cardTypeId: string;
+    status: string;
+  };
+  assignment: {
+    id: string;
+  };
 }

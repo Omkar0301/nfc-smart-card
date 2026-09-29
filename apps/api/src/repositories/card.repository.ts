@@ -438,4 +438,84 @@ export const cardRepository = {
       };
     });
   },
+
+  findByPublicToken(publicToken: string) {
+    return prisma.nFCCard.findUnique({
+      where: { publicToken },
+      include: {
+        cardType: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            cardNumberPrefix: true,
+            status: true,
+          },
+        },
+      },
+    });
+  },
+
+  claimCardTransaction(params: { cardId: string; userId: string; cardTypeId: string }) {
+    return prisma.$transaction(async (tx) => {
+      // 1. Transactional row lock with SELECT ... FOR UPDATE (Prisma interactive transaction)
+      const rows = await tx.$queryRaw<
+        Array<{
+          id: string;
+          status: CardStatus;
+          cardTypeId: string;
+        }>
+      >`SELECT id, status, "cardTypeId" FROM "NFCCard" WHERE id = ${params.cardId} FOR UPDATE`;
+
+      if (!rows || rows.length === 0) {
+        throw new Error('CARD_NOT_FOUND');
+      }
+
+      if (rows[0].status !== CardStatus.AVAILABLE) {
+        throw new Error('CARD_ALREADY_CLAIMED');
+      }
+
+      // 2. Set card status to ASSIGNED
+      const card = await tx.nFCCard.update({
+        where: { id: params.cardId },
+        data: { status: CardStatus.ASSIGNED },
+        include: {
+          cardType: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+        },
+      });
+
+      // 3. Create card assignment
+      const assignment = await tx.cardAssignment.create({
+        data: {
+          cardId: params.cardId,
+          userId: params.userId,
+          status: 'ACTIVE',
+          assignedAt: new Date(),
+        },
+      });
+
+      // 4. Initialize draft profile
+      const profile = await tx.profile.create({
+        data: {
+          userId: params.userId,
+          cardTypeId: params.cardTypeId,
+          data: {},
+          fieldVisibility: {},
+          status: 'draft',
+        },
+      });
+
+      return {
+        card,
+        assignment,
+        profile,
+      };
+    });
+  },
 };
