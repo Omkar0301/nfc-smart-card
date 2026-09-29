@@ -35,9 +35,21 @@ export const cardTypeRepository = {
     });
   },
 
+  findByPrefix(cardNumberPrefix: string) {
+    return prisma.cardType.findUnique({
+      where: { cardNumberPrefix },
+      include: {
+        _count: {
+          select: { cards: true },
+        },
+      },
+    });
+  },
+
   create(data: {
     name: string;
     slug: string;
+    cardNumberPrefix: string;
     description?: string | null;
     fieldSchema: Prisma.InputJsonValue;
     status?: string;
@@ -46,6 +58,7 @@ export const cardTypeRepository = {
       data: {
         name: data.name,
         slug: data.slug,
+        cardNumberPrefix: data.cardNumberPrefix,
         description: data.description,
         fieldSchema: data.fieldSchema,
         status: data.status ?? 'ACTIVE',

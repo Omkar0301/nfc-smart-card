@@ -17,15 +17,28 @@ apps/api/src/
 ├── app.ts                 ← App mounting & top-level middleware
 ├── server.ts              ← HTTP server binding & job workers
 ├── controllers/           ← HTTP layer only (Zod parse, req/res, cookies, sendSuccess/sendError)
-│   └── auth.controller.ts ← Auth HTTP handlers [F-002]
+│   ├── auth.controller.ts ← Auth HTTP handlers [F-002]
+│   └── admin/
+│       ├── card.controller.ts   ← Admin bulk card generation & export HTTP handlers [F-005]
+│       └── cardType.controller.ts ← Card type & schema HTTP handlers [F-004]
 ├── services/              ← Business logic (no Prisma, no req/res)
 │   ├── auth.service.ts    ← Orchestrates OTP + token + user flows
 │   ├── otp.service.ts     ← Hashing, generation, rate-limit, verify
-│   └── token.service.ts   ← JWT sign/verify, refresh rotate, cookie helpers
+│   ├── token.service.ts   ← JWT sign/verify, refresh rotate, cookie helpers
+│   ├── card.service.ts    ← Card sequencing, generation orchestration, batch invalidation [F-005]
+│   ├── cardType.service.ts← Card type & field schema validation/management [F-004]
+│   └── recovery.service.ts← Account recovery flow [F-003]
 ├── repositories/          ← Prisma only (no business rules)
 │   ├── user.repository.ts
 │   ├── otp.repository.ts
-│   └── token.repository.ts
+│   ├── token.repository.ts
+│   ├── card.repository.ts          ← NFCCard Prisma queries & batch creation [F-005]
+│   ├── cardType.repository.ts      ← CardType Prisma queries [F-004]
+│   ├── generationJob.repository.ts ← GenerationJob tracker queries [F-005]
+│   └── recovery.repository.ts      ← AccountRecoveryToken queries [F-003]
+├── jobs/                  ← Background workers
+│   └── cardGeneration.job.ts ← pg-boss bulk card generation job worker [F-005]
+├── lib/                   ← prisma, logger, http (sendSuccess/sendError), queue (pg-boss) [F-005]
 ├── routes/                ← Router bindings (path + middleware → controller)
 │   ├── index.ts           ← Aggregates all route modules + /health + /admin/health
 │   ├── auth.routes.ts     ← /auth/* [F-002, F-003]
@@ -35,11 +48,11 @@ apps/api/src/
 │   ├── analytics.routes.ts← Customer & event analytics (/analytics/*) [F-014] (planned)
 │   ├── upload.routes.ts   ← S3 File upload (/upload/*) [F-016] (planned)
 │   └── admin/
-│       ├── cards.routes.ts      ← Admin card CRUD, generation, lifecycle [F-005, F-006]
-│       ├── cardTypes.routes.ts  ← Admin card type management [F-004]
+│       ├── card.routes.ts       ← Admin card CRUD, generation, jobs, export [F-005, F-006]
+│       ├── cardType.routes.ts   ← Admin card type management [F-004]
 │       ├── templates.routes.ts  ← Admin template management [F-009]
 │       └── analytics.routes.ts  ← Admin platform analytics [F-014]
-├── validators/            ← Zod schemas (auth.validator.ts, etc.)
+├── validators/            ← Zod schemas (auth.validator.ts, card.validator.ts, cardType.validator.ts)
 ├── providers/             ← External I/O (otp.provider.ts)
 ├── utils/                 ← Pure helpers (phone.ts)
 ├── middleware/            ← requireAuth (uses user.repository + token.service), requireAdmin
@@ -227,30 +240,34 @@ Handled using **Zod** (`zod` package).
 
 ## Endpoint Summary (PRD Mapping)
 
-| Method     | Endpoint                | Auth           | Feature PRD                                                                                                                                                                          |
-| ---------- | ----------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `GET`      | `/health`               | None           | Existing                                                                                                                                                                             |
-| `POST`     | `/auth/send-otp`        | Rate-limited   | [F-002](file:///d:/nfc-new/nfc-card-platform/docs/features/F-002-authentication-otp-jwt.md)                                                                                          |
-| `POST`     | `/auth/verify-otp`      | Rate-limited   | [F-002](file:///d:/nfc-new/nfc-card-platform/docs/features/F-002-authentication-otp-jwt.md)                                                                                          |
-| `POST`     | `/auth/refresh`         | None           | [F-002](file:///d:/nfc-new/nfc-card-platform/docs/features/F-002-authentication-otp-jwt.md)                                                                                          |
-| `GET`      | `/auth/me`              | `requireAuth`  | [F-002](file:///d:/nfc-new/nfc-card-platform/docs/features/F-002-authentication-otp-jwt.md)                                                                                          |
-| `POST`     | `/auth/logout`          | `requireAuth`  | [F-002](file:///d:/nfc-new/nfc-card-platform/docs/features/F-002-authentication-otp-jwt.md)                                                                                          |
-| `POST`     | `/auth/recover/request` | Rate-limited   | [F-003](file:///d:/nfc-new/nfc-card-platform/docs/features/F-003-account-recovery.md)                                                                                                |
-| `POST`     | `/auth/recover/verify`  | None           | [F-003](file:///d:/nfc-new/nfc-card-platform/docs/features/F-003-account-recovery.md)                                                                                                |
-| `PUT`      | `/auth/recover/phone`   | `requireAuth`  | [F-003](file:///d:/nfc-new/nfc-card-platform/docs/features/F-003-account-recovery.md)                                                                                                |
-| `PUT`      | `/auth/email`           | `requireAuth`  | [F-003](file:///d:/nfc-new/nfc-card-platform/docs/features/F-003-account-recovery.md)                                                                                                |
-| `GET`      | `/cards/:token`         | None           | [F-007](file:///d:/nfc-new/nfc-card-platform/docs/features/F-007-card-claiming-activation.md)                                                                                        |
-| `POST`     | `/cards/:token/claim`   | `requireAuth`  | [F-007](file:///d:/nfc-new/nfc-card-platform/docs/features/F-007-card-claiming-activation.md)                                                                                        |
-| `GET`      | `/profile`              | `requireAuth`  | [F-008](file:///d:/nfc-new/nfc-card-platform/docs/features/F-008-profile-management.md)                                                                                              |
-| `PUT`      | `/profile`              | `requireAuth`  | [F-008](file:///d:/nfc-new/nfc-card-platform/docs/features/F-008-profile-management.md)                                                                                              |
-| `POST`     | `/profile/pause`        | `requireAuth`  | [F-015](file:///d:/nfc-new/nfc-card-platform/docs/features/F-015-customer-card-lifecycle.md)                                                                                         |
-| `POST`     | `/profile/resume`       | `requireAuth`  | [F-015](file:///d:/nfc-new/nfc-card-platform/docs/features/F-015-customer-card-lifecycle.md)                                                                                         |
-| `GET`      | `/templates`            | None           | [F-009](file:///d:/nfc-new/nfc-card-platform/docs/features/F-009-template-system.md)                                                                                                 |
-| `POST`     | `/analytics/event`      | Rate-limited   | [F-014](file:///d:/nfc-new/nfc-card-platform/docs/features/F-014-analytics.md)                                                                                                       |
-| `GET`      | `/analytics/summary`    | `requireAuth`  | [F-014](file:///d:/nfc-new/nfc-card-platform/docs/features/F-014-analytics.md)                                                                                                       |
-| `POST`     | `/upload/profile-photo` | `requireAuth`  | [F-016](file:///d:/nfc-new/nfc-card-platform/docs/features/F-016-file-storage-upload.md)                                                                                             |
-| `GET/POST` | `/admin/cards/*`        | `requireAdmin` | [F-005](file:///d:/nfc-new/nfc-card-platform/docs/features/F-005-bulk-card-generation.md), [F-006](file:///d:/nfc-new/nfc-card-platform/docs/features/F-006-admin-card-lifecycle.md) |
-| `GET`      | `/admin/card-types`     | `requireAdmin` | [F-004](file:///d:/nfc-new/nfc-card-platform/docs/features/F-004-card-type-field-schema.md)                                                                                          |
-| `GET`      | `/admin/card-types/:id` | `requireAdmin` | [F-004](file:///d:/nfc-new/nfc-card-platform/docs/features/F-004-card-type-field-schema.md)                                                                                          |
-| `POST`     | `/admin/card-types`     | `requireAdmin` | [F-004](file:///d:/nfc-new/nfc-card-platform/docs/features/F-004-card-type-field-schema.md)                                                                                          |
-| `PUT`      | `/admin/card-types/:id` | `requireAdmin` | [F-004](file:///d:/nfc-new/nfc-card-platform/docs/features/F-004-card-type-field-schema.md)                                                                                          |
+| Method | Endpoint                                    | Auth           | Feature PRD                                                                                   |
+| ------ | ------------------------------------------- | -------------- | --------------------------------------------------------------------------------------------- |
+| `GET`  | `/health`                                   | None           | Existing                                                                                      |
+| `POST` | `/auth/send-otp`                            | Rate-limited   | [F-002](file:///d:/nfc-new/nfc-card-platform/docs/features/F-002-authentication-otp-jwt.md)   |
+| `POST` | `/auth/verify-otp`                          | Rate-limited   | [F-002](file:///d:/nfc-new/nfc-card-platform/docs/features/F-002-authentication-otp-jwt.md)   |
+| `POST` | `/auth/refresh`                             | None           | [F-002](file:///d:/nfc-new/nfc-card-platform/docs/features/F-002-authentication-otp-jwt.md)   |
+| `GET`  | `/auth/me`                                  | `requireAuth`  | [F-002](file:///d:/nfc-new/nfc-card-platform/docs/features/F-002-authentication-otp-jwt.md)   |
+| `POST` | `/auth/logout`                              | `requireAuth`  | [F-002](file:///d:/nfc-new/nfc-card-platform/docs/features/F-002-authentication-otp-jwt.md)   |
+| `POST` | `/auth/recover/request`                     | Rate-limited   | [F-003](file:///d:/nfc-new/nfc-card-platform/docs/features/F-003-account-recovery.md)         |
+| `POST` | `/auth/recover/verify`                      | None           | [F-003](file:///d:/nfc-new/nfc-card-platform/docs/features/F-003-account-recovery.md)         |
+| `PUT`  | `/auth/recover/phone`                       | `requireAuth`  | [F-003](file:///d:/nfc-new/nfc-card-platform/docs/features/F-003-account-recovery.md)         |
+| `PUT`  | `/auth/email`                               | `requireAuth`  | [F-003](file:///d:/nfc-new/nfc-card-platform/docs/features/F-003-account-recovery.md)         |
+| `GET`  | `/cards/:token`                             | None           | [F-007](file:///d:/nfc-new/nfc-card-platform/docs/features/F-007-card-claiming-activation.md) |
+| `POST` | `/cards/:token/claim`                       | `requireAuth`  | [F-007](file:///d:/nfc-new/nfc-card-platform/docs/features/F-007-card-claiming-activation.md) |
+| `GET`  | `/profile`                                  | `requireAuth`  | [F-008](file:///d:/nfc-new/nfc-card-platform/docs/features/F-008-profile-management.md)       |
+| `PUT`  | `/profile`                                  | `requireAuth`  | [F-008](file:///d:/nfc-new/nfc-card-platform/docs/features/F-008-profile-management.md)       |
+| `POST` | `/profile/pause`                            | `requireAuth`  | [F-015](file:///d:/nfc-new/nfc-card-platform/docs/features/F-015-customer-card-lifecycle.md)  |
+| `POST` | `/profile/resume`                           | `requireAuth`  | [F-015](file:///d:/nfc-new/nfc-card-platform/docs/features/F-015-customer-card-lifecycle.md)  |
+| `GET`  | `/templates`                                | None           | [F-009](file:///d:/nfc-new/nfc-card-platform/docs/features/F-009-template-system.md)          |
+| `POST` | `/analytics/event`                          | Rate-limited   | [F-014](file:///d:/nfc-new/nfc-card-platform/docs/features/F-014-analytics.md)                |
+| `GET`  | `/analytics/summary`                        | `requireAuth`  | [F-014](file:///d:/nfc-new/nfc-card-platform/docs/features/F-014-analytics.md)                |
+| `POST` | `/upload/profile-photo`                     | `requireAuth`  | [F-016](file:///d:/nfc-new/nfc-card-platform/docs/features/F-016-file-storage-upload.md)      |
+| `POST` | `/admin/cards/generate`                     | `requireAdmin` | [F-005](file:///d:/nfc-new/nfc-card-platform/docs/features/F-005-bulk-card-generation.md)     |
+| `GET`  | `/admin/cards/jobs/:id` & `/admin/jobs/:id` | `requireAdmin` | [F-005](file:///d:/nfc-new/nfc-card-platform/docs/features/F-005-bulk-card-generation.md)     |
+| `GET`  | `/admin/cards/jobs`                         | `requireAdmin` | [F-005](file:///d:/nfc-new/nfc-card-platform/docs/features/F-005-bulk-card-generation.md)     |
+| `POST` | `/admin/cards/batches/:batchId/invalidate`  | `requireAdmin` | [F-005](file:///d:/nfc-new/nfc-card-platform/docs/features/F-005-bulk-card-generation.md)     |
+| `GET`  | `/admin/cards/export`                       | `requireAdmin` | [F-005](file:///d:/nfc-new/nfc-card-platform/docs/features/F-005-bulk-card-generation.md)     |
+| `GET`  | `/admin/card-types`                         | `requireAdmin` | [F-004](file:///d:/nfc-new/nfc-card-platform/docs/features/F-004-card-type-field-schema.md)   |
+| `GET`  | `/admin/card-types/:id`                     | `requireAdmin` | [F-004](file:///d:/nfc-new/nfc-card-platform/docs/features/F-004-card-type-field-schema.md)   |
+| `POST` | `/admin/card-types`                         | `requireAdmin` | [F-004](file:///d:/nfc-new/nfc-card-platform/docs/features/F-004-card-type-field-schema.md)   |
+| `PUT`  | `/admin/card-types/:id`                     | `requireAdmin` | [F-004](file:///d:/nfc-new/nfc-card-platform/docs/features/F-004-card-type-field-schema.md)   |

@@ -256,6 +256,7 @@ async function main() {
     where: { slug: 'business' },
     update: {
       name: 'Business Card',
+      cardNumberPrefix: 'BC',
       description: 'Professional digital business card for founders, executives, and freelancers',
       fieldSchema: businessFieldSchema as any,
       status: 'ACTIVE',
@@ -263,6 +264,7 @@ async function main() {
     create: {
       slug: 'business',
       name: 'Business Card',
+      cardNumberPrefix: 'BC',
       description: 'Professional digital business card for founders, executives, and freelancers',
       fieldSchema: businessFieldSchema as any,
       status: 'ACTIVE',
@@ -278,6 +280,7 @@ async function main() {
     where: { slug: 'college' },
     update: {
       name: 'College / Student Card',
+      cardNumberPrefix: 'CC',
       description: 'Digital identity card for college students, academics, and interns',
       fieldSchema: collegeFieldSchema as any,
       status: 'ACTIVE',
@@ -285,6 +288,7 @@ async function main() {
     create: {
       slug: 'college',
       name: 'College / Student Card',
+      cardNumberPrefix: 'CC',
       description: 'Digital identity card for college students, academics, and interns',
       fieldSchema: collegeFieldSchema as any,
       status: 'ACTIVE',

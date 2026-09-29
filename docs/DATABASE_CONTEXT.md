@@ -64,12 +64,14 @@ Config-driven verticals (e.g. Business Card, College Card).
 - `id`: String (cuid, Primary Key)
 - `name`: String (e.g. "Business Card")
 - `slug`: String (Unique, e.g. `"business"`, `"college"`)
+- `cardNumberPrefix`: String (Unique, e.g. `"BC"`, `"CC"`) [Added in F-005]
 - `description`: String?
 - `fieldSchema`: Json (Array of field definitions: `key`, `label`, `type`, `required`, `defaultVisible`)
 - `status`: String (default `"ACTIVE"`)
 - `cards`: `NFCCard[]`
 - `templates`: `Template[]`
 - `profiles`: `Profile[]`
+- `jobs`: `GenerationJob[]`
 
 ### 4. `NFCCard`
 
@@ -137,6 +139,31 @@ Analytics interaction records.
 - `isBot`: Boolean (default `false`)
 - Index: composite `(cardId, timestamp)` for analytics time-range queries
 
+### 9. `GenerationJob` [F-005]
+
+Batch card generation progress tracker for pg-boss jobs.
+
+- `id`: String (cuid, Primary Key)
+- `batchId`: String (Unique UUID)
+- `cardTypeId`: String (Foreign Key → `CardType.id`)
+- `requestedBy`: String (Admin user ID)
+- `quantity`: Int
+- `generated`: Int (default 0)
+- `status`: String (default `"PENDING"`, values: `PENDING` | `RUNNING` | `COMPLETED` | `FAILED` | `PARTIAL`)
+- `startedAt`: DateTime?
+- `completedAt`: DateTime?
+- `errorMessage`: String?
+- `createdAt`, `updatedAt`
+- Indexes: `status`, `cardTypeId`
+
+### 10. `OtpVerification` & `RefreshToken` [F-002]
+
+Authentication tracking models for SMS/phone OTP verification and JWT session refresh tokens with revocation support.
+
+### 11. `AccountRecoveryToken` [F-003]
+
+Secondary email recovery token hashes and expiration tracking.
+
 ---
 
 ## Public Profile Resolution (no `Profile.cardId`)
@@ -153,10 +180,6 @@ Public profile and analytics code must use this join chain, not add a `cardId` c
 
 | Model                    | Feature                                                                                      | Purpose                                              |
 | ------------------------ | -------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| `OtpVerification`        | [F-002](file:///d:/nfc-new/nfc-card-platform/docs/features/F-002-authentication-otp-jwt.md)  | Phone OTP verification codes & expiry                |
-| `RefreshToken`           | [F-002](file:///d:/nfc-new/nfc-card-platform/docs/features/F-002-authentication-otp-jwt.md)  | JWT refresh tokens with revocation support           |
-| `AccountRecoveryToken`   | [F-003](file:///d:/nfc-new/nfc-card-platform/docs/features/F-003-account-recovery.md)        | Secondary email recovery token hashes                |
-| `GenerationJob`          | [F-005](file:///d:/nfc-new/nfc-card-platform/docs/features/F-005-bulk-card-generation.md)    | Batch card generation progress tracker for pg-boss   |
 | `CardReplacementRequest` | [F-015](file:///d:/nfc-new/nfc-card-platform/docs/features/F-015-customer-card-lifecycle.md) | Customer replacement requests for lost/damaged cards |
 
 ---

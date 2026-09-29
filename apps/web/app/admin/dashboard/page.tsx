@@ -41,6 +41,31 @@ export default function AdminDashboardPage() {
             Manage Card Types →
           </Link>
         </div>
+
+        <div
+          style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: 24, background: '#fff' }}
+        >
+          <h2 style={{ fontSize: 18, margin: '0 0 8px 0' }}>Card Inventory & Generation</h2>
+          <p style={{ color: '#64748b', fontSize: 14, margin: '0 0 16px 0' }}>
+            Trigger bulk card generation jobs, track progress in real time, export CSVs for
+            manufacturing, and handle QC batch invalidations.
+          </p>
+          <Link
+            href="/admin/cards"
+            style={{
+              display: 'inline-block',
+              background: '#0f172a',
+              color: '#fff',
+              padding: '8px 16px',
+              borderRadius: 6,
+              textDecoration: 'none',
+              fontSize: 14,
+              fontWeight: 500,
+            }}
+          >
+            Manage Card Inventory →
+          </Link>
+        </div>
       </div>
     </div>
   );

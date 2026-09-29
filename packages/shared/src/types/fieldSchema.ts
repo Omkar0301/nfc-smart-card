@@ -33,6 +33,7 @@ export interface CardType {
   id: string;
   name: string;
   slug: string;
+  cardNumberPrefix: string;
   description?: string | null;
   fieldSchema: FieldSchema;
   status: string;

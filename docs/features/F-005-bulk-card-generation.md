@@ -3,7 +3,7 @@
 **ID:** F-005  
 **Priority:** 🔴 Critical  
 **Phase:** 3  
-**Status:** ❌ NOT STARTED  
+**Status:** ✅ COMPLETED  
 **Depends on:** F-004 (card types must exist), F-002 (admin auth)  
 **Required by:** F-006, F-007
 
@@ -224,31 +224,31 @@ On job start:
 
 ## Acceptance Criteria
 
-- [ ] `POST /admin/cards/generate` returns 202 with `jobId` immediately (not blocking)
-- [ ] Job worker generates specified number of `NFCCard` rows with `status = AVAILABLE`
-- [ ] All generated `publicToken` values are unique and pass uniqueness constraint
-- [ ] No two tokens are sequential or guessable (verified by visual inspection and DB check)
-- [ ] Card numbers follow format `BC-000001`, `CC-000001` for respective types
-- [ ] `GET /admin/jobs/:id` returns job progress (generated count + status)
-- [ ] Job can be re-run after failure and continues without duplicating already-created cards
-- [ ] `GET /admin/cards/export` returns a valid CSV with correct columns
-- [ ] `POST /admin/cards/batches/:batchId/invalidate` sets AVAILABLE cards to DEACTIVATED
-- [ ] ASSIGNED/ACTIVE/PAUSED cards in the same batch are NOT affected by invalidation
-- [ ] pg-boss is Postgres-native (no Redis dependency added)
+- [x] `POST /admin/cards/generate` returns 202 with `jobId` immediately (not blocking)
+- [x] Job worker generates specified number of `NFCCard` rows with `status = AVAILABLE`
+- [x] All generated `publicToken` values are unique and pass uniqueness constraint
+- [x] No two tokens are sequential or guessable (verified by visual inspection and DB check)
+- [x] Card numbers follow format `BC-000001`, `CC-000001` for respective types
+- [x] `GET /admin/jobs/:id` returns job progress (generated count + status)
+- [x] Job can be re-run after failure and continues without duplicating already-created cards
+- [x] `GET /admin/cards/export` returns a valid CSV with correct columns
+- [x] `POST /admin/cards/batches/:batchId/invalidate` sets AVAILABLE cards to DEACTIVATED
+- [x] ASSIGNED/ACTIVE/PAUSED cards in the same batch are NOT affected by invalidation
+- [x] pg-boss is Postgres-native (no Redis dependency added)
 
 ---
 
 ## Implementation Tasks
 
-- [ ] **T-005-1:** Install `pg-boss` in `apps/api`
-- [ ] **T-005-2:** Add `cardNumberPrefix` field to `CardType` in schema; run migration; update seed data with prefixes
-- [ ] **T-005-3:** Add `GenerationJob` model to schema; run migration
-- [ ] **T-005-4:** Create `src/lib/queue.ts` — pg-boss init and export
-- [ ] **T-005-5:** Create `src/jobs/cardGeneration.ts` — job worker with token gen, sequencing, collision retry, progress tracking
-- [ ] **T-005-6:** Create `src/services/cardService.ts` — card number sequencing, batch invalidation
-- [ ] **T-005-7:** Create `src/routes/admin/cards.ts` — generation, job status, export, batch invalidate endpoints
-- [ ] **T-005-8:** Mount card routes in `app.ts` under `/admin/cards`
-- [ ] **T-005-9:** Start pg-boss worker in `server.ts` (or a separate worker entry point)
-- [ ] **T-005-10:** Create frontend `GenerateCards.tsx`, `JobStatus.tsx`, `BatchInvalidate.tsx`
-- [ ] **T-005-11:** Create `src/shared/api/cards.ts`
-- [ ] **T-005-12:** Update `.agents/features.md` on completion
+- [x] **T-005-1:** Install `pg-boss` in `apps/api`
+- [x] **T-005-2:** Add `cardNumberPrefix` field to `CardType` in schema; run migration; update seed data with prefixes
+- [x] **T-005-3:** Add `GenerationJob` model to schema; run migration
+- [x] **T-005-4:** Create `src/lib/queue.ts` — pg-boss init and export
+- [x] **T-005-5:** Create `src/jobs/cardGeneration.ts` — job worker with token gen, sequencing, collision retry, progress tracking
+- [x] **T-005-6:** Create `src/services/cardService.ts` — card number sequencing, batch invalidation
+- [x] **T-005-7:** Create `src/routes/admin/cards.ts` — generation, job status, export, batch invalidate endpoints
+- [x] **T-005-8:** Mount card routes in `app.ts` under `/admin/cards`
+- [x] **T-005-9:** Start pg-boss worker in `server.ts` (or a separate worker entry point)
+- [x] **T-005-10:** Create frontend `GenerateCards.tsx`, `JobStatus.tsx`, `BatchInvalidate.tsx`
+- [x] **T-005-11:** Create `src/shared/api/cards.ts`
+- [x] **T-005-12:** Update `.agents/features.md` on completion

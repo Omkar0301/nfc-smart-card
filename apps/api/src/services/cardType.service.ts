@@ -105,9 +105,28 @@ export const cardTypeService = {
       };
     }
 
+    const prefix = (
+      input.cardNumberPrefix?.trim().toUpperCase() ||
+      input.slug
+        .replace(/[^a-zA-Z0-9]/g, '')
+        .slice(0, 2)
+        .toUpperCase()
+    ).slice(0, 10);
+
+    const existingPrefix = await cardTypeRepository.findByPrefix(prefix);
+    if (existingPrefix) {
+      return {
+        ok: false,
+        status: 409,
+        code: ErrorCode.CONFLICT,
+        message: `Card type with prefix '${prefix}' already exists.`,
+      };
+    }
+
     const created = await cardTypeRepository.create({
       name: input.name.trim(),
       slug: input.slug.toLowerCase().trim(),
+      cardNumberPrefix: prefix,
       description: input.description?.trim() || null,
       fieldSchema: input.fieldSchema as unknown as Prisma.InputJsonValue,
       status: 'ACTIVE',

@@ -51,17 +51,38 @@ model Organization {           // schema-only in MVP — no UI yet, PRD §6.4 / 
 }
 
 model CardType {
-  id          String   @id @default(cuid())
-  name        String
-  slug        String   @unique      // "business" | "college" | ...
-  description String?
-  fieldSchema Json                  // [{ key, label, type, required, defaultVisible }]
-  status      String   @default("ACTIVE")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  cards       NFCCard[]
-  templates   Template[]
-  profiles    Profile[]
+  id               String          @id @default(cuid())
+  name             String
+  slug             String          @unique      // "business" | "college" | ...
+  cardNumberPrefix String          @unique      // "BC" | "CC" | ... — must be unique across card types
+  description      String?
+  fieldSchema      Json                         // [{ key, label, type, required, defaultVisible }]
+  status           String          @default("ACTIVE")
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  cards            NFCCard[]
+  templates        Template[]
+  profiles         Profile[]
+  generationJobs   GenerationJob[]
+}
+
+model GenerationJob {
+  id           String    @id @default(cuid())
+  batchId      String    @unique
+  cardTypeId   String
+  cardType     CardType  @relation(fields: [cardTypeId], references: [id])
+  requestedBy  String    // userId of the admin who triggered
+  quantity     Int
+  generated    Int       @default(0)  // cards successfully written so far
+  status       String    @default("PENDING")  // PENDING | RUNNING | COMPLETED | FAILED | PARTIAL
+  startedAt    DateTime?
+  completedAt  DateTime?
+  errorMessage String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([status])
+  @@index([cardTypeId])
 }
 
 model NFCCard {

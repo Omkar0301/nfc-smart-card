@@ -4,6 +4,13 @@ export const API_ROUTES = {
   admin: {
     health: '/admin/health',
     cardTypes: '/admin/card-types',
+    cards: {
+      generate: '/admin/cards/generate',
+      jobs: '/admin/cards/jobs',
+      jobStatus: (id: string) => `/admin/cards/jobs/${id}`,
+      export: '/admin/cards/export',
+      invalidateBatch: (batchId: string) => `/admin/cards/batches/${batchId}/invalidate`,
+    },
   },
 
   auth: {

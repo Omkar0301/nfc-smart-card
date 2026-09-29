@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import authRouter from './auth.routes.js';
 import cardTypeRouter from './admin/cardType.routes.js';
+import cardRouter from './admin/card.routes.js';
+import { cardController } from '../controllers/admin/card.controller.js';
 import { requireAdmin } from '../middleware/requireAdmin.js';
 import { sendSuccess } from '../lib/http.js';
 
@@ -21,5 +23,9 @@ router.get('/admin/health', requireAdmin, (_req, res) => {
 
 // Admin card types routes — requires ADMIN role
 router.use('/admin/card-types', cardTypeRouter);
+
+// Admin cards and jobs routes — requires ADMIN role
+router.use('/admin/cards', cardRouter);
+router.get('/admin/jobs/:id', requireAdmin, cardController.getJobStatus);
 
 export default router;

@@ -53,6 +53,13 @@ export enum ErrorCode {
   INVALID_SLUG = 'INVALID_SLUG',
   INVALID_FIELD_TYPE = 'INVALID_FIELD_TYPE',
   DUPLICATE_FIELD_KEY = 'DUPLICATE_FIELD_KEY',
+
+  // Bulk Card Generation (F-005)
+  INVALID_QUANTITY = 'INVALID_QUANTITY',
+  CARD_TYPE_NOT_FOUND = 'CARD_TYPE_NOT_FOUND',
+  CARD_TYPE_INACTIVE = 'CARD_TYPE_INACTIVE',
+  JOB_NOT_FOUND = 'JOB_NOT_FOUND',
+  BATCH_NOT_FOUND = 'BATCH_NOT_FOUND',
 }
 
 export type CardTypeCode = 'BUSINESS' | 'COLLEGE';
@@ -79,4 +86,21 @@ export interface Card {
   status: CardStatus;
   cardTypeId: string;
   userId?: string;
+}
+
+export type GenerationJobStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'PARTIAL';
+
+export interface GenerationJob {
+  id: string;
+  batchId: string;
+  cardTypeId: string;
+  requestedBy: string;
+  quantity: number;
+  generated: number;
+  status: GenerationJobStatus | string;
+  startedAt: Date | string | null;
+  completedAt: Date | string | null;
+  errorMessage: string | null;
+  createdAt: Date | string;
+  updatedAt: Date | string;
 }

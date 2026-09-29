@@ -48,6 +48,12 @@ export const createCardTypeSchema = z.object({
     .min(2, 'Slug must be at least 2 characters')
     .max(50, 'Slug must be 50 characters or less')
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lowercase alphanumeric and hyphens only'),
+  cardNumberPrefix: z
+    .string()
+    .min(1, 'Prefix must be at least 1 character')
+    .max(10, 'Prefix must be 10 characters or less')
+    .regex(/^[A-Za-z0-9]+$/, 'Prefix must be alphanumeric')
+    .optional(),
   description: z
     .string()
     .max(500, 'Description must be 500 characters or less')
