@@ -39,6 +39,13 @@ export const API_ROUTES = {
     lookup: (token: string) => `/cards/${token}`,
     claim: (token: string) => `/cards/${token}/claim`,
   },
+
+  profile: {
+    get: '/profile',
+    save: '/profile',
+    update: '/profile',
+    public: (token: string) => `/profile/public/${token}`,
+  },
 } as const;
 
 export type ApiRoute = string;

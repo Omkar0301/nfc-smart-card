@@ -3,7 +3,7 @@
 **ID:** F-008  
 **Priority:** 🔴 Critical  
 **Phase:** 5  
-**Status:** ⚠️ PARTIAL (Profile model exists; no API, no form, no visibility enforcement)  
+**Status:** ✅ Complete  
 **Depends on:** F-007 (claim creates the Profile row), F-004 (fieldSchema)  
 **Required by:** F-009, F-010, F-011, F-015, F-016
 
@@ -193,31 +193,31 @@ Each field renders:
 
 ## Acceptance Criteria
 
-- [ ] `GET /profile` returns the authenticated user's profile with full fieldSchema
-- [ ] `GET /profile` initializes `fieldVisibility` from `defaultVisible` when first opened
-- [ ] `student_id` and `address`-type fields have `fieldVisibility = false` by default
-- [ ] Contact/social fields have `fieldVisibility = true` by default
-- [ ] `PUT /profile` with `publish = true` sets profile.status = "published" and card.status = "ACTIVE"
-- [ ] `PUT /profile` with `publish = false` sets profile.status = "draft" and card.status = "ASSIGNED"
-- [ ] Public profile response (internal) contains only fields where `isVisible = true`
-- [ ] Hidden field values never appear in any public API response (security requirement)
-- [ ] `PUT /profile` rejects publish if required fields (name) are missing
-- [ ] Profile editor renders all fields from fieldSchema using FieldRenderer
-- [ ] Visibility toggle per field is reflected in `fieldVisibility` on save
-- [ ] Profile edits after publishing take effect immediately on the public page
+- [x] `GET /profile` returns the authenticated user's profile with full fieldSchema
+- [x] `GET /profile` initializes `fieldVisibility` from `defaultVisible` when first opened
+- [x] `student_id` and `address`-type fields have `fieldVisibility = false` by default
+- [x] Contact/social fields have `fieldVisibility = true` by default
+- [x] `PUT /profile` with `publish = true` sets profile.status = "published" and card.status = "ACTIVE"
+- [x] `PUT /profile` with `publish = false` sets profile.status = "draft" and card.status = "ASSIGNED"
+- [x] Public profile response (internal) contains only fields where `isVisible = true`
+- [x] Hidden field values never appear in any public API response (security requirement)
+- [x] `PUT /profile` rejects publish if required fields (name) are missing
+- [x] Profile editor renders all fields from fieldSchema using FieldRenderer
+- [x] Visibility toggle per field is reflected in `fieldVisibility` on save
+- [x] Profile edits after publishing take effect immediately on the public page
 
 ---
 
 ## Implementation Tasks
 
-- [ ] **T-008-1:** Create `src/services/profileService.ts` — CRUD, visibility init, public data builder
-- [ ] **T-008-2:** Create `src/routes/profile.ts` with `GET`, `POST`, `PUT /profile`
-- [ ] **T-008-3:** Implement visibility enforcement in `profileService.getPublicData()`
-- [ ] **T-008-4:** Implement publish transition (Profile.status + NFCCard.status) in transaction
-- [ ] **T-008-5:** Mount profile routes in `app.ts` under `/profile` (with requireAuth)
-- [ ] **T-008-6:** Create `src/shared/FieldRenderer/` — all 6 field renderer components
-- [ ] **T-008-7:** Create `src/portal/ProfileEditor/ProfileEditor.tsx`
-- [ ] **T-008-8:** Create `src/portal/ProfileEditor/PublishBar.tsx`
-- [ ] **T-008-9:** Create `src/shared/api/profile.ts`
-- [ ] **T-008-10:** Wire profile editor into customer portal routing (after claim, route here)
-- [ ] **T-008-11:** Update `.agents/features.md` on completion
+- [x] **T-008-1:** Create `src/services/profile.service.ts` and `src/repositories/profile.repository.ts` — CRUD, visibility init, public data builder
+- [x] **T-008-2:** Create `src/routes/profile.routes.ts` with `GET`, `POST`, `PUT /profile`
+- [x] **T-008-3:** Implement visibility enforcement in `profileService.getPublicProfile()`
+- [x] **T-008-4:** Implement publish transition (Profile.status + NFCCard.status) in transaction
+- [x] **T-008-5:** Mount profile routes in `app.ts`/`routes/index.ts` under `/profile` (with requireAuth)
+- [x] **T-008-6:** Create `src/shared/FieldRenderer/` — all 6 field renderer components
+- [x] **T-008-7:** Create `src/portal/ProfileEditor/ProfileEditor.tsx`
+- [x] **T-008-8:** Create `src/portal/ProfileEditor/PublishBar.tsx`
+- [x] **T-008-9:** Create `src/shared/api/profile.ts`
+- [x] **T-008-10:** Wire profile editor into customer portal routing (after claim, route here)
+- [x] **T-008-11:** Update `.agents/features.md` on completion

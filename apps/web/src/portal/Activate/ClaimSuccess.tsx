@@ -45,7 +45,7 @@ export function ClaimSuccess({ token, result, cardTypeName }: ClaimSuccessProps)
       </div>
 
       <div style={{ marginTop: 24 }}>
-        <Link href="/portal/settings" className={styles.button}>
+        <Link href="/portal/profile" className={styles.button}>
           Set Up Your Profile →
         </Link>
         <Link href="/portal/dashboard" className={styles.secondaryButton}>

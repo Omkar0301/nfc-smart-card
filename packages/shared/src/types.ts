@@ -74,6 +74,13 @@ export enum ErrorCode {
   // Card Claiming & Activation (F-007)
   CARD_NOT_AVAILABLE = 'CARD_NOT_AVAILABLE',
   CARD_ALREADY_CLAIMED = 'CARD_ALREADY_CLAIMED',
+
+  // Profile Management (F-008)
+  NO_ACTIVE_CARD = 'NO_ACTIVE_CARD',
+  PROFILE_NOT_FOUND = 'PROFILE_NOT_FOUND',
+  REQUIRED_FIELD_MISSING = 'REQUIRED_FIELD_MISSING',
+  CARD_PAUSED = 'CARD_PAUSED',
+  CARD_SUSPENDED = 'CARD_SUSPENDED',
 }
 
 export type CardTypeCode = 'BUSINESS' | 'COLLEGE';
@@ -203,4 +210,56 @@ export interface ClaimCardResponse {
   assignment: {
     id: string;
   };
+}
+
+export type ProfileStatus = 'draft' | 'published';
+
+export interface UserProfileResponse {
+  profile: {
+    id: string;
+    userId: string;
+    cardTypeId: string;
+    templateId?: string | null;
+    data: Record<string, any>;
+    fieldVisibility: Record<string, boolean>;
+    status: ProfileStatus;
+    cardType: {
+      id: string;
+      name: string;
+      slug: string;
+      fieldSchema: any[];
+    };
+    card: {
+      id: string;
+      cardNumber: string;
+      publicToken: string;
+      status: CardStatus;
+    };
+  };
+}
+
+export interface UpdateProfileInput {
+  data?: Record<string, any>;
+  fieldVisibility?: Record<string, boolean>;
+  publish?: boolean;
+  templateId?: string | null;
+}
+
+export interface PublicProfileResponse {
+  card: {
+    cardNumber: string;
+    status: CardStatus;
+    publicToken: string;
+  };
+  cardType: {
+    slug: string;
+    name: string;
+  };
+  profile?: {
+    id: string;
+    data: Record<string, any>;
+    templateId?: string | null;
+    status: string;
+  };
+  profileStatus?: string;
 }
