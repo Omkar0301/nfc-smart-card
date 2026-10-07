@@ -21,6 +21,16 @@ export const API_ROUTES = {
       export: '/admin/cards/export',
       invalidateBatch: (batchId: string) => `/admin/cards/batches/${batchId}/invalidate`,
     },
+    templates: {
+      list: '/admin/templates',
+      create: '/admin/templates',
+      update: (id: string) => `/admin/templates/${id}`,
+      remove: (id: string) => `/admin/templates/${id}`,
+    },
+  },
+
+  templates: {
+    list: (cardType: string) => `/templates?cardType=${encodeURIComponent(cardType)}`,
   },
 
   auth: {

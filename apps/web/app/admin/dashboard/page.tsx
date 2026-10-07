@@ -66,6 +66,31 @@ export default function AdminDashboardPage() {
             Manage Card Inventory →
           </Link>
         </div>
+
+        <div
+          style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: 24, background: '#fff' }}
+        >
+          <h2 style={{ fontSize: 18, margin: '0 0 8px 0' }}>Template Library</h2>
+          <p style={{ color: '#64748b', fontSize: 14, margin: '0 0 16px 0' }}>
+            Manage the templates available to each card type, set display order, mark free or
+            premium, and update thumbnails.
+          </p>
+          <Link
+            href="/admin/templates"
+            style={{
+              display: 'inline-block',
+              background: '#0f172a',
+              color: '#fff',
+              padding: '8px 16px',
+              borderRadius: 6,
+              textDecoration: 'none',
+              fontSize: 14,
+              fontWeight: 500,
+            }}
+          >
+            Manage Templates →
+          </Link>
+        </div>
       </div>
     </div>
   );

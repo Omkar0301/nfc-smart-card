@@ -8,6 +8,7 @@ import {
   tryRefresh,
 } from './client';
 import { API_ROUTES } from './routes';
+import type { ApiResponseEnvelope } from './cardTypes';
 
 export type SessionUser = {
   id: string;
@@ -22,8 +23,8 @@ export type VerifyOtpResponse = {
   user: SessionUser;
 };
 
-export async function sendOtp(phone: string): Promise<{ success: true; message: string }> {
-  return apiFetch(API_ROUTES.auth.sendOtp, {
+export async function sendOtp(phone: string): Promise<void> {
+  await apiFetch<ApiResponseEnvelope<unknown>>(API_ROUTES.auth.sendOtp, {
     method: 'POST',
     skipAuth: true,
     skipRefresh: true,
@@ -32,12 +33,13 @@ export async function sendOtp(phone: string): Promise<{ success: true; message: 
 }
 
 export async function verifyOtp(phone: string, code: string): Promise<VerifyOtpResponse> {
-  const data = await apiFetch<VerifyOtpResponse>(API_ROUTES.auth.verifyOtp, {
+  const res = await apiFetch<ApiResponseEnvelope<VerifyOtpResponse>>(API_ROUTES.auth.verifyOtp, {
     method: 'POST',
     skipAuth: true,
     skipRefresh: true,
     body: JSON.stringify({ phone, code }),
   });
+  const data = res.data;
   setAccessToken(data.accessToken);
   setRefreshToken(data.refreshToken);
   return data;
@@ -57,7 +59,10 @@ export async function refresh(): Promise<{ accessToken: string }> {
 
 export async function logout(): Promise<void> {
   try {
-    await apiFetch(API_ROUTES.auth.logout, { method: 'POST', body: JSON.stringify({}) });
+    await apiFetch<ApiResponseEnvelope<{ loggedOut: boolean }>>(API_ROUTES.auth.logout, {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
   } finally {
     setAccessToken(null);
     setRefreshToken(null);
@@ -65,45 +70,54 @@ export async function logout(): Promise<void> {
 }
 
 export async function getMe(): Promise<AuthUser> {
-  return apiFetch(API_ROUTES.auth.me);
+  const res = await apiFetch<ApiResponseEnvelope<AuthUser>>(API_ROUTES.auth.me);
+  return res.data;
 }
 
 export async function requestRecovery(email: string): Promise<{ message: string }> {
-  return apiFetch(API_ROUTES.auth.recoverRequest, {
-    method: 'POST',
-    skipAuth: true,
-    skipRefresh: true,
-    body: JSON.stringify({ email }),
-  });
+  const res = await apiFetch<ApiResponseEnvelope<{ message: string }>>(
+    API_ROUTES.auth.recoverRequest,
+    {
+      method: 'POST',
+      skipAuth: true,
+      skipRefresh: true,
+      body: JSON.stringify({ email }),
+    }
+  );
+  return res.data;
 }
 
 export async function verifyRecovery(token: string): Promise<VerifyOtpResponse> {
-  const data = await apiFetch<VerifyOtpResponse>(API_ROUTES.auth.recoverVerify, {
-    method: 'POST',
-    skipAuth: true,
-    skipRefresh: true,
-    body: JSON.stringify({ token }),
-  });
+  const res = await apiFetch<ApiResponseEnvelope<VerifyOtpResponse>>(
+    API_ROUTES.auth.recoverVerify,
+    {
+      method: 'POST',
+      skipAuth: true,
+      skipRefresh: true,
+      body: JSON.stringify({ token }),
+    }
+  );
+  const data = res.data;
   setAccessToken(data.accessToken);
   setRefreshToken(data.refreshToken);
   return data;
 }
 
-export async function updateRecoveryPhone(
-  phone: string,
-  code: string
-): Promise<{ success: true; phone: string }> {
-  return apiFetch(API_ROUTES.auth.recoverPhone, {
+export async function updateRecoveryPhone(phone: string, code: string): Promise<{ phone: string }> {
+  const res = await apiFetch<ApiResponseEnvelope<{ phone: string }>>(API_ROUTES.auth.recoverPhone, {
     method: 'PUT',
     body: JSON.stringify({ phone, code }),
   });
+  return res.data;
 }
 
-export async function updateRecoveryEmail(
-  email: string | null
-): Promise<{ success: true; email: string | null }> {
-  return apiFetch(API_ROUTES.auth.updateEmail, {
-    method: 'PUT',
-    body: JSON.stringify({ email }),
-  });
+export async function updateRecoveryEmail(email: string | null): Promise<{ email: string | null }> {
+  const res = await apiFetch<ApiResponseEnvelope<{ email: string | null }>>(
+    API_ROUTES.auth.updateEmail,
+    {
+      method: 'PUT',
+      body: JSON.stringify({ email }),
+    }
+  );
+  return res.data;
 }

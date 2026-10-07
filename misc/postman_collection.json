@@ -994,6 +994,137 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Templates (F-009)",
+      "item": [
+        {
+          "name": "List Templates for Card Type (Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/templates?cardType=business",
+              "host": ["{{baseUrl}}"],
+              "path": ["templates"],
+              "query": [
+                {
+                  "key": "cardType",
+                  "value": "business",
+                  "description": "CardType.slug"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List All Templates (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/templates",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "templates"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Template (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardTypeId\": \"<cardTypeId>\",\n  \"name\": \"Modern\",\n  \"slug\": \"business-modern\",\n  \"thumbnail\": null,\n  \"isActive\": true,\n  \"isPremium\": false,\n  \"sortOrder\": 1,\n  \"configuration\": {\n    \"description\": \"Clean layout with a large photo and accent bar.\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/templates",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "templates"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Template (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": true,\n  \"isPremium\": true,\n  \"sortOrder\": 3,\n  \"thumbnail\": \"https://example.com/preview.png\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/templates/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "templates", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Template ID"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Template (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/templates/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "templates", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Template ID"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [

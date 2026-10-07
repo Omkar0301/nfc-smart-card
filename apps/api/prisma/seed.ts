@@ -248,8 +248,57 @@ export const collegeFieldSchema: FieldSchema = [
   },
 ];
 
+interface TemplateSeed {
+  name: string;
+  slug: string;
+  sortOrder: number;
+  isPremium: boolean;
+  configuration: Record<string, unknown>;
+}
+
+/** Idempotently upsert a card type's template library and deactivate legacy rows. */
+async function seedTemplates(cardTypeId: string, templates: TemplateSeed[]) {
+  for (const t of templates) {
+    const existing = await prisma.template.findFirst({
+      where: { cardTypeId, slug: t.slug },
+    });
+
+    if (existing) {
+      await prisma.template.update({
+        where: { id: existing.id },
+        data: {
+          name: t.name,
+          sortOrder: t.sortOrder,
+          isPremium: t.isPremium,
+          isActive: true,
+          configuration: t.configuration as any,
+        },
+      });
+    } else {
+      await prisma.template.create({
+        data: {
+          cardTypeId,
+          name: t.name,
+          slug: t.slug,
+          sortOrder: t.sortOrder,
+          isPremium: t.isPremium,
+          isActive: true,
+          configuration: t.configuration as any,
+        },
+      });
+    }
+  }
+
+  // Retire any legacy/placeholder templates that are no longer part of the library.
+  const activeSlugs = templates.map((t) => t.slug);
+  await prisma.template.updateMany({
+    where: { cardTypeId, slug: { notIn: activeSlugs } },
+    data: { isActive: false },
+  });
+}
+
 async function main() {
-  console.log('Seeding CardTypes and placeholder Templates...');
+  console.log('Seeding CardTypes and template library...');
 
   // 1. Seed Business CardType
   const businessCardType = await prisma.cardType.upsert({
@@ -299,54 +348,67 @@ async function main() {
     `✓ Seeded College CardType: ${collegeCardType.id} (${collegeFieldSchema.length} fields)`
   );
 
-  // 3. Seed placeholder Template rows (isActive = false until F-009 template components)
+  // 3. Seed the MVP template library (F-009): 3 Business + 3 College templates.
+  // Slugs are globally unique and prefixed by card type to match the registry
+  // keys in `packages/shared/src/templates`.
   const businessTemplates = [
-    { name: 'Minimal Business', slug: 'minimal' },
-    { name: 'Modern Business', slug: 'modern' },
-    { name: 'Premium Business', slug: 'premium' },
+    {
+      name: 'Modern',
+      slug: 'business-modern',
+      sortOrder: 1,
+      isPremium: false,
+      configuration: {
+        description: 'Clean layout with a large photo, accent bar, and icon social links.',
+      },
+    },
+    {
+      name: 'Minimal',
+      slug: 'business-minimal',
+      sortOrder: 2,
+      isPremium: false,
+      configuration: { description: 'Text-first, monochrome, generous whitespace.' },
+    },
+    {
+      name: 'Premium',
+      slug: 'business-premium',
+      sortOrder: 3,
+      isPremium: true,
+      configuration: {
+        description: 'Gradient backdrop, card-style layout, dominant save-contact CTA.',
+      },
+    },
   ];
-
-  for (const t of businessTemplates) {
-    const existing = await prisma.template.findFirst({
-      where: { cardTypeId: businessCardType.id, slug: t.slug },
-    });
-    if (!existing) {
-      await prisma.template.create({
-        data: {
-          cardTypeId: businessCardType.id,
-          name: t.name,
-          slug: t.slug,
-          isActive: false,
-          configuration: {},
-        },
-      });
-    }
-  }
 
   const collegeTemplates = [
-    { name: 'Academic College', slug: 'academic' },
-    { name: 'Creative College', slug: 'creative' },
-    { name: 'Modern College', slug: 'modern' },
+    {
+      name: 'Academic',
+      slug: 'college-academic',
+      sortOrder: 1,
+      isPremium: false,
+      configuration: {
+        description: 'Formal institution-style layout with clean skills and achievements lists.',
+      },
+    },
+    {
+      name: 'Modern',
+      slug: 'college-modern',
+      sortOrder: 2,
+      isPremium: false,
+      configuration: { description: 'Colourful card layout, circular photo, social chips.' },
+    },
+    {
+      name: 'Creative',
+      slug: 'college-creative',
+      sortOrder: 3,
+      isPremium: true,
+      configuration: { description: 'Portfolio-forward, bold typography, skills as tags.' },
+    },
   ];
 
-  for (const t of collegeTemplates) {
-    const existing = await prisma.template.findFirst({
-      where: { cardTypeId: collegeCardType.id, slug: t.slug },
-    });
-    if (!existing) {
-      await prisma.template.create({
-        data: {
-          cardTypeId: collegeCardType.id,
-          name: t.name,
-          slug: t.slug,
-          isActive: false,
-          configuration: {},
-        },
-      });
-    }
-  }
+  await seedTemplates(businessCardType.id, businessTemplates);
+  await seedTemplates(collegeCardType.id, collegeTemplates);
 
-  console.log('✓ Seeded placeholder Templates for Business and College');
+  console.log('✓ Seeded 6 MVP Templates (Business + College)');
   console.log('Seeding completed successfully.');
 }
 

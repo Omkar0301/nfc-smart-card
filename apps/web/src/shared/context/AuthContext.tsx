@@ -1,8 +1,8 @@
 'use client';
 
-import { createContext, useCallback, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Role, UserStatus, type AuthUser } from '@nfc-card/shared';
-import { ApiError } from '../api/client';
+import { ApiError, tryRefresh } from '../api/client';
 import * as authApi from '../api/auth';
 
 type AuthContextValue = {
@@ -21,6 +21,26 @@ export const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading] = useState(false);
+
+  // Restore the session after a full page load / deep link: the in-memory access
+  // token is gone, but the httpOnly refresh cookie survives, so exchange it and
+  // re-hydrate the current user.
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const refreshed = await tryRefresh();
+        if (!refreshed || !active) return;
+        const me = await authApi.getMe();
+        if (active) setUser(me);
+      } catch {
+        // No valid refresh cookie — remain signed out.
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const login = useCallback(async (phone: string, code: string) => {
     const session = await authApi.verifyOtp(phone, code);

@@ -3,7 +3,7 @@
 **ID:** F-009  
 **Priority:** 🟡 High  
 **Phase:** 6  
-**Status:** ⚠️ PARTIAL (Template model exists; no components, no API, no picker UI)  
+**Status:** ✅ Complete  
 **Depends on:** F-004 (card types), F-008 (profile)  
 **Required by:** F-010 (Next.js SSR rendering), F-011 (template picker UI)
 
@@ -111,6 +111,8 @@ export interface TemplateProps {
   card: {
     publicToken: string;
     cardNumber: string;
+    profileUrl?: string; // absolute public URL (share) — populated by callers
+    saveContactHref?: string; // .vcf CTA, populated by F-013
   };
   configuration?: Record<string, unknown>; // Template.configuration from DB
   isPreview?: boolean; // true in portal preview — disables analytics events
@@ -153,36 +155,42 @@ Add 6 `Template` rows to `apps/api/prisma/seed.ts`:
 | `packages/shared/src/templates/college/CollegeAcademic.tsx`  | College — Academic template                    |
 | `packages/shared/src/templates/college/CollegeModern.tsx`    | College — Modern template                      |
 | `packages/shared/src/templates/college/CollegeCreative.tsx`  | College — Creative template                    |
-| `packages/shared/src/templates/index.ts`                     | Registry: `{ slug → Component }` map           |
+| `packages/shared/src/templates/helpers.tsx`                  | Value/link helpers + inline-styled primitives  |
+| `packages/shared/src/templates/index.tsx`                    | Registry + `TemplateRenderer`                  |
 | `packages/shared/src/types/template.ts`                      | `TemplateProps` interface                      |
 | `apps/web/app/portal/templates/page.tsx`                     | Next.js portal page for template picker        |
-| `apps/web/components/portal/TemplatePicker.tsx`              | Gallery UI: templates for customer's card type |
-| `apps/web/components/portal/TemplatePreview.tsx`             | Full-screen preview of a template              |
+| `apps/web/src/portal/TemplatePicker/TemplatePicker.tsx`      | Gallery UI: templates for customer's card type |
+| `apps/web/src/portal/TemplatePicker/TemplatePreview.tsx`     | Full-screen preview of a template              |
 | `apps/web/app/admin/templates/page.tsx`                      | Admin template management page                 |
+| `apps/web/src/admin/TemplateManagement/TemplateList.tsx`     | Admin grouped list (order, badges, actions)    |
+| `apps/web/src/admin/TemplateManagement/TemplateForm.tsx`     | Admin create/edit template modal               |
+| `apps/api/tests/unit/template.service.test.ts`               | Template service unit tests                    |
+| `apps/api/tests/unit/template.validator.test.ts`             | Template validator unit tests                  |
+| `apps/api/tests/integration/templates.integration.test.ts`   | Template API integration tests                 |
 
 ---
 
 ## Acceptance Criteria
 
-- [ ] `GET /templates?cardType=business` returns 3 active Business templates
-- [ ] Template picker in Next.js portal shows correct templates for the customer's card type
-- [ ] Customer can preview a template with their real data before committing
-- [ ] Selecting a template and saving updates `Profile.templateId` and triggers `revalidateTag`
-- [ ] All 6 template components render gracefully when fields are null
-- [ ] All 6 templates are mobile-responsive at 375px
-- [ ] Template components are React Server Components compatible
-- [ ] Admin can activate/deactivate templates and set sort order
+- [x] `GET /templates?cardType=business` returns 3 active Business templates
+- [x] Template picker in Next.js portal shows correct templates for the customer's card type
+- [x] Customer can preview a template with their real data before committing
+- [x] Selecting a template and saving updates `Profile.templateId` and triggers `revalidateTag`
+- [x] All 6 template components render gracefully when fields are null
+- [x] All 6 templates are mobile-responsive at 375px
+- [x] Template components are React Server Components compatible
+- [x] Admin can activate/deactivate templates and set sort order
 
 ---
 
 ## Implementation Tasks
 
-- [ ] **T-009-1:** Create `packages/shared/src/types/template.ts` with `TemplateProps` interface
-- [ ] **T-009-2:** Add `sortOrder` field to `Template` model in schema; run migration
-- [ ] **T-009-3:** Update seed script with 6 template rows
-- [ ] **T-009-4:** Create 6 template React components in `packages/shared/src/templates/`
-- [ ] **T-009-5:** Create `packages/shared/src/templates/index.ts` registry
-- [ ] **T-009-6:** Create `src/routes/templates.ts` in `apps/api`
-- [ ] **T-009-7:** Create `src/routes/admin/templates.ts` in `apps/api`
-- [ ] **T-009-8:** Create Next.js App Router template picker page in `apps/web`
-- [ ] **T-009-9:** Update `.agents/features.md` on completion
+- [x] **T-009-1:** Create `packages/shared/src/types/template.ts` with `TemplateProps` interface
+- [x] **T-009-2:** Add `sortOrder` field to `Template` model in schema; run migration
+- [x] **T-009-3:** Update seed script with 6 template rows
+- [x] **T-009-4:** Create 6 template React components in `packages/shared/src/templates/`
+- [x] **T-009-5:** Create `packages/shared/src/templates/index.tsx` registry + `TemplateRenderer`
+- [x] **T-009-6:** Create `src/routes/templates.routes.ts` in `apps/api`
+- [x] **T-009-7:** Create `src/routes/admin/template.routes.ts` in `apps/api`
+- [x] **T-009-8:** Create Next.js App Router template picker page in `apps/web`
+- [x] **T-009-9:** Update `.agents/features.md` on completion

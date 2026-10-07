@@ -107,12 +107,15 @@ Visual layouts scoped to a `CardType`.
 - `id`: String (cuid, Primary Key)
 - `cardTypeId`: String (Foreign Key → `CardType.id`)
 - `name`: String (e.g. "Modern")
-- `slug`: String (e.g. "business-modern")
+- `slug`: String (globally unique registry key, e.g. "business-modern") [added in F-009]
 - `thumbnail`: String?
 - `isActive`: Boolean (default `true`)
 - `isPremium`: Boolean (default `false`)
-- `configuration`: Json (template-specific style options)
+- `sortOrder`: Int (default `0`; display order within a card type's library) [added in F-009]
+- `configuration`: Json (template-specific style options; seeded templates carry a `description`)
 - `profiles`: `Profile[]`
+
+**F-009 seeded library:** `business-modern`, `business-minimal`, `business-premium`, `college-academic`, `college-modern`, `college-creative`. Each `slug` must match a key in the `templateRegistry` in `packages/shared/src/templates/index.tsx`. Legacy placeholder slugs (`modern`, `minimal`, `premium`, `academic`, `creative`) are deactivated (not deleted) by the seed script.
 
 ### 7. `Profile`
 

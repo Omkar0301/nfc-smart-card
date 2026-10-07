@@ -4,3 +4,4 @@ export * from './auth';
 export * from './cardTypes';
 export * from './cards';
 export * from './profile';
+export * from './templates';

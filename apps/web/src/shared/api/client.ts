@@ -118,7 +118,12 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
       .catch(() => ({}))) as {
       error?: { code?: string };
     };
-    if (!skipAuth && errorBody.error?.code === ErrorCode.TOKEN_EXPIRED) {
+    // Refresh and retry on an expired access token, or when no access token is
+    // present yet (e.g. a full page load / deep link before session hydration) —
+    // the httpOnly refresh cookie can restore the session.
+    const code = errorBody.error?.code;
+    const needsRefresh = code === ErrorCode.TOKEN_EXPIRED || !getAccessToken();
+    if (!skipAuth && needsRefresh) {
       const refreshed = await tryRefresh();
       if (refreshed) {
         res = await request();

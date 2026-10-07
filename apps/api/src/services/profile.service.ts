@@ -5,6 +5,7 @@ import {
   type UserProfileResponse,
 } from '@nfc-card/shared';
 import { logger } from '../lib/logger.js';
+import { revalidateProfileTag } from '../lib/cacheInvalidation.js';
 import { profileRepository } from '../repositories/profile.repository.js';
 import type { UpdateProfileInput } from '../validators/profile.validator.js';
 
@@ -307,6 +308,10 @@ export const profileService = {
         '[profile] profile updated successfully'
       );
     }
+
+    // Cache invalidation (skills.md): profile save, visibility toggle, and
+    // template switch all change what the cached public page renders.
+    void revalidateProfileTag(card.publicToken);
 
     return {
       ok: true,
