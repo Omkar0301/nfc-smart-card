@@ -81,6 +81,10 @@ export const cardReplacementController = {
     }
 
     const result = await cardReplacementService.getCustomerRequests(userId);
+    if (!result.ok) {
+      sendError(res, result.status, result.code, result.message);
+      return;
+    }
     sendSuccess(res, 200, { requests: result.data });
   },
 
@@ -99,7 +103,8 @@ export const cardReplacementController = {
   },
 
   async updateRequestStatus(req: Request, res: Response) {
-    const { id } = req.params;
+    const rawId = req.params.id;
+    const id = Array.isArray(rawId) ? rawId[0] : rawId;
     if (!id) {
       sendError(res, 400, ErrorCode.VALIDATION_ERROR, 'Request ID is required');
       return;

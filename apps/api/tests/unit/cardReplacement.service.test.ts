@@ -24,7 +24,7 @@ describe('Card Replacement Service Unit Tests (F-011 / F-015)', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.spyOn(cacheInvalidation, 'revalidateProfileTag').mockResolvedValue(true);
+    vi.spyOn(cacheInvalidation, 'revalidateProfileTag').mockResolvedValue(undefined);
   });
 
   describe('reportLost', () => {
