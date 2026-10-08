@@ -93,4 +93,52 @@ export const profileController = {
       throw err;
     }
   },
+
+  async pauseCard(req: Request, res: Response) {
+    const userId = req.user?.id;
+    if (!userId) {
+      sendError(res, 401, ErrorCode.UNAUTHORIZED, 'Authentication required.');
+      return;
+    }
+
+    const result = await profileService.pauseCard(userId);
+    if (!result.ok) {
+      sendError(res, result.status, result.code, result.message, result.details);
+      return;
+    }
+
+    sendSuccess(res, 200, result.data, 'Card paused successfully.');
+  },
+
+  async resumeCard(req: Request, res: Response) {
+    const userId = req.user?.id;
+    if (!userId) {
+      sendError(res, 401, ErrorCode.UNAUTHORIZED, 'Authentication required.');
+      return;
+    }
+
+    const result = await profileService.resumeCard(userId);
+    if (!result.ok) {
+      sendError(res, result.status, result.code, result.message, result.details);
+      return;
+    }
+
+    sendSuccess(res, 200, result.data, 'Card resumed successfully.');
+  },
+
+  async getAnalytics(req: Request, res: Response) {
+    const userId = req.user?.id;
+    if (!userId) {
+      sendError(res, 401, ErrorCode.UNAUTHORIZED, 'Authentication required.');
+      return;
+    }
+
+    const result = await profileService.getAnalytics(userId);
+    if (!result.ok) {
+      sendError(res, result.status, result.code, result.message, result.details);
+      return;
+    }
+
+    sendSuccess(res, 200, result.data);
+  },
 };

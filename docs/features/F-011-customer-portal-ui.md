@@ -3,7 +3,7 @@
 **ID:** F-011  
 **Priority:** 🟡 High  
 **Phase:** 8  
-**Status:** ❌ NOT STARTED  
+**Status:** ✅ COMPLETE  
 **Depends on:** F-002 (auth), F-008 (profile), F-009 (templates), F-015 (card lifecycle)  
 **Required by:** F-013 (QR, save contact), F-016 (photo upload)
 
@@ -76,23 +76,23 @@ apps/web/app/portal/
 
 ## Acceptance Criteria
 
-- [ ] All portal routes (`/portal/*`) are auth-protected by Next.js layout guard
-- [ ] Dashboard shows card status badge, views today/week/total, and quick action buttons
-- [ ] Profile editor loads FieldRenderer form from field schema
-- [ ] Template picker shows templates for customer's card type only
-- [ ] Live preview renders template with customer's data client-side
-- [ ] My Card shows card number, status, public URL (copyable), and QR code
-- [ ] Navigation is mobile-friendly with min 44px tap targets
+- [x] All portal routes (`/portal/*`) are auth-protected by Next.js layout guard
+- [x] Dashboard shows card status badge, views today/week/total, and quick action buttons
+- [x] Profile editor loads FieldRenderer form from field schema
+- [x] Template picker shows templates for customer's card type only
+- [x] Live preview renders template with customer's data client-side
+- [x] My Card shows card number, status, public URL (copyable), and QR code
+- [x] Navigation is mobile-friendly with min 44px tap targets
 
 ---
 
 ## Implementation Tasks
 
-- [ ] **T-011-1:** Create `apps/web/app/portal/layout.tsx` with Auth Guard
-- [ ] **T-011-2:** Create `apps/web/app/portal/dashboard/page.tsx`
-- [ ] **T-011-3:** Create `apps/web/app/portal/profile/page.tsx` (Wire F-008 ProfileEditor)
-- [ ] **T-011-4:** Create `apps/web/app/portal/templates/page.tsx` (Wire F-009 TemplatePicker)
-- [ ] **T-011-5:** Create `apps/web/app/portal/my-card/page.tsx` (Wire F-013 QR + F-015 Pause)
-- [ ] **T-011-6:** Create `apps/web/app/portal/analytics/page.tsx` (Wire F-014 Analytics)
-- [ ] **T-011-7:** Create `apps/web/app/portal/settings/page.tsx`
-- [ ] **T-011-8:** Update `.agents/features.md` on completion
+- [x] **T-011-1:** Create `apps/web/app/portal/layout.tsx` with Auth Guard
+- [x] **T-011-2:** Create `apps/web/app/portal/dashboard/page.tsx`
+- [x] **T-011-3:** Create `apps/web/app/portal/profile/page.tsx` (Wire F-008 ProfileEditor)
+- [x] **T-011-4:** Create `apps/web/app/portal/templates/page.tsx` (Wire F-009 TemplatePicker)
+- [x] **T-011-5:** Create `apps/web/app/portal/my-card/page.tsx` (Wire F-013 QR + F-015 Pause)
+- [x] **T-011-6:** Create `apps/web/app/portal/analytics/page.tsx` (Wire F-014 Analytics)
+- [x] **T-011-7:** Create `apps/web/app/portal/settings/page.tsx`
+- [x] **T-011-8:** Update `.agents/features.md` on completion

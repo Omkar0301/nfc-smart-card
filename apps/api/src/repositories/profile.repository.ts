@@ -166,4 +166,11 @@ export const profileRepository = {
       },
     });
   },
+
+  updateCardStatus(cardId: string, status: CardStatus) {
+    return prisma.nFCCard.update({
+      where: { id: cardId },
+      data: { status },
+    });
+  },
 };

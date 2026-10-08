@@ -88,6 +88,11 @@ export enum ErrorCode {
   TEMPLATE_NOT_FOUND = 'TEMPLATE_NOT_FOUND',
   TEMPLATE_SLUG_EXISTS = 'TEMPLATE_SLUG_EXISTS',
   TEMPLATE_IN_USE = 'TEMPLATE_IN_USE',
+
+  // Customer Card Lifecycle & Portal (F-011, F-015)
+  CARD_NOT_ACTIVE = 'CARD_NOT_ACTIVE',
+  CARD_NOT_PAUSED = 'CARD_NOT_PAUSED',
+  REQUEST_ALREADY_PENDING = 'REQUEST_ALREADY_PENDING',
 }
 
 export type CardTypeCode = 'BUSINESS' | 'COLLEGE';
@@ -276,4 +281,58 @@ export interface PublicProfileResponse {
     status: string;
   };
   profileStatus?: string;
+}
+
+export interface CardReplacementRequestItem {
+  id: string;
+  cardId: string;
+  userId: string;
+  reason?: string | null;
+  notes?: string | null;
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  resolvedAt?: Date | string | null;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  card?: {
+    cardNumber: string;
+    publicToken: string;
+  };
+}
+
+export interface CustomerCardDetails {
+  card: {
+    id: string;
+    cardNumber: string;
+    publicToken: string;
+    status: CardStatus;
+    createdAt: Date | string;
+  };
+  cardType: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+  profile: {
+    id: string;
+    status: ProfileStatus;
+    templateId?: string | null;
+  };
+  publicUrl: string;
+  replacementRequests?: CardReplacementRequestItem[];
+}
+
+export interface CustomerAnalyticsSummary {
+  viewsToday: number;
+  viewsThisWeek: number;
+  viewsTotal: number;
+  recentEvents: Array<{
+    id: string;
+    eventType: string;
+    timestamp: Date | string;
+    metadata?: Record<string, any> | null;
+  }>;
+  dailyViews: Array<{
+    date: string;
+    count: number;
+  }>;
 }

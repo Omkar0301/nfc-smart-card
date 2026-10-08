@@ -1,4 +1,6 @@
 import type {
+  CardStatus,
+  CustomerAnalyticsSummary,
   PublicProfileResponse,
   UpdateProfileInput,
   UserProfileResponse,
@@ -51,6 +53,42 @@ export async function unpublishProfile(): Promise<UserProfileResponse> {
   return updateProfile({
     publish: false,
   });
+}
+
+export async function pauseCard(): Promise<{
+  card: { id: string; cardNumber: string; publicToken: string; status: CardStatus };
+}> {
+  const res = await apiFetch<
+    ApiResponseEnvelope<{
+      card: { id: string; cardNumber: string; publicToken: string; status: CardStatus };
+    }>
+  >(API_ROUTES.profile.pause, {
+    method: 'POST',
+  });
+  return res.data;
+}
+
+export async function resumeCard(): Promise<{
+  card: { id: string; cardNumber: string; publicToken: string; status: CardStatus };
+}> {
+  const res = await apiFetch<
+    ApiResponseEnvelope<{
+      card: { id: string; cardNumber: string; publicToken: string; status: CardStatus };
+    }>
+  >(API_ROUTES.profile.resume, {
+    method: 'POST',
+  });
+  return res.data;
+}
+
+export async function getProfileAnalytics(): Promise<CustomerAnalyticsSummary> {
+  const res = await apiFetch<ApiResponseEnvelope<CustomerAnalyticsSummary>>(
+    API_ROUTES.profile.analytics,
+    {
+      method: 'GET',
+    }
+  );
+  return res.data;
 }
 
 export async function getPublicProfile(token: string): Promise<PublicProfileResponse> {

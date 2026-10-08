@@ -6,7 +6,9 @@ import templatesRouter from './templates.routes.js';
 import cardTypeRouter from './admin/cardType.routes.js';
 import cardRouter from './admin/card.routes.js';
 import adminTemplateRouter from './admin/template.routes.js';
+import analyticsRouter from './analytics.routes.js';
 import { cardController } from '../controllers/admin/card.controller.js';
+import { cardReplacementController } from '../controllers/cardReplacement.controller.js';
 import { requireAdmin } from '../middleware/requireAdmin.js';
 import { sendSuccess } from '../lib/http.js';
 
@@ -20,14 +22,17 @@ router.get('/health', (_req, res) => {
 // Auth routes
 router.use('/auth', authRouter);
 
-// Public & Customer card routes (/cards/:token, /cards/:token/claim)
+// Public & Customer card routes (/cards/:token, /cards/:token/claim, /cards/report-lost, etc.)
 router.use('/cards', cardsRouter);
 
-// Customer Profile routes (/profile)
+// Customer Profile routes (/profile, /profile/pause, /profile/resume, /profile/analytics)
 router.use('/profile', profileRouter);
 
 // Public template library routes (/templates?cardType=:slug)
 router.use('/templates', templatesRouter);
+
+// Public analytics routes (/analytics/events)
+router.use('/analytics', analyticsRouter);
 
 // Admin health — requires ADMIN role
 router.get('/admin/health', requireAdmin, (_req, res) => {
@@ -43,5 +48,13 @@ router.get('/admin/jobs/:id', requireAdmin, cardController.getJobStatus);
 
 // Admin template management routes — requires ADMIN role
 router.use('/admin/templates', adminTemplateRouter);
+
+// Admin replacement requests — requires ADMIN role
+router.get('/admin/replacement-requests', requireAdmin, cardReplacementController.listAllRequests);
+router.put(
+  '/admin/replacement-requests/:id',
+  requireAdmin,
+  cardReplacementController.updateRequestStatus
+);
 
 export default router;

@@ -167,23 +167,19 @@ Authentication tracking models for SMS/phone OTP verification and JWT session re
 
 Secondary email recovery token hashes and expiration tracking.
 
----
+### 12. `CardReplacementRequest` [F-011 / F-015]
 
-## Public Profile Resolution (no `Profile.cardId`)
+Customer self-service card replacement and report-lost tracking.
 
-There is no direct `Profile` ↔ `NFCCard` foreign key. The PRD data model resolves a tap through:
-
-`NFCCard.publicToken` → `NFCCard` → active `CardAssignment` → `userId` → `Profile` (filtered by `cardTypeId`)
-
-Public profile and analytics code must use this join chain, not add a `cardId` column on `Profile`.
-
----
-
-## Planned Additional Models (from Feature PRDs)
-
-| Model                    | Feature                                                                                      | Purpose                                              |
-| ------------------------ | -------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| `CardReplacementRequest` | [F-015](file:///d:/nfc-new/nfc-card-platform/docs/features/F-015-customer-card-lifecycle.md) | Customer replacement requests for lost/damaged cards |
+- `id`: String (cuid, Primary Key)
+- `cardId`: String (Foreign Key → `NFCCard.id`)
+- `userId`: String (Foreign Key → `User.id`)
+- `reason`: String? (`"LOST"` | `"DAMAGED"` | `"STOLEN"` | `"OTHER"`)
+- `notes`: String?
+- `status`: String (default `"PENDING"`, values: `PENDING` | `IN_PROGRESS` | `COMPLETED` | `CANCELLED`)
+- `resolvedAt`: DateTime?
+- `createdAt`, `updatedAt`
+- Indexes: `userId`, `cardId`, `status`
 
 ---
 

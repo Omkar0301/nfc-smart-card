@@ -290,3 +290,47 @@ export async function claimCard(token: string): Promise<ClaimCardResponse> {
   );
   return res.data;
 }
+
+export interface ReportLostPayload {
+  reason?: 'LOST' | 'DAMAGED' | 'STOLEN' | 'OTHER';
+  notes?: string;
+}
+
+export interface ReportLostResponse {
+  request: any;
+  card: {
+    id: string;
+    cardNumber: string;
+    publicToken: string;
+    status: any;
+  };
+}
+
+export async function reportLost(payload: ReportLostPayload): Promise<ReportLostResponse> {
+  const res = await apiFetch<ApiResponseEnvelope<ReportLostResponse>>(API_ROUTES.cards.reportLost, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+  return res.data;
+}
+
+export async function requestReplacement(payload: {
+  reason?: string;
+  notes?: string;
+}): Promise<{ request: any; message: string }> {
+  const res = await apiFetch<ApiResponseEnvelope<{ request: any; message: string }>>(
+    API_ROUTES.cards.requestReplacement,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }
+  );
+  return res.data;
+}
+
+export async function getReplacementRequests(): Promise<any[]> {
+  const res = await apiFetch<ApiResponseEnvelope<{ requests: any[] }>>(
+    API_ROUTES.cards.replacementRequests
+  );
+  return res.data.requests;
+}

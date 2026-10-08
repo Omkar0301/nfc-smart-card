@@ -48,12 +48,18 @@ export const API_ROUTES = {
   cards: {
     lookup: (token: string) => `/cards/${token}`,
     claim: (token: string) => `/cards/${token}/claim`,
+    reportLost: '/cards/report-lost',
+    requestReplacement: '/cards/request-replacement',
+    replacementRequests: '/cards/replacement-requests',
   },
 
   profile: {
     get: '/profile',
     save: '/profile',
     update: '/profile',
+    pause: '/profile/pause',
+    resume: '/profile/resume',
+    analytics: '/profile/analytics',
     public: (token: string) => `/profile/public/${token}`,
   },
 } as const;

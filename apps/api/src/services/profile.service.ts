@@ -5,10 +5,12 @@ import {
   type FieldSchema,
   type PublicProfileResponse,
   type UserProfileResponse,
+  type CustomerAnalyticsSummary,
 } from '@nfc-card/shared';
 import { logger } from '../lib/logger.js';
 import { revalidateProfileTag } from '../lib/cacheInvalidation.js';
 import { profileRepository } from '../repositories/profile.repository.js';
+import { analyticsRepository } from '../repositories/analytics.repository.js';
 import type { UpdateProfileInput } from '../validators/profile.validator.js';
 
 export type ServiceResult<T> =
@@ -471,6 +473,156 @@ export const profileService = {
           status: profile.status,
         },
       },
+    };
+  },
+
+  async pauseCard(
+    userId: string
+  ): Promise<
+    ServiceResult<{
+      card: { id: string; cardNumber: string; publicToken: string; status: CardStatus };
+    }>
+  > {
+    const assignment = await profileRepository.findActiveAssignmentByUserId(userId);
+    if (!assignment || !assignment.card) {
+      return {
+        ok: false,
+        status: 404,
+        code: ErrorCode.NO_ACTIVE_CARD,
+        message: 'No active card assigned to your account.',
+      };
+    }
+
+    const { card } = assignment;
+
+    if (card.status === CardStatus.SUSPENDED) {
+      return {
+        ok: false,
+        status: 409,
+        code: ErrorCode.CARD_SUSPENDED,
+        message: 'Only admin can clear a suspension.',
+      };
+    }
+
+    if (card.status !== CardStatus.ACTIVE) {
+      return {
+        ok: false,
+        status: 409,
+        code: ErrorCode.CARD_NOT_ACTIVE,
+        message: 'Only active cards can be paused.',
+      };
+    }
+
+    await profileRepository.updateCardStatus(card.id, CardStatus.PAUSED);
+
+    // Invalidate public page cache
+    try {
+      await revalidateProfileTag(card.publicToken);
+    } catch (err) {
+      logger.warn({ err, token: card.publicToken }, '[profile] cache invalidation failed on pause');
+    }
+
+    logger.info(
+      { userId, cardId: card.id, publicToken: card.publicToken },
+      '[profile] card paused by owner'
+    );
+
+    return {
+      ok: true,
+      data: {
+        card: {
+          id: card.id,
+          cardNumber: card.cardNumber,
+          publicToken: card.publicToken,
+          status: CardStatus.PAUSED,
+        },
+      },
+    };
+  },
+
+  async resumeCard(
+    userId: string
+  ): Promise<
+    ServiceResult<{
+      card: { id: string; cardNumber: string; publicToken: string; status: CardStatus };
+    }>
+  > {
+    const assignment = await profileRepository.findActiveAssignmentByUserId(userId);
+    if (!assignment || !assignment.card) {
+      return {
+        ok: false,
+        status: 404,
+        code: ErrorCode.NO_ACTIVE_CARD,
+        message: 'No active card assigned to your account.',
+      };
+    }
+
+    const { card } = assignment;
+
+    if (card.status === CardStatus.SUSPENDED) {
+      return {
+        ok: false,
+        status: 409,
+        code: ErrorCode.CARD_SUSPENDED,
+        message: 'Only admin can clear a suspension.',
+      };
+    }
+
+    if (card.status !== CardStatus.PAUSED) {
+      return {
+        ok: false,
+        status: 409,
+        code: ErrorCode.CARD_NOT_PAUSED,
+        message: 'Only paused cards can be resumed.',
+      };
+    }
+
+    await profileRepository.updateCardStatus(card.id, CardStatus.ACTIVE);
+
+    // Invalidate public page cache
+    try {
+      await revalidateProfileTag(card.publicToken);
+    } catch (err) {
+      logger.warn(
+        { err, token: card.publicToken },
+        '[profile] cache invalidation failed on resume'
+      );
+    }
+
+    logger.info(
+      { userId, cardId: card.id, publicToken: card.publicToken },
+      '[profile] card resumed by owner'
+    );
+
+    return {
+      ok: true,
+      data: {
+        card: {
+          id: card.id,
+          cardNumber: card.cardNumber,
+          publicToken: card.publicToken,
+          status: CardStatus.ACTIVE,
+        },
+      },
+    };
+  },
+
+  async getAnalytics(userId: string): Promise<ServiceResult<CustomerAnalyticsSummary>> {
+    const assignment = await profileRepository.findActiveAssignmentByUserId(userId);
+    if (!assignment || !assignment.card) {
+      return {
+        ok: false,
+        status: 404,
+        code: ErrorCode.NO_ACTIVE_CARD,
+        message: 'No active card assigned to your account.',
+      };
+    }
+
+    const stats = await analyticsRepository.getCardAnalytics(assignment.card.id);
+
+    return {
+      ok: true,
+      data: stats,
     };
   },
 };

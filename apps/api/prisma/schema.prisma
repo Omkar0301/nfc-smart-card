@@ -39,6 +39,7 @@ model User {
   profiles       Profile[]
   refreshTokens  RefreshToken[]
   recoveryTokens AccountRecoveryToken[]
+  replacementRequests CardReplacementRequest[]
 }
 
 model Organization {           // schema-only in MVP — no UI yet, PRD §6.4 / §28
@@ -99,6 +100,7 @@ model NFCCard {
   updatedAt      DateTime @updatedAt
   assignments    CardAssignment[]
   events         ProfileEvent[]
+  replacementRequests CardReplacementRequest[]
 
   @@index([batchId])
   @@index([status])
@@ -201,3 +203,22 @@ model AccountRecoveryToken {
   @@index([userId])
   @@index([tokenHash])
 }
+
+model CardReplacementRequest {
+  id          String    @id @default(cuid())
+  cardId      String
+  card        NFCCard   @relation(fields: [cardId], references: [id])
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  reason      String?   // "LOST" | "DAMAGED" | "STOLEN" | "OTHER"
+  notes       String?   // customer description
+  status      String    @default("PENDING") // PENDING | IN_PROGRESS | COMPLETED | CANCELLED
+  resolvedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([cardId])
+  @@index([status])
+}
+

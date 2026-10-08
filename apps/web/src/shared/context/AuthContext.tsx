@@ -20,7 +20,7 @@ export const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [isLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Restore the session after a full page load / deep link: the in-memory access
   // token is gone, but the httpOnly refresh cookie survives, so exchange it and
@@ -35,6 +35,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (active) setUser(me);
       } catch {
         // No valid refresh cookie — remain signed out.
+      } finally {
+        if (active) setIsLoading(false);
       }
     })();
     return () => {

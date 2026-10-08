@@ -626,4 +626,69 @@ describe('Profile Service Unit Tests (F-008)', () => {
       expect(success.data.cardType.fieldSchema).toBeDefined();
     });
   });
+
+  describe('pauseCard & resumeCard (F-011 / F-015)', () => {
+    it('returns 404 NO_ACTIVE_CARD if no active card assignment found', async () => {
+      vi.spyOn(profileRepository, 'findActiveAssignmentByUserId').mockResolvedValue(null);
+
+      const pauseRes = await profileService.pauseCard('user-1');
+      expect(pauseRes.ok).toBe(false);
+      if (!pauseRes.ok) expect(pauseRes.code).toBe(ErrorCode.NO_ACTIVE_CARD);
+
+      const resumeRes = await profileService.resumeCard('user-1');
+      expect(resumeRes.ok).toBe(false);
+      if (!resumeRes.ok) expect(resumeRes.code).toBe(ErrorCode.NO_ACTIVE_CARD);
+    });
+
+    it('returns 409 CARD_SUSPENDED if trying to pause or resume a SUSPENDED card', async () => {
+      vi.spyOn(profileRepository, 'findActiveAssignmentByUserId').mockResolvedValue({
+        id: 'assign-1',
+        card: { ...dummyCard, status: CardStatus.SUSPENDED },
+      } as any);
+
+      const pauseRes = await profileService.pauseCard('user-1');
+      expect(pauseRes.ok).toBe(false);
+      if (!pauseRes.ok) expect(pauseRes.code).toBe(ErrorCode.CARD_SUSPENDED);
+
+      const resumeRes = await profileService.resumeCard('user-1');
+      expect(resumeRes.ok).toBe(false);
+      if (!resumeRes.ok) expect(resumeRes.code).toBe(ErrorCode.CARD_SUSPENDED);
+    });
+
+    it('pauses an ACTIVE card and invalidates public cache', async () => {
+      vi.spyOn(profileRepository, 'findActiveAssignmentByUserId').mockResolvedValue({
+        id: 'assign-1',
+        card: { ...dummyCard, status: CardStatus.ACTIVE },
+      } as any);
+      const updateSpy = vi
+        .spyOn(profileRepository, 'updateCardStatus')
+        .mockResolvedValue({} as any);
+
+      const pauseRes = await profileService.pauseCard('user-1');
+      expect(pauseRes.ok).toBe(true);
+      if (pauseRes.ok) {
+        expect(pauseRes.data.card.status).toBe(CardStatus.PAUSED);
+        expect(updateSpy).toHaveBeenCalledWith('card-1', CardStatus.PAUSED);
+        expect(cacheInvalidation.revalidateProfileTag).toHaveBeenCalledWith('tok-abc-123');
+      }
+    });
+
+    it('resumes a PAUSED card and invalidates public cache', async () => {
+      vi.spyOn(profileRepository, 'findActiveAssignmentByUserId').mockResolvedValue({
+        id: 'assign-1',
+        card: { ...dummyCard, status: CardStatus.PAUSED },
+      } as any);
+      const updateSpy = vi
+        .spyOn(profileRepository, 'updateCardStatus')
+        .mockResolvedValue({} as any);
+
+      const resumeRes = await profileService.resumeCard('user-1');
+      expect(resumeRes.ok).toBe(true);
+      if (resumeRes.ok) {
+        expect(resumeRes.data.card.status).toBe(CardStatus.ACTIVE);
+        expect(updateSpy).toHaveBeenCalledWith('card-1', CardStatus.ACTIVE);
+        expect(cacheInvalidation.revalidateProfileTag).toHaveBeenCalledWith('tok-abc-123');
+      }
+    });
+  });
 });
