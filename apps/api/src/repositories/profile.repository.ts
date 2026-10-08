@@ -154,6 +154,9 @@ export const profileRepository = {
             user: {
               include: {
                 profiles: {
+                  include: {
+                    template: true,
+                  },
                   orderBy: { createdAt: 'desc' },
                 },
               },

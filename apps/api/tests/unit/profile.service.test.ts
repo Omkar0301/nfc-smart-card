@@ -583,6 +583,47 @@ describe('Profile Service Unit Tests (F-008)', () => {
       expect(publicData.address).toBeUndefined();
       expect(publicData.student_id).toBeUndefined();
       expect(publicData.unknown_leak).toBeUndefined();
+
+      // Field schema is returned for dynamic template rendering
+      expect(success.data.cardType.fieldSchema).toBeDefined();
+    });
+
+    it('returns template metadata when configured on the profile', async () => {
+      vi.spyOn(profileRepository, 'findByPublicTokenWithActiveProfile').mockResolvedValueOnce({
+        ...dummyCard,
+        status: CardStatus.ACTIVE,
+        assignments: [
+          {
+            user: {
+              profiles: [
+                {
+                  ...dummyProfile,
+                  status: 'published',
+                  data: { name: 'Bob Template' },
+                  fieldVisibility: { name: true },
+                  template: {
+                    id: 'tpl-1',
+                    name: 'Modern',
+                    slug: 'business-modern',
+                    configuration: { accent: '#4f46e5' },
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      } as any);
+
+      const result = await profileService.getPublicProfile('tok-with-template');
+      expect(result.ok).toBe(true);
+      const success = result as { ok: true; data: any };
+      expect(success.data.profile.template).toEqual({
+        id: 'tpl-1',
+        name: 'Modern',
+        slug: 'business-modern',
+        configuration: { accent: '#4f46e5' },
+      });
+      expect(success.data.cardType.fieldSchema).toBeDefined();
     });
   });
 });

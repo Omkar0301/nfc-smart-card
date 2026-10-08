@@ -8,6 +8,7 @@ import { cardRepository, type CreateCardData } from '../repositories/card.reposi
 import { cardTypeRepository } from '../repositories/cardType.repository.js';
 import { generationJobRepository } from '../repositories/generationJob.repository.js';
 import { userRepository } from '../repositories/user.repository.js';
+import { revalidateProfileTag } from '../lib/cacheInvalidation.js';
 import type { ListCardsQuery } from '../validators/card.validator.js';
 
 export interface GenerateCardsInput {
@@ -347,6 +348,8 @@ export const cardService = {
       '[cardLifecycle] card manually assigned to user'
     );
 
+    void revalidateProfileTag(card.publicToken);
+
     return {
       ok: true,
       data: {
@@ -401,6 +404,8 @@ export const cardService = {
       { cardId, cardNumber: card.cardNumber },
       '[cardLifecycle] card manually activated by admin'
     );
+
+    void revalidateProfileTag(card.publicToken);
 
     return {
       ok: true,
@@ -458,6 +463,8 @@ export const cardService = {
       '[cardLifecycle] card suspended by admin'
     );
 
+    void revalidateProfileTag(card.publicToken);
+
     return {
       ok: true,
       data: {
@@ -494,6 +501,8 @@ export const cardService = {
       { cardId, cardNumber: card.cardNumber },
       '[cardLifecycle] card unsuspended by admin'
     );
+
+    void revalidateProfileTag(card.publicToken);
 
     return {
       ok: true,
@@ -532,6 +541,8 @@ export const cardService = {
       { cardId, cardNumber: card.cardNumber, reason },
       '[cardLifecycle] card permanently deactivated by admin'
     );
+
+    void revalidateProfileTag(card.publicToken);
 
     return {
       ok: true,
@@ -645,6 +656,9 @@ export const cardService = {
       },
       '[cardLifecycle] card replaced successfully'
     );
+
+    void revalidateProfileTag(oldCard.publicToken);
+    void revalidateProfileTag(replacementCard.publicToken);
 
     return {
       ok: true,

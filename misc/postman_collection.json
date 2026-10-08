@@ -996,6 +996,77 @@
       ]
     },
     {
+      "name": "Profile & Public SSR (F-008 & F-010)",
+      "item": [
+        {
+          "name": "Get Current Profile (Auth)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Save / Update Profile (Auth)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"data\": {\n    \"name\": \"Jane Doe\",\n    \"designation\": \"Founder & CEO\",\n    \"company\": \"Acme Corp\",\n    \"bio\": \"Passionate entrepreneur.\"\n  },\n  \"fieldVisibility\": {\n    \"name\": true,\n    \"designation\": true,\n    \"company\": true,\n    \"bio\": true\n  },\n  \"publish\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Public Profile (SSR / Visitor - F-010)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/profile/public/:token",
+              "host": ["{{baseUrl}}"],
+              "path": ["profile", "public", ":token"],
+              "variable": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "description": "Public Card Token (NFCCard.publicToken)"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Templates (F-009)",
       "item": [
         {

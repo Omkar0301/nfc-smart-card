@@ -1,3 +1,5 @@
+import type { FieldSchema } from './types/fieldSchema.js';
+
 export enum CardStatus {
   AVAILABLE = 'AVAILABLE',
   ASSIGNED = 'ASSIGNED',
@@ -259,11 +261,18 @@ export interface PublicProfileResponse {
   cardType: {
     slug: string;
     name: string;
+    fieldSchema?: FieldSchema;
   };
   profile?: {
     id: string;
     data: Record<string, any>;
     templateId?: string | null;
+    template?: {
+      id: string;
+      name: string;
+      slug: string;
+      configuration?: Record<string, any>;
+    } | null;
     status: string;
   };
   profileStatus?: string;

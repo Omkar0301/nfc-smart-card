@@ -7,6 +7,7 @@ import {
 import { logger } from '../lib/logger.js';
 import { cardRepository } from '../repositories/card.repository.js';
 import { userRepository } from '../repositories/user.repository.js';
+import { revalidateProfileTag } from '../lib/cacheInvalidation.js';
 
 export type ServiceResult<T> =
   | { ok: true; data: T }
@@ -150,6 +151,8 @@ export const claimService = {
         },
         '[claim] card claimed and profile initialized successfully'
       );
+
+      void revalidateProfileTag(result.card.publicToken);
 
       return {
         ok: true,

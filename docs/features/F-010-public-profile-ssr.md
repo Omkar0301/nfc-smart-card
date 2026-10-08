@@ -3,7 +3,7 @@
 **ID:** F-010  
 **Priority:** 🔴 Critical  
 **Phase:** 7  
-**Status:** ❌ NOT STARTED  
+**Status:** ✅ COMPLETE  
 **Depends on:** F-008 (profile + visibility), F-009 (template components)  
 **Required by:** F-013 (QR/save contact), F-014 (analytics), F-017 (SEO/caching)
 
@@ -37,20 +37,15 @@ _As a cardholder, I want my public page to appear correctly when my URL is share
 
 ## What Is Already Implemented
 
-| Item                                    | Status   |
-| --------------------------------------- | -------- |
-| Next.js App Router `apps/web` structure | ✅ REUSE |
-| Template components (F-009)             | ✅ REUSE |
-| Profile visibility enforcement (F-008)  | ✅ REUSE |
-
----
-
-## Gaps & Missing Items
-
-- ❌ No Next.js `app/p/[type]/[token]/page.tsx` route handler
-- ❌ No `generateMetadata()` implementation for dynamic OG tags
-- ❌ No status-specific error components (PAUSED, SUSPENDED, DEACTIVATED, AVAILABLE)
-- ❌ No cache revalidation handler (`revalidateTag`)
+| Item                                                                         | Status      |
+| ---------------------------------------------------------------------------- | ----------- |
+| Next.js App Router `apps/web` structure                                      | ✅ REUSE    |
+| Template components (F-009)                                                  | ✅ REUSE    |
+| Profile visibility enforcement (F-008)                                       | ✅ REUSE    |
+| Next.js `app/p/[type]/[token]/page.tsx` route handler                        | ✅ COMPLETE |
+| `generateMetadata()` implementation for dynamic OG tags                      | ✅ COMPLETE |
+| Status-specific error components (PAUSED, SUSPENDED, DEACTIVATED, AVAILABLE) | ✅ COMPLETE |
+| Cache revalidation handler (`revalidateTag`)                                 | ✅ COMPLETE |
 
 ---
 
@@ -153,22 +148,22 @@ GET /p/[type]/[token] (apps/web)
 
 ## Acceptance Criteria
 
-- [ ] `GET /p/business/[valid_token]` returns 200 with Server Component rendered HTML
-- [ ] Next.js `generateMetadata()` generates valid `og:title`, `og:image`, `og:url`
-- [ ] Rendered page contains only publicly visible fields (hidden fields excluded server-side)
-- [ ] PAUSED, SUSPENDED, DEACTIVATED cards render status components with zero PII
-- [ ] `revalidateTag('profile-${token}')` instantly purges Next.js Data Cache on profile edit
-- [ ] Mobile-responsive layout at 375px viewport width
-- [ ] All interactive elements meet 44px tap target size
+- [x] `GET /p/business/[valid_token]` returns 200 with Server Component rendered HTML
+- [x] Next.js `generateMetadata()` generates valid `og:title`, `og:image`, `og:url`
+- [x] Rendered page contains only publicly visible fields (hidden fields excluded server-side)
+- [x] PAUSED, SUSPENDED, DEACTIVATED cards render status components with zero PII
+- [x] `revalidateTag('profile-${token}')` instantly purges Next.js Data Cache on profile edit
+- [x] Mobile-responsive layout at 375px viewport width
+- [x] All interactive elements meet 44px tap target size
 
 ---
 
 ## Implementation Tasks
 
-- [ ] **T-010-1:** Create `apps/web/app/p/[type]/[token]/page.tsx` Server Component
-- [ ] **T-010-2:** Implement `generateMetadata()` in `page.tsx`
-- [ ] **T-010-3:** Create `apps/web/components/public/StatusViews.tsx`
-- [ ] **T-010-4:** Create `apps/web/components/public/AnalyticsTracker.tsx`
-- [ ] **T-010-5:** Create `apps/web/app/api/revalidate/route.ts` Next.js Route Handler
-- [ ] **T-010-6:** Wire `revalidateTag` trigger into `apps/api` profile update services
-- [ ] **T-010-7:** Update `.agents/features.md` on completion
+- [x] **T-010-1:** Create `apps/web/app/p/[type]/[token]/page.tsx` Server Component
+- [x] **T-010-2:** Implement `generateMetadata()` in `page.tsx`
+- [x] **T-010-3:** Create `apps/web/components/public/StatusViews.tsx`
+- [x] **T-010-4:** Create `apps/web/components/public/AnalyticsTracker.tsx`
+- [x] **T-010-5:** Create `apps/web/app/api/revalidate/route.ts` Next.js Route Handler
+- [x] **T-010-6:** Wire `revalidateTag` trigger into `apps/api` profile update services
+- [x] **T-010-7:** Update `.agents/features.md` on completion

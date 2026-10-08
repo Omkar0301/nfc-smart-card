@@ -4,7 +4,8 @@ import { cardTypeRepository } from '../../src/repositories/cardType.repository.j
 import { generationJobRepository } from '../../src/repositories/generationJob.repository.js';
 import { cardRepository } from '../../src/repositories/card.repository.js';
 import * as queueModule from '../../src/lib/queue.js';
-import { ErrorCode } from '@nfc-card/shared';
+import * as cacheInvalidation from '../../src/lib/cacheInvalidation.js';
+import { ErrorCode, CardStatus } from '@nfc-card/shared';
 
 describe('Card Service Unit Tests', () => {
   beforeEach(() => {
@@ -175,5 +176,43 @@ describe('Card Service Unit Tests', () => {
     expect(createdArgs[0].cardNumber).toBe('BC-000011');
     expect(createdArgs[4].cardNumber).toBe('BC-000015');
     expect(createdArgs[0].publicToken).toBeDefined();
+  });
+
+  describe('Lifecycle cache invalidation', () => {
+    it('triggers revalidateProfileTag when suspending a card', async () => {
+      const revalidateSpy = vi.spyOn(cacheInvalidation, 'revalidateProfileTag').mockResolvedValue();
+      vi.spyOn(cardRepository, 'findById').mockResolvedValueOnce({
+        id: 'c-1',
+        cardNumber: 'BC-000001',
+        publicToken: 'tok-reval',
+        status: CardStatus.ACTIVE,
+      } as any);
+      vi.spyOn(cardRepository, 'updateStatus').mockResolvedValueOnce({
+        id: 'c-1',
+        status: CardStatus.SUSPENDED,
+      } as any);
+
+      const result = await cardService.suspendCard('c-1', 'Violation');
+      expect(result.ok).toBe(true);
+      expect(revalidateSpy).toHaveBeenCalledWith('tok-reval');
+    });
+
+    it('triggers revalidateProfileTag when activating a card', async () => {
+      const revalidateSpy = vi.spyOn(cacheInvalidation, 'revalidateProfileTag').mockResolvedValue();
+      vi.spyOn(cardRepository, 'findById').mockResolvedValueOnce({
+        id: 'c-1',
+        cardNumber: 'BC-000001',
+        publicToken: 'tok-reval',
+        status: CardStatus.ASSIGNED,
+      } as any);
+      vi.spyOn(cardRepository, 'updateStatus').mockResolvedValueOnce({
+        id: 'c-1',
+        status: CardStatus.ACTIVE,
+      } as any);
+
+      const result = await cardService.activateCard('c-1');
+      expect(result.ok).toBe(true);
+      expect(revalidateSpy).toHaveBeenCalledWith('tok-reval');
+    });
   });
 });

@@ -1,6 +1,8 @@
 import {
   CardStatus,
   ErrorCode,
+  type FieldSchemaItem,
+  type FieldSchema,
   type PublicProfileResponse,
   type UserProfileResponse,
 } from '@nfc-card/shared';
@@ -18,17 +20,6 @@ export type ServiceResult<T> =
       message: string;
       details?: Record<string, unknown>;
     };
-
-interface FieldSchemaItem {
-  key: string;
-  label: string;
-  type: string;
-  required: boolean;
-  defaultVisible: boolean;
-  placeholder?: string;
-  options?: string[];
-  helpText?: string;
-}
 
 export const profileService = {
   async getProfile(userId: string): Promise<ServiceResult<UserProfileResponse>> {
@@ -360,6 +351,17 @@ export const profileService = {
         status: 404,
         code: ErrorCode.CARD_NOT_AVAILABLE,
         message: 'This card is not yet activated.',
+        details: {
+          card: {
+            cardNumber: card.cardNumber,
+            status: card.status as unknown as CardStatus,
+            publicToken: card.publicToken,
+          },
+          cardType: {
+            slug: cardType.slug,
+            name: cardType.name,
+          },
+        },
       };
     }
 
@@ -385,6 +387,7 @@ export const profileService = {
       };
     }
 
+    const fieldSchema = (cardType.fieldSchema as unknown as FieldSchema) || [];
     const activeAssignment = card.assignments[0];
     if (!activeAssignment || !activeAssignment.user) {
       return {
@@ -398,6 +401,7 @@ export const profileService = {
           cardType: {
             slug: cardType.slug,
             name: cardType.name,
+            fieldSchema,
           },
           profileStatus: 'draft',
         },
@@ -418,6 +422,7 @@ export const profileService = {
           cardType: {
             slug: cardType.slug,
             name: cardType.name,
+            fieldSchema,
           },
           profileStatus: 'draft',
         },
@@ -426,7 +431,6 @@ export const profileService = {
 
     // SERVER-SIDE VISIBILITY ENFORCEMENT
     // Never send unfiltered data or hidden fields to the public
-    const fieldSchema = (cardType.fieldSchema as unknown as FieldSchemaItem[]) || [];
     const visibility = (profile.fieldVisibility as Record<string, boolean>) || {};
     const profileData = (profile.data as Record<string, unknown>) || {};
     const publicData: Record<string, unknown> = {};
@@ -450,11 +454,20 @@ export const profileService = {
         cardType: {
           slug: cardType.slug,
           name: cardType.name,
+          fieldSchema,
         },
         profile: {
           id: profile.id,
           data: publicData,
           templateId: profile.templateId,
+          template: (profile as any).template
+            ? {
+                id: (profile as any).template.id,
+                name: (profile as any).template.name,
+                slug: (profile as any).template.slug,
+                configuration: (profile as any).template.configuration,
+              }
+            : null,
           status: profile.status,
         },
       },

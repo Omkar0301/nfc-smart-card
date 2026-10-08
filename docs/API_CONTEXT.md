@@ -256,6 +256,7 @@ Handled using **Zod** (`zod` package).
 | `POST`   | `/cards/:token/claim`                       | `requireAuth`  | [F-007](file:///d:/nfc-new/nfc-card-platform/docs/features/F-007-card-claiming-activation.md) |
 | `GET`    | `/profile`                                  | `requireAuth`  | [F-008](file:///d:/nfc-new/nfc-card-platform/docs/features/F-008-profile-management.md)       |
 | `PUT`    | `/profile`                                  | `requireAuth`  | [F-008](file:///d:/nfc-new/nfc-card-platform/docs/features/F-008-profile-management.md)       |
+| `GET`    | `/profile/public/:token`                    | None           | [F-010](file:///d:/nfc-new/nfc-card-platform/docs/features/F-010-public-profile-ssr.md)       |
 | `POST`   | `/profile/pause`                            | `requireAuth`  | [F-015](file:///d:/nfc-new/nfc-card-platform/docs/features/F-015-customer-card-lifecycle.md)  |
 | `POST`   | `/profile/resume`                           | `requireAuth`  | [F-015](file:///d:/nfc-new/nfc-card-platform/docs/features/F-015-customer-card-lifecycle.md)  |
 | `GET`    | `/templates?cardType=:slug`                 | None           | [F-009](file:///d:/nfc-new/nfc-card-platform/docs/features/F-009-template-system.md)          |
