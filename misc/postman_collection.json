@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "nfc-card-platform-collection-v1",
     "name": "NFC Card Platform API",
-    "description": "Postman collection for NFC Digital Card Platform API endpoints. Fully updated with System, Authentication, Card Types (Admin), Card Generation & Batch Operations (Admin - F-005), and Card Inventory & Lifecycle Management (Admin - F-006).",
+    "description": "Postman collection for NFC Digital Card Platform API endpoints. Fully updated with System, Authentication & Account Recovery, Card Types (Admin), Card Generation & Batch Operations (Admin - F-005), Card Inventory & Lifecycle (Admin - F-006), Card Replacement Requests (Admin - F-015), Cards & Customer Lifecycle (F-007 & F-015), Profile & Public SSR (F-008, F-010, F-013, F-015), Templates (F-009), Analytics & Telemetry (F-014), and Admin Operations & Analytics (F-012).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -770,6 +770,79 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "List All Replacement Requests (Admin - F-015)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/replacement-requests?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "replacement-requests"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page"
+                },
+                {
+                  "key": "status",
+                  "value": "PENDING",
+                  "description": "Filter by status: PENDING | IN_PROGRESS | COMPLETED | CANCELLED",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Admin lists and paginates all customer card replacement requests."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Replacement Request Status (Admin - F-015)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"IN_PROGRESS\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/replacement-requests/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "replacement-requests", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Replacement Request CUID"
+                }
+              ]
+            },
+            "description": "Admin updates replacement request status (PENDING, IN_PROGRESS, COMPLETED, CANCELLED)."
+          },
+          "response": []
         }
       ]
     },
@@ -941,7 +1014,7 @@
       ]
     },
     {
-      "name": "Cards & Activation (F-007)",
+      "name": "Cards & Activation (F-007 & F-015)",
       "item": [
         {
           "name": "Public Card Token Lookup",
@@ -992,11 +1065,108 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Report Card Lost / Damaged / Stolen (Customer)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"LOST\",\n  \"notes\": \"Card was lost during travel\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/cards/report-lost",
+              "host": ["{{baseUrl}}"],
+              "path": ["cards", "report-lost"]
+            },
+            "description": "Customer reports active card as lost, damaged, or stolen. Sets card status to PAUSED and logs a replacement request."
+          },
+          "response": []
+        },
+        {
+          "name": "Request Replacement Card (Customer)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Physical chip damaged\",\n  \"notes\": \"Card is bent and NFC chip no longer responds\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/cards/request-replacement",
+              "host": ["{{baseUrl}}"],
+              "path": ["cards", "request-replacement"]
+            },
+            "description": "Customer requests a new replacement card. Leaves current card in its status and creates a PENDING replacement request for admin processing."
+          },
+          "response": []
+        },
+        {
+          "name": "List My Replacement Requests (Customer)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cards/replacement-requests",
+              "host": ["{{baseUrl}}"],
+              "path": ["cards", "replacement-requests"]
+            },
+            "description": "Retrieve all replacement requests submitted by the authenticated customer."
+          },
+          "response": []
+        },
+        {
+          "name": "Download Contact vCard by Card Token (Public - F-013)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/cards/:token/contact.vcf",
+              "host": ["{{baseUrl}}"],
+              "path": ["cards", ":token", "contact.vcf"],
+              "variable": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "description": "Public card token"
+                }
+              ]
+            },
+            "description": "Public direct card endpoint to download a .vcf contact file generated from the cardholder's public fields."
+          },
+          "response": []
         }
       ]
     },
     {
-      "name": "Profile & Public SSR (F-008 & F-010)",
+      "name": "Profile & Public SSR (F-008, F-010, F-013, F-015)",
       "item": [
         {
           "name": "Get Current Profile (Auth)",
@@ -1061,6 +1231,141 @@
                 }
               ]
             }
+          },
+          "response": []
+        },
+        {
+          "name": "Create / Save Profile (POST Alias)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"templateId\": \"cuid-template-id\",\n  \"themeConfig\": {\n    \"primaryColor\": \"#2563EB\",\n    \"fontFamily\": \"Inter\"\n  },\n  \"fields\": {\n    \"name\": \"John Doe\",\n    \"designation\": \"Product Lead\",\n    \"company\": \"TechCorp\",\n    \"email\": \"john@techcorp.com\",\n    \"phone\": \"+1234567890\",\n    \"website\": \"https://techcorp.com\"\n  },\n  \"fieldVisibility\": {\n    \"name\": true,\n    \"designation\": true,\n    \"company\": true,\n    \"email\": true,\n    \"phone\": true,\n    \"website\": true\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["profile"]
+            },
+            "description": "POST alias to create or update authenticated user's card profile."
+          },
+          "response": []
+        },
+        {
+          "name": "Pause Card (Customer Lifecycle - F-015)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/profile/pause",
+              "host": ["{{baseUrl}}"],
+              "path": ["profile", "pause"]
+            },
+            "description": "Customer instantly pauses their ACTIVE card. The public profile returns 404/unavailable immediately."
+          },
+          "response": []
+        },
+        {
+          "name": "Resume Card (Customer Lifecycle - F-015)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/profile/resume",
+              "host": ["{{baseUrl}}"],
+              "path": ["profile", "resume"]
+            },
+            "description": "Customer resumes their PAUSED card back to ACTIVE status. Public profile is immediately restored."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Customer Profile Analytics (F-014 / F-015)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/profile/analytics",
+              "host": ["{{baseUrl}}"],
+              "path": ["profile", "analytics"]
+            },
+            "description": "Retrieve performance analytics for the authenticated customer's card (views today, 7d, 30d, all-time, link clicks)."
+          },
+          "response": []
+        },
+        {
+          "name": "Download Public Profile vCard (F-013)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/profile/public/:token/contact.vcf",
+              "host": ["{{baseUrl}}"],
+              "path": ["profile", "public", ":token", "contact.vcf"],
+              "variable": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "description": "Public card token"
+                }
+              ]
+            },
+            "description": "Public endpoint to download a .vcf contact card from the public profile path."
+          },
+          "response": []
+        },
+        {
+          "name": "Download Shortlink vCard (Public - F-013)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/p/:type/:token/contact.vcf",
+              "host": ["{{baseUrl}}"],
+              "path": ["p", ":type", ":token", "contact.vcf"],
+              "variable": [
+                {
+                  "key": "type",
+                  "value": "business",
+                  "description": "Card type slug (e.g. business, medical)"
+                },
+                {
+                  "key": "token",
+                  "value": "",
+                  "description": "Public card token"
+                }
+              ]
+            },
+            "description": "Download contact vCard (.vcf) via the primary public shortlink route (/p/:type/:token/contact.vcf)."
           },
           "response": []
         }
@@ -1261,6 +1566,34 @@
                 }
               ]
             }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Analytics & Telemetry (F-014)",
+      "item": [
+        {
+          "name": "Record Analytics Event (Public Ingestion)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardToken\": \"public-card-token\",\n  \"eventType\": \"PROFILE_VIEW\",\n  \"metadata\": {\n    \"referrer\": \"https://google.com\",\n    \"target\": \"phone\"\n  },\n  \"isBot\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/analytics/events",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "events"]
+            },
+            "description": "Public ingestion endpoint to log card views and contact link clicks with bot filtering and 30-min deduplication."
           },
           "response": []
         }
