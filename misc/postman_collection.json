@@ -1575,7 +1575,7 @@
       "name": "Analytics & Telemetry (F-014)",
       "item": [
         {
-          "name": "Record Analytics Event (Public Ingestion)",
+          "name": "Record Analytics Event (POST /analytics/event)",
           "request": {
             "method": "POST",
             "header": [
@@ -1586,14 +1586,56 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"cardToken\": \"public-card-token\",\n  \"eventType\": \"PROFILE_VIEW\",\n  \"metadata\": {\n    \"referrer\": \"https://google.com\",\n    \"target\": \"phone\"\n  },\n  \"isBot\": false\n}"
+              "raw": "{\n  \"cardToken\": \"public-card-token\",\n  \"eventType\": \"PROFILE_VIEW\",\n  \"metadata\": {\n    \"visitorId\": \"vid_session_123\",\n    \"referrer\": \"https://google.com\",\n    \"target\": \"https://example.com\"\n  },\n  \"isBot\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/analytics/event",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "event"]
+            },
+            "description": "Public ingestion endpoint to record card views (PROFILE_VIEW, SCAN) and contact link clicks (PHONE_CLICK, WHATSAPP_CLICK, EMAIL_CLICK, INSTAGRAM_CLICK, LINKEDIN_CLICK, WEBSITE_CLICK, SAVE_CONTACT) with server-side bot detection, 30-min session deduplication, and active card validation."
+          },
+          "response": []
+        },
+        {
+          "name": "Record Analytics Event (POST /analytics/events Alias)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardToken\": \"public-card-token\",\n  \"eventType\": \"PHONE_CLICK\",\n  \"metadata\": {\n    \"visitorId\": \"vid_session_123\",\n    \"target\": \"tel:+1234567890\"\n  }\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/analytics/events",
               "host": ["{{baseUrl}}"],
               "path": ["analytics", "events"]
             },
-            "description": "Public ingestion endpoint to log card views and contact link clicks with bot filtering and 30-min deduplication."
+            "description": "Plural alias route for public telemetry event recording."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Customer Analytics Summary (F-014)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "summary"]
+            },
+            "description": "Retrieve aggregated performance analytics for the authenticated customer's card (views today, 7-day, 30-day, all-time, contact action click breakdown, and 14-day daily trend) with zero visitor PII."
           },
           "response": []
         }

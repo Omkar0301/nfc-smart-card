@@ -49,6 +49,40 @@ export default function CustomerAnalyticsPage() {
   }
 
   const maxDaily = Math.max(1, ...(analytics?.dailyViews.map((d) => d.count) || [1]));
+  const clickData = analytics?.clickBreakdown ?? {
+    phone: 0,
+    whatsapp: 0,
+    email: 0,
+    saveContact: 0,
+    website: 0,
+    instagram: 0,
+    linkedin: 0,
+    totalClicks: 0,
+  };
+
+  const getEventIcon = (eventType: string) => {
+    switch (eventType) {
+      case 'PROFILE_VIEW':
+        return '👁️';
+      case 'SCAN':
+        return '📶';
+      case 'PHONE_CLICK':
+        return '📞';
+      case 'WHATSAPP_CLICK':
+        return '💬';
+      case 'EMAIL_CLICK':
+        return '✉️';
+      case 'SAVE_CONTACT':
+        return '📇';
+      case 'WEBSITE_CLICK':
+        return '🌐';
+      case 'INSTAGRAM_CLICK':
+      case 'LINKEDIN_CLICK':
+        return '🔗';
+      default:
+        return '⚡';
+    }
+  };
 
   return (
     <div
@@ -109,18 +143,18 @@ export default function CustomerAnalyticsPage() {
         </Link>
       </div>
 
-      {/* Metrics Row */}
+      {/* Metrics Row — 4 time-bucketed view counts (PRD §20) */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
           gap: 16,
         }}
       >
         <DashboardCard
           title="Views Today"
           value={analytics?.viewsToday ?? 0}
-          subtext="Last 24 hours"
+          subtext="UTC Day (00:00 - now)"
           icon="📅"
           accentColor="#6366f1"
         />
@@ -134,12 +168,152 @@ export default function CustomerAnalyticsPage() {
         />
 
         <DashboardCard
+          title="Views This Month"
+          value={analytics?.viewsThisMonth ?? 0}
+          subtext="Last 30 days"
+          icon="🗓️"
+          accentColor="#3b82f6"
+        />
+
+        <DashboardCard
           title="Total Lifetime Views"
           value={analytics?.viewsTotal ?? 0}
-          subtext="All-time visits"
+          subtext="All-time verified visits"
           icon="🌟"
           accentColor="#06b6d4"
         />
+      </div>
+
+      {/* Contact & Button Click Breakdown (PRD §20) */}
+      <div
+        style={{
+          background: 'rgba(30, 41, 59, 0.55)',
+          backdropFilter: 'blur(12px)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          borderRadius: 16,
+          padding: 24,
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 20,
+          }}
+        >
+          <div>
+            <h2 style={{ fontSize: '1.15rem', fontWeight: 600, margin: 0, color: '#f8fafc' }}>
+              Contact & Action Interactions
+            </h2>
+            <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: '#94a3b8' }}>
+              Breakdown of visitor engagement and link clicks across your profile
+            </p>
+          </div>
+          <div
+            style={{
+              padding: '6px 12px',
+              borderRadius: 20,
+              background: 'rgba(99, 102, 241, 0.15)',
+              border: '1px solid rgba(99, 102, 241, 0.3)',
+              color: '#c7d2fe',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+            }}
+          >
+            {clickData.totalClicks} Total Interactions
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+            gap: 12,
+          }}
+        >
+          <div
+            style={{
+              background: 'rgba(15, 23, 42, 0.6)',
+              padding: '16px',
+              borderRadius: 12,
+              border: '1px solid rgba(255, 255, 255, 0.06)',
+              textAlign: 'center',
+            }}
+          >
+            <div style={{ fontSize: '1.5rem', marginBottom: 4 }}>📞</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#f8fafc' }}>
+              {clickData.phone}
+            </div>
+            <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: 2 }}>Phone Calls</div>
+          </div>
+
+          <div
+            style={{
+              background: 'rgba(15, 23, 42, 0.6)',
+              padding: '16px',
+              borderRadius: 12,
+              border: '1px solid rgba(255, 255, 255, 0.06)',
+              textAlign: 'center',
+            }}
+          >
+            <div style={{ fontSize: '1.5rem', marginBottom: 4 }}>💬</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#f8fafc' }}>
+              {clickData.whatsapp}
+            </div>
+            <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: 2 }}>WhatsApp</div>
+          </div>
+
+          <div
+            style={{
+              background: 'rgba(15, 23, 42, 0.6)',
+              padding: '16px',
+              borderRadius: 12,
+              border: '1px solid rgba(255, 255, 255, 0.06)',
+              textAlign: 'center',
+            }}
+          >
+            <div style={{ fontSize: '1.5rem', marginBottom: 4 }}>✉️</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#f8fafc' }}>
+              {clickData.email}
+            </div>
+            <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: 2 }}>Emails</div>
+          </div>
+
+          <div
+            style={{
+              background: 'rgba(15, 23, 42, 0.6)',
+              padding: '16px',
+              borderRadius: 12,
+              border: '1px solid rgba(255, 255, 255, 0.06)',
+              textAlign: 'center',
+            }}
+          >
+            <div style={{ fontSize: '1.5rem', marginBottom: 4 }}>📇</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#f8fafc' }}>
+              {clickData.saveContact}
+            </div>
+            <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: 2 }}>
+              Saved to Contacts
+            </div>
+          </div>
+
+          <div
+            style={{
+              background: 'rgba(15, 23, 42, 0.6)',
+              padding: '16px',
+              borderRadius: 12,
+              border: '1px solid rgba(255, 255, 255, 0.06)',
+              textAlign: 'center',
+            }}
+          >
+            <div style={{ fontSize: '1.5rem', marginBottom: 4 }}>🌐</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#f8fafc' }}>
+              {(clickData.website || 0) + (clickData.instagram || 0) + (clickData.linkedin || 0)}
+            </div>
+            <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: 2 }}>Social & Web</div>
+          </div>
+        </div>
       </div>
 
       {/* Daily View Breakdown Chart */}
@@ -163,7 +337,7 @@ export default function CustomerAnalyticsPage() {
           <h2 style={{ fontSize: '1.15rem', fontWeight: 600, margin: 0, color: '#f8fafc' }}>
             Profile Views Over Time (Last 14 Days)
           </h2>
-          <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Daily View Volume</span>
+          <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Unique Daily Visitors</span>
         </div>
 
         {analytics?.dailyViews && analytics.dailyViews.length > 0 ? (
@@ -257,9 +431,7 @@ export default function CustomerAnalyticsPage() {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span style={{ fontSize: '1.2rem' }}>
-                    {ev.eventType === 'PROFILE_VIEW' ? '👁️' : ev.eventType === 'SCAN' ? '📶' : '⚡'}
-                  </span>
+                  <span style={{ fontSize: '1.2rem' }}>{getEventIcon(ev.eventType)}</span>
                   <div>
                     <div style={{ fontSize: '0.88rem', fontWeight: 600, color: '#f8fafc' }}>
                       {ev.eventType.replace(/_/g, ' ')}
@@ -283,8 +455,8 @@ export default function CustomerAnalyticsPage() {
             <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>📶</div>
             <p style={{ margin: 0, fontSize: '0.9rem', color: '#cbd5e1' }}>No interactions yet</p>
             <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: '#64748b' }}>
-              When people tap your NFC card or scan your QR code, visitor events will display here
-              in real time.
+              When people tap your NFC card, scan your QR code, or click your links, visitor events
+              will display here in real time.
             </p>
           </div>
         )}

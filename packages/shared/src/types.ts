@@ -324,7 +324,19 @@ export interface CustomerCardDetails {
 export interface CustomerAnalyticsSummary {
   viewsToday: number;
   viewsThisWeek: number;
+  viewsThisMonth: number;
   viewsTotal: number;
+  clickBreakdown: {
+    phone: number;
+    whatsapp: number;
+    email: number;
+    saveContact: number;
+    website: number;
+    instagram: number;
+    linkedin: number;
+    totalClicks: number;
+    [key: string]: number;
+  };
   recentEvents: Array<{
     id: string;
     eventType: string;
@@ -355,11 +367,15 @@ export interface AdminDashboardMetrics {
 
 export interface PlatformAnalyticsSummary {
   totalEvents: number;
+  totalViews: number;
+  humanViews: number;
+  botViews: number;
   eventBreakdown: Record<string, number>;
   dailyViews: Array<{
     date: string;
     count: number;
   }>;
+  cardTypeBreakdown?: Record<string, number>;
 }
 
 export interface AdminCustomerItem {

@@ -135,13 +135,19 @@ export function AdminAnalyticsClient() {
 
             <div className={styles.statCard}>
               <div className={styles.statHeader}>
-                <span className={styles.statLabel}>Profile Page Views</span>
+                <span className={styles.statLabel}>Human Profile Views</span>
                 <span>👁️</span>
               </div>
               <div className={styles.statVal} style={{ color: '#38bdf8' }}>
-                {(analytics?.eventBreakdown?.PROFILE_VIEW ?? 0).toLocaleString()}
+                {(
+                  analytics?.humanViews ??
+                  analytics?.eventBreakdown?.PROFILE_VIEW ??
+                  0
+                ).toLocaleString()}
               </div>
-              <span className={styles.statMeta}>Unique session views</span>
+              <span className={styles.statMeta}>
+                Verified visitor sessions ({analytics?.botViews ?? 0} bots filtered)
+              </span>
             </div>
 
             <div className={styles.statCard}>

@@ -71,6 +71,12 @@ export const API_ROUTES = {
     vcf: (token: string) => `/profile/public/${token}/contact.vcf`,
     publicVcf: (type: string, token: string) => `/p/${type}/${token}/contact.vcf`,
   },
+
+  analytics: {
+    event: '/analytics/event',
+    events: '/analytics/events',
+    summary: '/analytics/summary',
+  },
 } as const;
 
 export type ApiRoute = string;

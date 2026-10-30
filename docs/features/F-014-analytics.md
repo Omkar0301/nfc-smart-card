@@ -3,7 +3,7 @@
 **ID:** F-014  
 **Priority:** 🟢 Medium  
 **Phase:** 9  
-**Status:** ⚠️ PARTIAL (ProfileEvent model exists with isBot field; no event capture, no API, no UI)  
+**Status:** ✅ Complete  
 **Depends on:** F-010 (public profile SSR — primary event source)  
 **Required by:** F-011 (customer dashboard metrics), F-012 (admin analytics dashboard)
 
@@ -26,32 +26,32 @@ _As a super admin, I want platform-wide analytics — total views, total scans, 
 ## Technical Details (Option B Architecture)
 
 - **Event Firing from Next.js Public Page (`apps/web`):**
-  A lightweight Client Component (`AnalyticsTracker.tsx`) in `app/p/[type]/[token]/page.tsx` fires `PROFILE_VIEW` on mount. Link clicks (phone, email, social) call `POST /analytics/event` on the Express API via `navigator.sendBeacon` or `fetch(..., { keepalive: true })`.
+  A lightweight Client Component (`AnalyticsTracker.tsx`) in `app/p/[type]/[token]/page.tsx` fires `PROFILE_VIEW` on mount. Link clicks (phone, email, social, contact save) call `POST /analytics/event` on the Express API via `navigator.sendBeacon` or `fetch(..., { keepalive: true })`.
 - **Event Storage & Aggregation (`apps/api`):**
-  Express endpoint `POST /analytics/event` validates event type, performs User-Agent bot filtering (`isBot`), checks 30-minute session deduplication, and records `ProfileEvent` in Postgres.
+  Express endpoints `POST /analytics/event` and `POST /analytics/events` validate event types, enforce active card status, perform server-side User-Agent bot filtering (`isBot`), check 30-minute session deduplication, and record `ProfileEvent` in Postgres.
 - **Dashboards (`apps/web`):**
-  Customer Analytics (`app/portal/analytics/page.tsx`) and Admin Analytics (`app/admin/analytics/page.tsx`) consume aggregate endpoints (`GET /analytics/summary`, `GET /admin/analytics/platform`).
+  Customer Analytics (`app/portal/analytics/page.tsx`) and Admin Analytics (`app/admin/analytics/page.tsx`) consume aggregate endpoints (`GET /analytics/summary`, `GET /profile/analytics`, `GET /admin/analytics`).
 
 ---
 
 ## Acceptance Criteria
 
-- [ ] `POST /analytics/event` records `PROFILE_VIEW` events for ACTIVE cards
-- [ ] Googlebot request sets `isBot = true`; excluded from customer analytics
-- [ ] Two `PROFILE_VIEW` events from same session in 30 minutes set `isDuplicate = true`; counted once
-- [ ] `GET /analytics/summary` returns today/week/month/total counts for customer's card
-- [ ] Click events (`PHONE_CLICK`, etc.) captured via Next.js client handlers
-- [ ] Customer and Admin analytics dashboards display view counts and click breakdown
-- [ ] Zero visitor PII exposed in customer or admin API responses
+- [x] `POST /analytics/event` records `PROFILE_VIEW` events for ACTIVE cards
+- [x] Googlebot request sets `isBot = true`; excluded from customer analytics
+- [x] Two `PROFILE_VIEW` events from same session in 30 minutes set `isDuplicate = true`; counted once
+- [x] `GET /analytics/summary` returns today/week/month/total counts for customer's card
+- [x] Click events (`PHONE_CLICK`, `WHATSAPP_CLICK`, `EMAIL_CLICK`, `SAVE_CONTACT`, `WEBSITE_CLICK`, etc.) captured via Next.js client handlers
+- [x] Customer and Admin analytics dashboards display view counts and click breakdown
+- [x] Zero visitor PII exposed in customer or admin API responses
 
 ---
 
 ## Implementation Tasks
 
-- [ ] **T-014-1:** Create `src/services/analyticsService.ts` in `apps/api`
-- [ ] **T-014-2:** Create `src/routes/analytics.ts` in `apps/api` (`POST /analytics/event`, `GET /analytics/summary`)
-- [ ] **T-014-3:** Create `src/routes/admin/analytics.ts` in `apps/api`
-- [ ] **T-014-4:** Create `apps/web/components/public/AnalyticsTracker.tsx` for Next.js SSR page
-- [ ] **T-014-5:** Create `apps/web/app/portal/analytics/page.tsx`
-- [ ] **T-014-6:** Create `apps/web/app/admin/analytics/page.tsx`
-- [ ] **T-014-7:** Update `.agents/features.md` on completion
+- [x] **T-014-1:** Create/update `src/services/analytics.service.ts` in `apps/api` with bot detection and 30-min deduplication
+- [x] **T-014-2:** Create/update `src/routes/analytics.routes.ts` in `apps/api` (`POST /analytics/event`, `POST /analytics/events`, `GET /analytics/summary`)
+- [x] **T-014-3:** Wire `GET /admin/analytics` in `apps/api` with platform totals, card type breakdowns, and bot metrics
+- [x] **T-014-4:** Update `apps/web/components/public/AnalyticsTracker.tsx` for Next.js SSR page with global link delegation
+- [x] **T-014-5:** Update `apps/web/app/portal/analytics/page.tsx` with 4-card time buckets and interaction breakdown
+- [x] **T-014-6:** Update `apps/web/components/admin/AdminAnalyticsClient.tsx` with bot vs human telemetry
+- [x] **T-014-7:** Update `.agents/features.md`, `docs/features/FEATURE_INDEX.md`, `docs/API_CONTEXT.md`, and Postman collection on completion

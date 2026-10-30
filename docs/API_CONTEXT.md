@@ -43,15 +43,14 @@ apps/api/src/
 │   ├── index.ts           ← Aggregates all route modules + /health + /admin/health
 │   ├── auth.routes.ts     ← /auth/* [F-002, F-003]
 │   ├── cards.routes.ts    ← Public token lookup & claiming (/cards/*) [F-007]
-│   ├── profile.routes.ts  ← Customer profile CRUD & lifecycle (/profile/*) [F-008, F-015] (planned)
+│   ├── profile.routes.ts  ← Customer profile CRUD & lifecycle (/profile/*) [F-008, F-015]
 │   ├── templates.routes.ts← Template listing (/templates) [F-009]
-│   ├── analytics.routes.ts← Customer & event analytics (/analytics/*) [F-014] (planned)
+│   ├── analytics.routes.ts← Customer & event analytics (/analytics/*) [F-014]
 │   ├── upload.routes.ts   ← S3 File upload (/upload/*) [F-016] (planned)
 │   └── admin/
-│       ├── card.routes.ts       ← Admin card CRUD, generation, jobs, export [F-005, F-006]
+│       ├── card.routes.ts       ← Admin card CRUD, generation, jobs, export, metrics, platform analytics [F-005, F-006, F-012, F-014]
 │       ├── cardType.routes.ts   ← Admin card type management [F-004]
-│       ├── template.routes.ts   ← Admin template management [F-009]
-│       └── analytics.routes.ts  ← Admin platform analytics [F-014]
+│       └── template.routes.ts   ← Admin template management [F-009]
 ├── validators/            ← Zod schemas (auth.validator.ts, card.validator.ts, cardType.validator.ts)
 ├── providers/             ← External I/O (otp.provider.ts)
 ├── utils/                 ← Pure helpers (phone.ts)

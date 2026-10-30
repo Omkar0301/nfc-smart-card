@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import { CardStatus } from '@prisma/client';
-import { ErrorCode } from '@nfc-card/shared';
+import { ErrorCode, type PlatformAnalyticsSummary } from '@nfc-card/shared';
 import { config } from '../config.js';
 import { logger } from '../lib/logger.js';
 import { CARD_GENERATION_QUEUE, enqueueJob } from '../lib/queue.js';
@@ -874,13 +874,9 @@ export const cardService = {
     }
   },
 
-  async getPlatformAnalytics(cardTypeId?: string): Promise<
-    ServiceResult<{
-      totalEvents: number;
-      eventBreakdown: Record<string, number>;
-      dailyViews: Array<{ date: string; count: number }>;
-    }>
-  > {
+  async getPlatformAnalytics(
+    cardTypeId?: string
+  ): Promise<ServiceResult<PlatformAnalyticsSummary>> {
     try {
       const data = await analyticsRepository.getPlatformAnalytics(cardTypeId);
       return { ok: true, data };
