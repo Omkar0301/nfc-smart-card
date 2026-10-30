@@ -5,3 +5,4 @@ export * from './cardTypes';
 export * from './cards';
 export * from './profile';
 export * from './templates';
+export * from './upload';

@@ -93,6 +93,12 @@ export enum ErrorCode {
   CARD_NOT_ACTIVE = 'CARD_NOT_ACTIVE',
   CARD_NOT_PAUSED = 'CARD_NOT_PAUSED',
   REQUEST_ALREADY_PENDING = 'REQUEST_ALREADY_PENDING',
+
+  // File Storage & Upload (F-016)
+  FILE_TOO_LARGE = 'FILE_TOO_LARGE',
+  INVALID_FILE_TYPE = 'INVALID_FILE_TYPE',
+  NO_FILE = 'NO_FILE',
+  UPLOAD_FAILED = 'UPLOAD_FAILED',
 }
 
 export type CardTypeCode = 'BUSINESS' | 'COLLEGE';
@@ -409,4 +415,8 @@ export interface AdminCustomerItem {
       slug: string;
     };
   }>;
+}
+
+export interface UploadResponse {
+  url: string;
 }

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import type { CardType, TemplateSummary } from '@nfc-card/shared';
 import { createTemplate, updateTemplate } from '../../shared/api/templates';
+import { ThumbnailUpload } from './ThumbnailUpload';
 import styles from './TemplateManagement.module.css';
 
 export interface TemplateFormProps {
@@ -135,14 +136,21 @@ export function TemplateForm({ template, cardTypes, onSuccess, onCancel }: Templ
 
         <div className={styles.formGroup}>
           <label className={styles.formLabel} htmlFor="template-thumbnail">
-            Thumbnail URL (optional)
+            Thumbnail Image (optional)
           </label>
+          <ThumbnailUpload
+            thumbnailUrl={thumbnail}
+            templateId={template?.id ?? 'new'}
+            onThumbnailChange={(url) => setThumbnail(url)}
+            disabled={submitting}
+          />
           <input
             id="template-thumbnail"
             className={styles.input}
+            style={{ marginTop: '8px' }}
             value={thumbnail}
             onChange={(e) => setThumbnail(e.target.value)}
-            placeholder="https://…/preview.png"
+            placeholder="Or enter URL: https://…/preview.png"
           />
         </div>
 

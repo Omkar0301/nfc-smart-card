@@ -46,7 +46,7 @@ apps/api/src/
 │   ├── profile.routes.ts  ← Customer profile CRUD & lifecycle (/profile/*) [F-008, F-015]
 │   ├── templates.routes.ts← Template listing (/templates) [F-009]
 │   ├── analytics.routes.ts← Customer & event analytics (/analytics/*) [F-014]
-│   ├── upload.routes.ts   ← S3 File upload (/upload/*) [F-016] (planned)
+│   ├── upload.routes.ts   ← S3 File upload (/upload/*) [F-016]
 │   └── admin/
 │       ├── card.routes.ts       ← Admin card CRUD, generation, jobs, export, metrics, platform analytics [F-005, F-006, F-012, F-014]
 │       ├── cardType.routes.ts   ← Admin card type management [F-004]
@@ -266,6 +266,7 @@ Handled using **Zod** (`zod` package).
 | `POST`   | `/analytics/event`                          | Rate-limited   | [F-014](file:///d:/nfc-new/nfc-card-platform/docs/features/F-014-analytics.md)                |
 | `GET`    | `/analytics/summary`                        | `requireAuth`  | [F-014](file:///d:/nfc-new/nfc-card-platform/docs/features/F-014-analytics.md)                |
 | `POST`   | `/upload/profile-photo`                     | `requireAuth`  | [F-016](file:///d:/nfc-new/nfc-card-platform/docs/features/F-016-file-storage-upload.md)      |
+| `POST`   | `/upload/template-thumbnail`                | `requireAdmin` | [F-016](file:///d:/nfc-new/nfc-card-platform/docs/features/F-016-file-storage-upload.md)      |
 | `POST`   | `/admin/cards/generate`                     | `requireAdmin` | [F-005](file:///d:/nfc-new/nfc-card-platform/docs/features/F-005-bulk-card-generation.md)     |
 | `GET`    | `/admin/cards/jobs/:id` & `/admin/jobs/:id` | `requireAdmin` | [F-005](file:///d:/nfc-new/nfc-card-platform/docs/features/F-005-bulk-card-generation.md)     |
 | `GET`    | `/admin/cards/jobs`                         | `requireAdmin` | [F-005](file:///d:/nfc-new/nfc-card-platform/docs/features/F-005-bulk-card-generation.md)     |

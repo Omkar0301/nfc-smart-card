@@ -3,7 +3,7 @@
 **ID:** F-016  
 **Priority:** 🟢 Medium  
 **Phase:** 5  
-**Status:** ❌ NOT STARTED  
+**Status:** ✅ COMPLETE  
 **Depends on:** F-002 (auth — uploads require authentication)  
 **Required by:** F-008 (profile photo field), F-009 (template thumbnails in admin)
 
@@ -206,30 +206,30 @@ Before calling the upload endpoint, perform a lightweight client-side check:
 
 ## Acceptance Criteria
 
-- [ ] `POST /upload/profile-photo` accepts JPEG, PNG, WebP up to 5 MB and returns a public URL
-- [ ] `POST /upload/profile-photo` rejects files with invalid magic bytes (type spoofing attempt returns 415)
-- [ ] `POST /upload/profile-photo` rejects files over 5 MB with 400
-- [ ] `POST /upload/profile-photo` requires authentication (401 without JWT)
-- [ ] Uploaded photo URL is saved into `Profile.data.photo` via the profile editor
-- [ ] Profile photo appears on the public SSR profile page
-- [ ] `POST /upload/template-thumbnail` requires admin auth
-- [ ] Template thumbnail appears in the template picker UI
-- [ ] S3 credentials are entirely env-var-driven (no hardcoded keys)
-- [ ] `ImageField.tsx` shows current photo, upload progress, and error states
-- [ ] Old photo is deleted from S3 when a new one is uploaded (best-effort)
+- [x] `POST /upload/profile-photo` accepts JPEG, PNG, WebP up to 5 MB and returns a public URL
+- [x] `POST /upload/profile-photo` rejects files with invalid magic bytes (type spoofing attempt returns 415)
+- [x] `POST /upload/profile-photo` rejects files over 5 MB with 400
+- [x] `POST /upload/profile-photo` requires authentication (401 without JWT)
+- [x] Uploaded photo URL is saved into `Profile.data.photo` via the profile editor
+- [x] Profile photo appears on the public SSR profile page
+- [x] `POST /upload/template-thumbnail` requires admin auth
+- [x] Template thumbnail appears in the template picker UI
+- [x] S3 credentials are entirely env-var-driven (no hardcoded keys)
+- [x] `ImageField.tsx` shows current photo, upload progress, and error states
+- [x] Old photo is deleted from S3 when a new one is uploaded (best-effort)
 
 ---
 
 ## Implementation Tasks
 
-- [ ] **T-016-1:** Add S3 env vars to `.env.example` and `.env`
-- [ ] **T-016-2:** Install `@aws-sdk/client-s3` and `multer` in `apps/api`
-- [ ] **T-016-3:** Create `src/lib/s3.ts` — S3 client, `uploadFile()`, `deleteFile()`
-- [ ] **T-016-4:** Create `src/lib/validateFile.ts` — magic byte validator + size check
-- [ ] **T-016-5:** Create `src/middleware/multer.ts` — memory-storage multer config
-- [ ] **T-016-6:** Create `src/routes/upload.ts` — `POST /upload/profile-photo` + `POST /upload/template-thumbnail`
-- [ ] **T-016-7:** Mount upload routes in `app.ts`
-- [ ] **T-016-8:** COMPLETE `src/shared/FieldRenderer/ImageField.tsx` — picker, preview, upload call
-- [ ] **T-016-9:** Create `src/shared/api/upload.ts`
-- [ ] **T-016-10:** Create `src/admin/TemplateManagement/ThumbnailUpload.tsx`
-- [ ] **T-016-11:** Update `.agents/features.md` on completion
+- [x] **T-016-1:** Add S3 env vars to `.env.example` and `.env`
+- [x] **T-016-2:** Install `@aws-sdk/client-s3` and `multer` in `apps/api`
+- [x] **T-016-3:** Create `src/lib/s3.ts` — S3 client, `uploadFile()`, `deleteFile()`
+- [x] **T-016-4:** Create `src/lib/validateFile.ts` — magic byte validator + size check
+- [x] **T-016-5:** Create `src/middleware/multer.ts` — memory-storage multer config
+- [x] **T-016-6:** Create `src/routes/upload.ts` — `POST /upload/profile-photo` + `POST /upload/template-thumbnail`
+- [x] **T-016-7:** Mount upload routes in `app.ts`
+- [x] **T-016-8:** COMPLETE `src/shared/FieldRenderer/ImageField.tsx` — picker, preview, upload call
+- [x] **T-016-9:** Create `src/shared/api/upload.ts`
+- [x] **T-016-10:** Create `src/admin/TemplateManagement/ThumbnailUpload.tsx`
+- [x] **T-016-11:** Update `.agents/features.md` on completion

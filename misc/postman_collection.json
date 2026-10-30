@@ -1640,6 +1640,75 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "File Storage & Upload (F-016)",
+      "item": [
+        {
+          "name": "Upload Profile Photo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "description": "Image file (JPEG, PNG, WebP ≤ 5 MB)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/upload/profile-photo",
+              "host": ["{{baseUrl}}"],
+              "path": ["upload", "profile-photo"]
+            },
+            "description": "Upload customer profile photo to S3-compatible storage. Validated via magic bytes and size (≤ 5 MB). Returns public URL and automatically cleans up old profile photo."
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Template Thumbnail (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "description": "Image file (JPEG, PNG, WebP ≤ 2 MB)"
+                },
+                {
+                  "key": "templateId",
+                  "value": "{{templateId}}",
+                  "type": "text",
+                  "description": "ID of the template to associate with the thumbnail"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/upload/template-thumbnail",
+              "host": ["{{baseUrl}}"],
+              "path": ["upload", "template-thumbnail"]
+            },
+            "description": "Upload template preview thumbnail to S3-compatible storage. Admin privileges required. Validated via magic bytes and size (≤ 2 MB). Automatically updates Template.thumbnail in database."
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [

@@ -93,7 +93,8 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
 
   const buildHeaders = (): Headers => {
     const next = new Headers(headers);
-    if (!next.has('Content-Type') && rest.body) {
+    const isFormData = typeof FormData !== 'undefined' && rest.body instanceof FormData;
+    if (!next.has('Content-Type') && rest.body && !isFormData) {
       next.set('Content-Type', 'application/json');
     }
     if (!skipAuth && accessToken) {

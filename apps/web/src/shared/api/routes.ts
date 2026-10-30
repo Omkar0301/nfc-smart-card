@@ -77,6 +77,11 @@ export const API_ROUTES = {
     events: '/analytics/events',
     summary: '/analytics/summary',
   },
+
+  upload: {
+    profilePhoto: '/upload/profile-photo',
+    templateThumbnail: '/upload/template-thumbnail',
+  },
 } as const;
 
 export type ApiRoute = string;

@@ -7,6 +7,7 @@ import cardTypeRouter from './admin/cardType.routes.js';
 import cardRouter from './admin/card.routes.js';
 import adminTemplateRouter from './admin/template.routes.js';
 import analyticsRouter from './analytics.routes.js';
+import uploadRouter from './upload.routes.js';
 import { cardController } from '../controllers/admin/card.controller.js';
 import { cardReplacementController } from '../controllers/cardReplacement.controller.js';
 import { vcfController } from '../controllers/vcf.controller.js';
@@ -37,6 +38,9 @@ router.use('/templates', templatesRouter);
 
 // Public analytics routes (/analytics/events)
 router.use('/analytics', analyticsRouter);
+
+// File upload routes (/upload/profile-photo, /upload/template-thumbnail)
+router.use('/upload', uploadRouter);
 
 // Admin health — requires ADMIN role
 router.get('/admin/health', requireAdmin, (_req, res) => {
