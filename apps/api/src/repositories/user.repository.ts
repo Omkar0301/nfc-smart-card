@@ -74,4 +74,58 @@ export const userRepository = {
       orderBy: { createdAt: 'desc' },
     });
   },
+
+  listCustomers(query?: string, limit = 50) {
+    return prisma.user.findMany({
+      where:
+        query && query.trim()
+          ? {
+              OR: [
+                { name: { contains: query.trim(), mode: 'insensitive' } },
+                { phone: { contains: query.trim() } },
+                { email: { contains: query.trim(), mode: 'insensitive' } },
+              ],
+            }
+          : undefined,
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+        email: true,
+        role: true,
+        status: true,
+        createdAt: true,
+        assignments: {
+          where: { status: 'ACTIVE' },
+          include: {
+            card: {
+              include: {
+                cardType: {
+                  select: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        profiles: {
+          select: {
+            id: true,
+            status: true,
+            cardType: {
+              select: {
+                name: true,
+                slug: true,
+              },
+            },
+          },
+        },
+      },
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+    });
+  },
 };

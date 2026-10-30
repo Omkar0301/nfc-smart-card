@@ -286,3 +286,6 @@ Handled using **Zod** (`zod` package).
 | `POST`   | `/admin/cards/:id/replace`                  | `requireAdmin` | [F-006](file:///d:/nfc-new/nfc-card-platform/docs/features/F-006-admin-card-lifecycle.md)     |
 | `GET`    | `/admin/cards/replacements/available`       | `requireAdmin` | [F-006](file:///d:/nfc-new/nfc-card-platform/docs/features/F-006-admin-card-lifecycle.md)     |
 | `GET`    | `/admin/cards/users/search`                 | `requireAdmin` | [F-006](file:///d:/nfc-new/nfc-card-platform/docs/features/F-006-admin-card-lifecycle.md)     |
+| `GET`    | `/admin/metrics`                            | `requireAdmin` | [F-012](file:///d:/nfc-new/nfc-card-platform/docs/features/F-012-admin-portal-ui.md)          |
+| `GET`    | `/admin/analytics`                          | `requireAdmin` | [F-012](file:///d:/nfc-new/nfc-card-platform/docs/features/F-012-admin-portal-ui.md)          |
+| `GET`    | `/admin/customers`                          | `requireAdmin` | [F-012](file:///d:/nfc-new/nfc-card-platform/docs/features/F-012-admin-portal-ui.md)          |

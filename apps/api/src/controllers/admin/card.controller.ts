@@ -402,4 +402,35 @@ export const cardController = {
       throw err;
     }
   },
+
+  async getDashboardMetrics(req: Request, res: Response) {
+    const cardTypeId = typeof req.query.cardTypeId === 'string' ? req.query.cardTypeId : undefined;
+    const result = await cardService.getDashboardMetrics(cardTypeId);
+    if (!result.ok) {
+      sendError(res, result.status, result.code, result.message, result.details);
+      return;
+    }
+    sendSuccess(res, 200, result.data);
+  },
+
+  async getPlatformAnalytics(req: Request, res: Response) {
+    const cardTypeId = typeof req.query.cardTypeId === 'string' ? req.query.cardTypeId : undefined;
+    const result = await cardService.getPlatformAnalytics(cardTypeId);
+    if (!result.ok) {
+      sendError(res, result.status, result.code, result.message, result.details);
+      return;
+    }
+    sendSuccess(res, 200, result.data);
+  },
+
+  async listCustomers(req: Request, res: Response) {
+    const query = typeof req.query.query === 'string' ? req.query.query : undefined;
+    const limit = req.query.limit ? Number(req.query.limit) : 50;
+    const result = await cardService.listCustomers(query, limit);
+    if (!result.ok) {
+      sendError(res, result.status, result.code, result.message, result.details);
+      return;
+    }
+    sendSuccess(res, 200, result.data);
+  },
 };

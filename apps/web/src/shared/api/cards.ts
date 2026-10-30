@@ -1,8 +1,11 @@
 import type {
+  AdminCustomerItem,
+  AdminDashboardMetrics,
   CardDetail,
   CardInventoryItem,
   ClaimCardResponse,
   GenerationJob,
+  PlatformAnalyticsSummary,
   PublicCardLookupResponse,
 } from '@nfc-card/shared';
 import { apiFetch, getAccessToken } from './client';
@@ -333,4 +336,27 @@ export async function getReplacementRequests(): Promise<any[]> {
     API_ROUTES.cards.replacementRequests
   );
   return res.data.requests;
+}
+
+export async function getAdminDashboardMetrics(
+  cardTypeId?: string
+): Promise<AdminDashboardMetrics> {
+  const res = await apiFetch<ApiResponseEnvelope<AdminDashboardMetrics>>(
+    API_ROUTES.admin.metrics(cardTypeId)
+  );
+  return res.data;
+}
+
+export async function getPlatformAnalytics(cardTypeId?: string): Promise<PlatformAnalyticsSummary> {
+  const res = await apiFetch<ApiResponseEnvelope<PlatformAnalyticsSummary>>(
+    API_ROUTES.admin.analytics(cardTypeId)
+  );
+  return res.data;
+}
+
+export async function getAdminCustomers(query?: string): Promise<AdminCustomerItem[]> {
+  const res = await apiFetch<ApiResponseEnvelope<{ customers: AdminCustomerItem[] }>>(
+    API_ROUTES.admin.customers(query)
+  );
+  return res.data.customers;
 }

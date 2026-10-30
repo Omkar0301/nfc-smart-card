@@ -3,7 +3,7 @@
 **ID:** F-012  
 **Priority:** 🟡 High  
 **Phase:** 8  
-**Status:** ❌ NOT STARTED  
+**Status:** ✅ Complete  
 **Depends on:** F-005 (generation), F-006 (lifecycle), F-004 (card types), F-002 (admin auth)  
 **Required by:** None (terminal feature for admin control plane)
 
@@ -66,22 +66,22 @@ apps/web/app/admin/
 
 ## Acceptance Criteria
 
-- [ ] All `/admin/*` routes require `role === 'ADMIN'` (enforced in `admin/layout.tsx` and Express API)
-- [ ] Dashboard shows card status counts, filterable by card type
-- [ ] Inventory table supports search by phone/name, filter by status
-- [ ] Card detail view provides lifecycle actions (suspend, deactivate, replace) with confirmation modals
-- [ ] Bulk generation form enqueues pg-boss jobs and polls progress
-- [ ] Card type management allows dynamic field schema updates
+- [x] All `/admin/*` routes require `role === 'ADMIN'` (enforced in `admin/layout.tsx` and Express API)
+- [x] Dashboard shows card status counts, filterable by card type
+- [x] Inventory table supports search by phone/name, filter by status
+- [x] Card detail view provides lifecycle actions (suspend, deactivate, replace) with confirmation modals
+- [x] Bulk generation form enqueues pg-boss jobs and polls progress
+- [x] Card type management allows dynamic field schema updates
 
 ---
 
 ## Implementation Tasks
 
-- [ ] **T-012-1:** Create `apps/web/app/admin/layout.tsx` with Admin Guard
-- [ ] **T-012-2:** Create `apps/web/app/admin/dashboard/page.tsx`
-- [ ] **T-012-3:** Create `apps/web/app/admin/cards/page.tsx` + `cards/[id]/page.tsx`
-- [ ] **T-012-4:** Create `apps/web/app/admin/generate/page.tsx`
-- [ ] **T-012-5:** Create `apps/web/app/admin/card-types/page.tsx`
-- [ ] **T-012-6:** Create `apps/web/app/admin/templates/page.tsx`
-- [ ] **T-012-7:** Create `apps/web/app/admin/customers/page.tsx`
-- [ ] **T-012-8:** Update `.agents/features.md` on completion
+- [x] **T-012-1:** Create `apps/web/app/admin/layout.tsx` with Admin Guard
+- [x] **T-012-2:** Create `apps/web/app/admin/dashboard/page.tsx`
+- [x] **T-012-3:** Create `apps/web/app/admin/cards/page.tsx` + `cards/[id]/page.tsx`
+- [x] **T-012-4:** Create `apps/web/app/admin/generate/page.tsx`
+- [x] **T-012-5:** Create `apps/web/app/admin/card-types/page.tsx`
+- [x] **T-012-6:** Create `apps/web/app/admin/templates/page.tsx`
+- [x] **T-012-7:** Create `apps/web/app/admin/customers/page.tsx`
+- [x] **T-012-8:** Update `.agents/features.md` on completion

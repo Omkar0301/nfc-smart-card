@@ -336,3 +336,61 @@ export interface CustomerAnalyticsSummary {
     count: number;
   }>;
 }
+
+export interface AdminDashboardMetrics {
+  cards: {
+    total: number;
+    available: number;
+    assigned: number;
+    active: number;
+    paused: number;
+    suspended: number;
+    deactivated: number;
+  };
+  totalCustomers: number;
+  totalViews: number;
+  totalScans: number;
+  pendingReplacements: number;
+}
+
+export interface PlatformAnalyticsSummary {
+  totalEvents: number;
+  eventBreakdown: Record<string, number>;
+  dailyViews: Array<{
+    date: string;
+    count: number;
+  }>;
+}
+
+export interface AdminCustomerItem {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string | null;
+  role: Role;
+  status: UserStatus;
+  createdAt: Date | string;
+  assignments: Array<{
+    id: string;
+    status: string;
+    assignedAt: Date | string;
+    card: {
+      id: string;
+      cardNumber: string;
+      status: CardStatus;
+      cardType: {
+        id: string;
+        name: string;
+        slug: string;
+      };
+    };
+  }>;
+  profiles: Array<{
+    id: string;
+    status: string;
+    cardType: {
+      name: string;
+      slug: string;
+    };
+  }>;
+}

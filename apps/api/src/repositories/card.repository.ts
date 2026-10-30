@@ -518,4 +518,61 @@ export const cardRepository = {
       };
     });
   },
+
+  async getDashboardMetrics(cardTypeId?: string) {
+    const cardWhere = cardTypeId ? { cardTypeId } : {};
+    const [
+      totalCards,
+      availableCards,
+      assignedCards,
+      activeCards,
+      pausedCards,
+      suspendedCards,
+      deactivatedCards,
+      totalCustomers,
+      totalViews,
+      totalScans,
+      pendingReplacements,
+    ] = await Promise.all([
+      prisma.nFCCard.count({ where: cardWhere }),
+      prisma.nFCCard.count({ where: { ...cardWhere, status: CardStatus.AVAILABLE } }),
+      prisma.nFCCard.count({ where: { ...cardWhere, status: CardStatus.ASSIGNED } }),
+      prisma.nFCCard.count({ where: { ...cardWhere, status: CardStatus.ACTIVE } }),
+      prisma.nFCCard.count({ where: { ...cardWhere, status: CardStatus.PAUSED } }),
+      prisma.nFCCard.count({ where: { ...cardWhere, status: CardStatus.SUSPENDED } }),
+      prisma.nFCCard.count({ where: { ...cardWhere, status: CardStatus.DEACTIVATED } }),
+      prisma.user.count({ where: { role: 'CUSTOMER' } }),
+      prisma.profileEvent.count({
+        where: {
+          eventType: 'PROFILE_VIEW',
+          ...(cardTypeId ? { card: { cardTypeId } } : {}),
+        },
+      }),
+      prisma.profileEvent.count({
+        where: {
+          eventType: 'SCAN',
+          ...(cardTypeId ? { card: { cardTypeId } } : {}),
+        },
+      }),
+      prisma.cardReplacementRequest.count({
+        where: { status: 'PENDING' },
+      }),
+    ]);
+
+    return {
+      cards: {
+        total: totalCards,
+        available: availableCards,
+        assigned: assignedCards,
+        active: activeCards,
+        paused: pausedCards,
+        suspended: suspendedCards,
+        deactivated: deactivatedCards,
+      },
+      totalCustomers,
+      totalViews,
+      totalScans,
+      pendingReplacements,
+    };
+  },
 };

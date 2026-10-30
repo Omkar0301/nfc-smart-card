@@ -21,6 +21,12 @@ export const API_ROUTES = {
       export: '/admin/cards/export',
       invalidateBatch: (batchId: string) => `/admin/cards/batches/${batchId}/invalidate`,
     },
+    metrics: (cardTypeId?: string) =>
+      `/admin/metrics${cardTypeId ? `?cardTypeId=${encodeURIComponent(cardTypeId)}` : ''}`,
+    analytics: (cardTypeId?: string) =>
+      `/admin/analytics${cardTypeId ? `?cardTypeId=${encodeURIComponent(cardTypeId)}` : ''}`,
+    customers: (query?: string) =>
+      `/admin/customers${query ? `?query=${encodeURIComponent(query)}` : ''}`,
     templates: {
       list: '/admin/templates',
       create: '/admin/templates',

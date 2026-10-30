@@ -3,6 +3,8 @@ import { cardService } from '../../src/services/card.service.js';
 import { cardTypeRepository } from '../../src/repositories/cardType.repository.js';
 import { generationJobRepository } from '../../src/repositories/generationJob.repository.js';
 import { cardRepository } from '../../src/repositories/card.repository.js';
+import { userRepository } from '../../src/repositories/user.repository.js';
+import { analyticsRepository } from '../../src/repositories/analytics.repository.js';
 import * as queueModule from '../../src/lib/queue.js';
 import * as cacheInvalidation from '../../src/lib/cacheInvalidation.js';
 import { ErrorCode, CardStatus } from '@nfc-card/shared';
@@ -213,6 +215,102 @@ describe('Card Service Unit Tests', () => {
       const result = await cardService.activateCard('c-1');
       expect(result.ok).toBe(true);
       expect(revalidateSpy).toHaveBeenCalledWith('tok-reval');
+    });
+  });
+
+  describe('Admin Platform Metrics & Customers Directory (F-012)', () => {
+    it('getDashboardMetrics aggregates status counts and metrics successfully', async () => {
+      const mockMetrics = {
+        cards: {
+          total: 100,
+          available: 40,
+          assigned: 10,
+          active: 35,
+          paused: 5,
+          suspended: 5,
+          deactivated: 5,
+        },
+        totalCustomers: 45,
+        totalViews: 350,
+        totalScans: 120,
+        pendingReplacements: 2,
+      };
+
+      vi.spyOn(cardRepository, 'getDashboardMetrics').mockResolvedValueOnce(mockMetrics);
+
+      const res = await cardService.getDashboardMetrics('ct-1');
+      expect(res.ok).toBe(true);
+      if (res.ok) {
+        expect(res.data.cards.total).toBe(100);
+        expect(res.data.totalCustomers).toBe(45);
+        expect(res.data.totalViews).toBe(350);
+        expect(res.data.pendingReplacements).toBe(2);
+      }
+    });
+
+    it('getPlatformAnalytics returns event breakdowns and daily trends', async () => {
+      const mockAnalytics = {
+        totalEvents: 500,
+        eventBreakdown: {
+          PROFILE_VIEW: 300,
+          SCAN: 100,
+          PHONE_CLICK: 50,
+          EMAIL_CLICK: 30,
+          SAVE_CONTACT: 20,
+        },
+        dailyViews: [
+          { date: '2026-10-11', count: 25 },
+          { date: '2026-10-12', count: 30 },
+        ],
+      };
+
+      vi.spyOn(analyticsRepository, 'getPlatformAnalytics').mockResolvedValueOnce(mockAnalytics);
+
+      const res = await cardService.getPlatformAnalytics();
+      expect(res.ok).toBe(true);
+      if (res.ok) {
+        expect(res.data.totalEvents).toBe(500);
+        expect(res.data.eventBreakdown.PROFILE_VIEW).toBe(300);
+        expect(res.data.dailyViews).toHaveLength(2);
+      }
+    });
+
+    it('listCustomers returns customer list with card assignments', async () => {
+      const mockCustomers = [
+        {
+          id: 'user-1',
+          name: 'Jane Doe',
+          phone: '+15551234567',
+          email: 'jane@example.com',
+          role: 'CUSTOMER',
+          status: 'ACTIVE',
+          createdAt: new Date(),
+          assignments: [
+            {
+              id: 'as-1',
+              status: 'ACTIVE',
+              assignedAt: new Date(),
+              card: {
+                id: 'card-1',
+                cardNumber: 'BC-000001',
+                status: CardStatus.ACTIVE,
+                cardType: { id: 'ct-1', name: 'Business', slug: 'business' },
+              },
+            },
+          ],
+          profiles: [],
+        },
+      ];
+
+      vi.spyOn(userRepository, 'listCustomers').mockResolvedValueOnce(mockCustomers as any);
+
+      const res = await cardService.listCustomers('Jane');
+      expect(res.ok).toBe(true);
+      if (res.ok) {
+        expect(res.data.customers).toHaveLength(1);
+        expect(res.data.customers[0].name).toBe('Jane Doe');
+        expect(res.data.customers[0].assignments[0].card.cardNumber).toBe('BC-000001');
+      }
     });
   });
 });

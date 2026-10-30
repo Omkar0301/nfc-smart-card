@@ -113,4 +113,63 @@ export const analyticsRepository = {
       dailyViews,
     };
   },
+
+  async getPlatformAnalytics(cardTypeId?: string) {
+    const now = new Date();
+    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+    const cardFilter = cardTypeId ? { card: { cardTypeId } } : {};
+
+    const [eventsByTypeRaw, recentDailyEvents, totalEvents] = await Promise.all([
+      prisma.profileEvent.groupBy({
+        by: ['eventType'],
+        where: cardFilter,
+        _count: {
+          _all: true,
+        },
+      }),
+      prisma.profileEvent.findMany({
+        where: {
+          ...cardFilter,
+          eventType: 'PROFILE_VIEW',
+          timestamp: { gte: fourteenDaysAgo },
+        },
+        select: {
+          timestamp: true,
+        },
+      }),
+      prisma.profileEvent.count({
+        where: cardFilter,
+      }),
+    ]);
+
+    const dailyMap = new Map<string, number>();
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+      const key = d.toISOString().split('T')[0];
+      dailyMap.set(key, 0);
+    }
+
+    for (const ev of recentDailyEvents) {
+      const key = new Date(ev.timestamp).toISOString().split('T')[0];
+      if (dailyMap.has(key)) {
+        dailyMap.set(key, (dailyMap.get(key) || 0) + 1);
+      }
+    }
+
+    const dailyViews = Array.from(dailyMap.entries()).map(([date, count]) => ({
+      date,
+      count,
+    }));
+
+    const eventBreakdown: Record<string, number> = {};
+    for (const item of eventsByTypeRaw) {
+      eventBreakdown[item.eventType] = item._count._all;
+    }
+
+    return {
+      totalEvents,
+      eventBreakdown,
+      dailyViews,
+    };
+  },
 };

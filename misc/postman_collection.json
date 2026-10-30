@@ -1196,6 +1196,75 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Admin Operations & Analytics (F-012)",
+      "item": [
+        {
+          "name": "Get Dashboard Overview Metrics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/metrics",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "metrics"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Platform Telemetry Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/analytics",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "analytics"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List / Search Customers Directory",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/customers?query=",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "customers"],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "",
+                  "description": "Optional search filter (name, phone, email)"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [

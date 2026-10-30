@@ -57,4 +57,9 @@ router.put(
   cardReplacementController.updateRequestStatus
 );
 
+// Admin dashboard overview & analytics (F-012)
+router.get('/admin/metrics', requireAdmin, cardController.getDashboardMetrics);
+router.get('/admin/analytics', requireAdmin, cardController.getPlatformAnalytics);
+router.get('/admin/customers', requireAdmin, cardController.listCustomers);
+
 export default router;

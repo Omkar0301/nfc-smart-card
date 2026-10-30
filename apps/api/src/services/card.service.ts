@@ -8,6 +8,7 @@ import { cardRepository, type CreateCardData } from '../repositories/card.reposi
 import { cardTypeRepository } from '../repositories/cardType.repository.js';
 import { generationJobRepository } from '../repositories/generationJob.repository.js';
 import { userRepository } from '../repositories/user.repository.js';
+import { analyticsRepository } from '../repositories/analytics.repository.js';
 import { revalidateProfileTag } from '../lib/cacheInvalidation.js';
 import type { ListCardsQuery } from '../validators/card.validator.js';
 
@@ -839,6 +840,80 @@ export const cardService = {
         errorMessage: err?.message || 'Unknown error during card generation',
         generated: totalGenerated,
       });
+    }
+  },
+
+  async getDashboardMetrics(cardTypeId?: string): Promise<
+    ServiceResult<{
+      cards: {
+        total: number;
+        available: number;
+        assigned: number;
+        active: number;
+        paused: number;
+        suspended: number;
+        deactivated: number;
+      };
+      totalCustomers: number;
+      totalViews: number;
+      totalScans: number;
+      pendingReplacements: number;
+    }>
+  > {
+    try {
+      const data = await cardRepository.getDashboardMetrics(cardTypeId);
+      return { ok: true, data };
+    } catch (err: any) {
+      logger.error({ err }, '[admin] failed to fetch dashboard metrics');
+      return {
+        ok: false,
+        status: 500,
+        code: ErrorCode.INTERNAL_SERVER_ERROR,
+        message: 'Failed to fetch dashboard metrics.',
+      };
+    }
+  },
+
+  async getPlatformAnalytics(cardTypeId?: string): Promise<
+    ServiceResult<{
+      totalEvents: number;
+      eventBreakdown: Record<string, number>;
+      dailyViews: Array<{ date: string; count: number }>;
+    }>
+  > {
+    try {
+      const data = await analyticsRepository.getPlatformAnalytics(cardTypeId);
+      return { ok: true, data };
+    } catch (err: any) {
+      logger.error({ err }, '[admin] failed to fetch platform analytics');
+      return {
+        ok: false,
+        status: 500,
+        code: ErrorCode.INTERNAL_SERVER_ERROR,
+        message: 'Failed to fetch platform analytics.',
+      };
+    }
+  },
+
+  async listCustomers(
+    query?: string,
+    limit?: number
+  ): Promise<
+    ServiceResult<{
+      customers: any[];
+    }>
+  > {
+    try {
+      const customers = await userRepository.listCustomers(query, limit);
+      return { ok: true, data: { customers } };
+    } catch (err: any) {
+      logger.error({ err }, '[admin] failed to list customers');
+      return {
+        ok: false,
+        status: 500,
+        code: ErrorCode.INTERNAL_SERVER_ERROR,
+        message: 'Failed to list customers.',
+      };
     }
   },
 };

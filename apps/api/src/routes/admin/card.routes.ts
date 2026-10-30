@@ -20,6 +20,11 @@ router.get('/export', cardController.exportCards);
 router.get('/replacements/available', cardController.getAvailableReplacements);
 router.get('/users/search', cardController.searchUsers);
 
+// Metrics, Platform Analytics, and Customer Directory (F-012)
+router.get('/metrics', cardController.getDashboardMetrics);
+router.get('/analytics', cardController.getPlatformAnalytics);
+router.get('/customers', cardController.listCustomers);
+
 // Single Card Lifecycle Operations (F-006)
 router.get('/:id', cardController.getCardById);
 router.post('/:id/assign', cardController.assignCard);
