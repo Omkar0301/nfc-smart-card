@@ -1,9 +1,12 @@
-import RecoveryVerifyClient from './RecoveryVerifyClient';
+import { redirect } from 'next/navigation';
 
-export default function RecoveryVerifyPage() {
-  return (
-    <main style={{ padding: 24 }}>
-      <RecoveryVerifyClient />
-    </main>
+export default async function RecoveryVerifyPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ token?: string }>;
+}) {
+  const { token } = await searchParams;
+  redirect(
+    token ? `/portal/recover/verify?token=${encodeURIComponent(token)}` : '/portal/recover/verify'
   );
 }

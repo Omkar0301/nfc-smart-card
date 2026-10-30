@@ -151,7 +151,11 @@ export function AdminDashboardClient() {
               <span className={styles.highlightMeta}>Total verified visitor page loads</span>
             </div>
 
-            <div className={styles.highlightCard}>
+            <Link
+              href="/admin/replacement-requests"
+              className={styles.highlightCard}
+              style={{ textDecoration: 'none', cursor: 'pointer' }}
+            >
               <div className={styles.highlightHeader}>
                 <span className={styles.highlightTitle}>Pending Replacements</span>
                 <span className={styles.highlightIcon}>🔄</span>
@@ -162,8 +166,10 @@ export function AdminDashboardClient() {
               >
                 {metrics?.pendingReplacements.toLocaleString() ?? 0}
               </div>
-              <span className={styles.highlightMeta}>Customer reported lost/stolen requests</span>
-            </div>
+              <span className={styles.highlightMeta}>
+                Customer reported lost/stolen requests → Review
+              </span>
+            </Link>
           </div>
 
           {/* Full Lifecycle Breakdown Section */}

@@ -1,4 +1,5 @@
 import express from 'express';
+import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import routes from './routes/index.js';
@@ -9,6 +10,12 @@ import { getUploadDir } from './providers/storage.provider.js';
 const app = express();
 
 app.use(httpLogger);
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+);
 
 const allowedOrigins = config.WEB_URL.split(',').map((o) => o.trim());
 

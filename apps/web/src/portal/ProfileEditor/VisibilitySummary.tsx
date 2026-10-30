@@ -8,7 +8,7 @@ interface VisibilitySummaryProps {
 }
 
 export function VisibilitySummary({
-  totalFields,
+  totalFields: _totalFields,
   visibleCount,
   hiddenCount,
 }: VisibilitySummaryProps) {

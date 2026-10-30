@@ -8,6 +8,7 @@ import styles from './AdminNav.module.css';
 const NAV_ITEMS = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: '⚡' },
   { href: '/admin/cards', label: 'Card Inventory', icon: '📇' },
+  { href: '/admin/replacement-requests', label: 'Replacements', icon: '🔄' },
   { href: '/admin/generate', label: 'Bulk Generation', icon: '🚀' },
   { href: '/admin/card-types', label: 'Card Types', icon: '🏷️' },
   { href: '/admin/templates', label: 'Templates', icon: '🎨' },

@@ -10,7 +10,7 @@ interface ClaimSuccessProps {
   cardTypeName?: string;
 }
 
-export function ClaimSuccess({ token, result, cardTypeName }: ClaimSuccessProps) {
+export function ClaimSuccess({ token: _token, result, cardTypeName }: ClaimSuccessProps) {
   return (
     <div className={styles.card}>
       <div className={styles.header}>
@@ -32,23 +32,18 @@ export function ClaimSuccess({ token, result, cardTypeName }: ClaimSuccessProps)
             <span className={styles.infoValue}>{cardTypeName}</span>
           </div>
         )}
-        <div className={styles.infoRow}>
-          <span className={styles.infoLabel}>Status</span>
-          <span className={`${styles.statusBadge} ${styles.badgeAssigned}`}>
-            {result.card.status}
-          </span>
-        </div>
-        <div className={styles.infoRow}>
-          <span className={styles.infoLabel}>Profile Status</span>
-          <span className={styles.infoValue}>Draft initialized</span>
-        </div>
       </div>
 
-      <div style={{ marginTop: 24 }}>
+      <p className={styles.nextSteps}>
+        Your profile is currently in draft mode. Complete and publish your digital profile so that
+        when people tap your physical NFC card, they see your contact card.
+      </p>
+
+      <div className={styles.actionButtons}>
         <Link href="/portal/profile" className={styles.button}>
           Set Up Your Profile →
         </Link>
-        <Link href="/portal/dashboard" className={styles.secondaryButton}>
+        <Link href="/portal/dashboard" className={styles.buttonSecondary}>
           Go to Dashboard
         </Link>
       </div>

@@ -3,6 +3,7 @@ import { requireAuth } from '../middleware/requireAuth.js';
 import { requireAdmin } from '../middleware/requireAdmin.js';
 import { singleUpload } from '../middleware/multer.js';
 import { uploadController } from '../controllers/upload.controller.js';
+import { uploadRateLimiter } from '../middleware/rateLimiter.js';
 
 const router = Router();
 
@@ -10,6 +11,7 @@ const router = Router();
 router.post(
   '/profile-photo',
   requireAuth,
+  uploadRateLimiter,
   singleUpload('file'),
   uploadController.uploadProfilePhoto
 );
@@ -18,6 +20,7 @@ router.post(
 router.post(
   '/template-thumbnail',
   requireAdmin,
+  uploadRateLimiter,
   singleUpload('file'),
   uploadController.uploadTemplateThumbnail
 );

@@ -361,6 +361,67 @@ export async function getAdminCustomers(query?: string): Promise<AdminCustomerIt
   return res.data.customers;
 }
 
+export interface AdminReplacementRequestItem {
+  id: string;
+  cardId: string;
+  userId: string;
+  reason: string | null;
+  notes: string | null;
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  resolvedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  user: {
+    id: string;
+    name: string;
+    phone: string;
+    email: string | null;
+  };
+  card: {
+    id: string;
+    cardNumber: string;
+    publicToken: string;
+    status: string;
+    cardType: {
+      id: string;
+      name: string;
+      slug: string;
+    };
+  };
+}
+
+export interface ListAdminReplacementRequestsResult {
+  requests: AdminReplacementRequestItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export async function listAdminReplacementRequests(params?: {
+  status?: string;
+  page?: number;
+  limit?: number;
+}): Promise<ListAdminReplacementRequestsResult> {
+  const res = await apiFetch<ApiResponseEnvelope<ListAdminReplacementRequestsResult>>(
+    API_ROUTES.admin.replacementRequests.list(params)
+  );
+  return res.data;
+}
+
+export async function updateReplacementRequestStatus(
+  id: string,
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
+): Promise<AdminReplacementRequestItem> {
+  const res = await apiFetch<ApiResponseEnvelope<{ request: AdminReplacementRequestItem }>>(
+    API_ROUTES.admin.replacementRequests.updateStatus(id),
+    {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    }
+  );
+  return res.data.request;
+}
+
 export function getContactVcfUrl(cardTypeSlug: string, publicToken: string): string {
   return `/p/${cardTypeSlug}/${publicToken}/contact.vcf`;
 }

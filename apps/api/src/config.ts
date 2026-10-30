@@ -19,7 +19,10 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
   JWT_REFRESH_SECRET: z.string().min(32, 'JWT_REFRESH_SECRET must be at least 32 characters'),
   OTP_PEPPER: z.string().default('change-this-otp-pepper-min-32-chars-dev'),
-  OTP_PROVIDER: z.enum(['console']).default('console'),
+  OTP_PROVIDER: z.enum(['console', 'twilio', 'custom', 'mock']).default('console'),
+  TWILIO_ACCOUNT_SID: z.string().optional(),
+  TWILIO_AUTH_TOKEN: z.string().optional(),
+  TWILIO_FROM_PHONE: z.string().optional(),
   OTP_TTL_MS: z.coerce
     .number()
     .int()
@@ -33,7 +36,13 @@ const envSchema = z.object({
   OTP_SEND_MAX: z.coerce.number().int().positive().default(3),
   OTP_MAX_ATTEMPTS: z.coerce.number().int().positive().default(5),
   OTP_DIGITS: z.coerce.number().int().positive().min(4).max(8).default(6),
-  EMAIL_PROVIDER: z.enum(['console']).default('console'),
+  EMAIL_PROVIDER: z.enum(['console', 'smtp', 'sendgrid', 'mock']).default('console'),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().optional(),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  EMAIL_FROM: z.string().default('noreply@nfcplatform.com'),
+  SENDGRID_API_KEY: z.string().optional(),
   RECOVERY_TOKEN_TTL_MS: z.coerce
     .number()
     .int()
