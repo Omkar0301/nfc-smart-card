@@ -360,3 +360,7 @@ export async function getAdminCustomers(query?: string): Promise<AdminCustomerIt
   );
   return res.data.customers;
 }
+
+export function getContactVcfUrl(cardTypeSlug: string, publicToken: string): string {
+  return `/p/${cardTypeSlug}/${publicToken}/contact.vcf`;
+}

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { cardsController } from '../controllers/cards.controller.js';
 import { cardReplacementController } from '../controllers/cardReplacement.controller.js';
+import { vcfController } from '../controllers/vcf.controller.js';
 import { requireAuth } from '../middleware/requireAuth.js';
 
 const router = Router();
@@ -12,6 +13,9 @@ router.get('/replacement-requests', requireAuth, cardReplacementController.getCu
 
 // Public card token lookup — no auth required
 router.get('/:token', cardsController.lookupCardByToken);
+
+// Public vCard contact download (F-013)
+router.get('/:token/contact.vcf', vcfController.downloadVcf);
 
 // Claim card — requires authenticated user
 router.post('/:token/claim', requireAuth, cardsController.claimCard);

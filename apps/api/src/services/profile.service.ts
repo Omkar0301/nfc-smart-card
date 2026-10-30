@@ -476,9 +476,7 @@ export const profileService = {
     };
   },
 
-  async pauseCard(
-    userId: string
-  ): Promise<
+  async pauseCard(userId: string): Promise<
     ServiceResult<{
       card: { id: string; cardNumber: string; publicToken: string; status: CardStatus };
     }>
@@ -540,9 +538,7 @@ export const profileService = {
     };
   },
 
-  async resumeCard(
-    userId: string
-  ): Promise<
+  async resumeCard(userId: string): Promise<
     ServiceResult<{
       card: { id: string; cardNumber: string; publicToken: string; status: CardStatus };
     }>

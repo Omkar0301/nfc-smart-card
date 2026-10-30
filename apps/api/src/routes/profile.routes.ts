@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { profileController } from '../controllers/profile.controller.js';
+import { vcfController } from '../controllers/vcf.controller.js';
 import { requireAuth } from '../middleware/requireAuth.js';
 
 const router = Router();
@@ -16,5 +17,8 @@ router.get('/analytics', requireAuth, profileController.getAnalytics);
 
 // Public profile data endpoint (SSR / visitor)
 router.get('/public/:token', profileController.getPublicProfile);
+
+// Public vCard contact download endpoint (F-013)
+router.get('/public/:token/contact.vcf', vcfController.downloadVcf);
 
 export default router;

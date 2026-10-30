@@ -190,6 +190,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
 
   const protocol = DOMAIN.includes('localhost') ? 'http' : 'https';
   const profileUrl = `${protocol}://${DOMAIN}/p/${cardType.slug}/${card.publicToken}`;
+  const saveContactHref = `/p/${cardType.slug}/${card.publicToken}/contact.vcf`;
 
   return (
     <>
@@ -204,6 +205,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
           publicToken: card.publicToken,
           cardNumber: card.cardNumber,
           profileUrl,
+          saveContactHref,
         }}
         configuration={profile.template?.configuration ?? {}}
       />

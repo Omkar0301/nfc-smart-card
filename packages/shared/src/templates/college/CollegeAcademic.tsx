@@ -2,6 +2,7 @@ import type { TemplateProps } from '../../types/template.js';
 import {
   ActionButton,
   Avatar,
+  SaveContactButton,
   SectionHeading,
   Shell,
   contactLinks,
@@ -23,7 +24,7 @@ const palette: Palette = {
  * College — Academic
  * Formal institution-style layout with clean skills and achievements lists.
  */
-export function CollegeAcademic({ profile }: TemplateProps) {
+export function CollegeAcademic({ profile, card }: TemplateProps) {
   const { data } = profile;
   const name = text(data, 'name') ?? 'Student Name';
   const college = text(data, 'college');
@@ -61,6 +62,12 @@ export function CollegeAcademic({ profile }: TemplateProps) {
           ) : null}
         </div>
       </div>
+
+      {card.saveContactHref ? (
+        <div style={{ marginTop: 20 }}>
+          <SaveContactButton href={card.saveContactHref} palette={palette} fullWidth />
+        </div>
+      ) : null}
 
       {about ? <p style={{ marginTop: 20, fontSize: 15, color: palette.text }}>{about}</p> : null}
 

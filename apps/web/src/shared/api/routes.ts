@@ -57,6 +57,7 @@ export const API_ROUTES = {
     reportLost: '/cards/report-lost',
     requestReplacement: '/cards/request-replacement',
     replacementRequests: '/cards/replacement-requests',
+    vcf: (token: string) => `/cards/${token}/contact.vcf`,
   },
 
   profile: {
@@ -67,6 +68,8 @@ export const API_ROUTES = {
     resume: '/profile/resume',
     analytics: '/profile/analytics',
     public: (token: string) => `/profile/public/${token}`,
+    vcf: (token: string) => `/profile/public/${token}/contact.vcf`,
+    publicVcf: (type: string, token: string) => `/p/${type}/${token}/contact.vcf`,
   },
 } as const;
 

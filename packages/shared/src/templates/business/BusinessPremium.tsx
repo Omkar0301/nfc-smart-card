@@ -4,6 +4,7 @@ import {
   Avatar,
   Chip,
   IconLink,
+  SaveContactButton,
   SectionHeading,
   contactLinks,
   list,
@@ -81,13 +82,13 @@ export function BusinessPremium({ profile, card }: TemplateProps) {
 
         {saveContact ? (
           <div style={{ marginTop: 22 }}>
-            <ActionButton
+            <SaveContactButton
               href={saveContact}
               icon="⬇️"
               label="Save Contact"
               palette={palette}
               filled
-              full
+              fullWidth
             />
           </div>
         ) : primaryContact ? (

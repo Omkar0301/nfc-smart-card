@@ -4,6 +4,7 @@ import {
   Avatar,
   Chip,
   LinkChip,
+  SaveContactButton,
   SectionHeading,
   contactLinks,
   list,
@@ -25,7 +26,7 @@ const palette: Palette = {
  * College — Modern
  * Colourful card-style layout, circular photo, social links as chips.
  */
-export function CollegeModern({ profile }: TemplateProps) {
+export function CollegeModern({ profile, card }: TemplateProps) {
   const { data } = profile;
   const name = text(data, 'name') ?? 'Student Name';
   const college = text(data, 'college');
@@ -73,6 +74,12 @@ export function CollegeModern({ profile }: TemplateProps) {
         ) : null}
         {college ? (
           <p style={{ margin: '2px 0 0', fontSize: 14, color: palette.text }}>{college}</p>
+        ) : null}
+
+        {card.saveContactHref ? (
+          <div style={{ marginTop: 18 }}>
+            <SaveContactButton href={card.saveContactHref} palette={palette} fullWidth />
+          </div>
         ) : null}
 
         {contacts.length > 0 ? (

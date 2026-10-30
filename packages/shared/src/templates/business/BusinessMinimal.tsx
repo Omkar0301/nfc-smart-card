@@ -1,6 +1,7 @@
 import type { TemplateProps } from '../../types/template.js';
 import {
   Avatar,
+  SaveContactButton,
   SectionHeading,
   Shell,
   normalizeUrl,
@@ -21,7 +22,7 @@ const palette: Palette = {
  * Business — Minimal
  * Text-first, monochrome, no heavy imagery, generous whitespace.
  */
-export function BusinessMinimal({ profile }: TemplateProps) {
+export function BusinessMinimal({ profile, card }: TemplateProps) {
   const { data } = profile;
   const name = text(data, 'name') ?? 'Your Name';
   const designation = text(data, 'designation');
@@ -69,6 +70,17 @@ export function BusinessMinimal({ profile }: TemplateProps) {
           ) : null}
         </div>
       </div>
+
+      {card.saveContactHref ? (
+        <div style={{ marginTop: 20 }}>
+          <SaveContactButton
+            href={card.saveContactHref}
+            palette={palette}
+            fullWidth
+            filled={false}
+          />
+        </div>
+      ) : null}
 
       <hr style={{ border: 'none', borderTop: `1px solid ${palette.border}`, margin: '24px 0' }} />
 

@@ -4,6 +4,7 @@ import {
   Avatar,
   Chip,
   IconLink,
+  SaveContactButton,
   SectionHeading,
   contactLinks,
   list,
@@ -26,7 +27,7 @@ const palette: Palette = {
  * College — Creative
  * Portfolio-forward, bold typography, skills as tags, portfolio CTA dominant.
  */
-export function CollegeCreative({ profile }: TemplateProps) {
+export function CollegeCreative({ profile, card }: TemplateProps) {
   const { data } = profile;
   const name = text(data, 'name') ?? 'Student Name';
   const college = text(data, 'college');
@@ -90,6 +91,12 @@ export function CollegeCreative({ profile }: TemplateProps) {
       <div
         style={{ maxWidth: 440, margin: '0 auto', padding: '24px 20px 0', boxSizing: 'border-box' }}
       >
+        {card.saveContactHref ? (
+          <div style={{ marginBottom: 14 }}>
+            <SaveContactButton href={card.saveContactHref} palette={palette} fullWidth />
+          </div>
+        ) : null}
+
         {portfolio ? (
           <ActionButton
             href={portfolio}

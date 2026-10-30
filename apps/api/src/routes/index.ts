@@ -9,6 +9,7 @@ import adminTemplateRouter from './admin/template.routes.js';
 import analyticsRouter from './analytics.routes.js';
 import { cardController } from '../controllers/admin/card.controller.js';
 import { cardReplacementController } from '../controllers/cardReplacement.controller.js';
+import { vcfController } from '../controllers/vcf.controller.js';
 import { requireAdmin } from '../middleware/requireAdmin.js';
 import { sendSuccess } from '../lib/http.js';
 
@@ -18,6 +19,9 @@ const router = Router();
 router.get('/health', (_req, res) => {
   sendSuccess(res, 200, { status: 'healthy' }, 'NFC Card API is running');
 });
+
+// Public vCard download route: /p/:type/:token/contact.vcf (F-013)
+router.get('/p/:type/:token/contact.vcf', vcfController.downloadVcf);
 
 // Auth routes
 router.use('/auth', authRouter);

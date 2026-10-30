@@ -2,6 +2,7 @@
 import type { CSSProperties, ReactNode } from 'react';
 import type { FieldSchema } from '../types/fieldSchema.js';
 import type { PublicProfileData } from '../types/template.js';
+export { SaveContactButton, type SaveContactButtonProps } from '../components/SaveContactButton.js';
 
 /**
  * Shared, framework-light building blocks for the hand-built MVP templates

@@ -320,6 +320,7 @@ export default function ProfilePreviewPage() {
                 cardNumber: profile.card.cardNumber,
                 publicToken: profile.card.publicToken,
                 profileUrl: `${typeof window !== 'undefined' ? window.location.origin : ''}/p/${profile.cardType.slug}/${profile.card.publicToken}`,
+                saveContactHref: `/p/${profile.cardType.slug}/${profile.card.publicToken}/contact.vcf`,
               }}
               configuration={{ accent: '#6366f1' }}
               isPreview={true}

@@ -4,6 +4,7 @@ import {
   Avatar,
   Chip,
   IconLink,
+  SaveContactButton,
   SectionHeading,
   Shell,
   contactLinks,
@@ -26,7 +27,7 @@ const palette: Palette = {
  * Business — Modern
  * Clean card with a large photo, accent bar, icon social links, and services.
  */
-export function BusinessModern({ profile }: TemplateProps) {
+export function BusinessModern({ profile, card }: TemplateProps) {
   const { data, fieldSchema } = profile;
   const name = text(data, 'name') ?? 'Your Name';
   const designation = text(data, 'designation');
@@ -58,6 +59,12 @@ export function BusinessModern({ profile }: TemplateProps) {
           <p style={{ margin: 0, fontSize: 15, color: palette.muted }}>{subtitle}</p>
         ) : null}
       </div>
+
+      {card.saveContactHref ? (
+        <div style={{ marginTop: 20, width: '100%' }}>
+          <SaveContactButton href={card.saveContactHref} palette={palette} fullWidth />
+        </div>
+      ) : null}
 
       {contacts.length > 0 ? (
         <div
