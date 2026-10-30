@@ -12,5 +12,7 @@ describe('Environment Configuration (config.ts)', () => {
     expect(config.JWT_SECRET).toBeDefined();
     expect(config.JWT_REFRESH_SECRET).toBeDefined();
     expect(config.OTP_PEPPER).toBeDefined();
+    expect(config.STORAGE_PROVIDER).toBe('local');
+    expect(config.UPLOAD_DIR).toBeDefined();
   });
 });

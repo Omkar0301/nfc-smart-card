@@ -46,4 +46,22 @@ export const uploadController = {
 
     return sendSuccess(res, 200, result.data, 'Template thumbnail uploaded successfully');
   },
+
+  async getFile(req: Request, res: Response) {
+    let rawKey: any = (req.params as any).key ?? (req.params as any)[0] ?? req.query.key;
+    if (Array.isArray(rawKey)) {
+      rawKey = rawKey.join('/');
+    }
+    if (!rawKey || typeof rawKey !== 'string') {
+      return sendError(res, 400, ErrorCode.VALIDATION_ERROR, 'File key is required');
+    }
+
+    const result = await uploadService.getFile(rawKey);
+    if (!result.ok) {
+      return sendError(res, result.status, result.code, result.message, result.details);
+    }
+
+    res.setHeader('Content-Type', result.data.contentType);
+    return res.send(result.data.buffer);
+  },
 };

@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import routes from './routes/index.js';
 import { config } from './config.js';
 import { httpLogger, errorLoggerMiddleware } from './lib/logger.js';
+import { getUploadDir } from './providers/storage.provider.js';
 
 const app = express();
 
@@ -28,6 +29,9 @@ app.use(
 );
 app.use(express.json());
 app.use(cookieParser());
+
+// Serve locally stored files statically
+app.use('/uploads', express.static(getUploadDir()));
 
 app.use('/', routes);
 

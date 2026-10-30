@@ -4,7 +4,7 @@ import type { Server } from 'node:http';
 import app from '../../src/app.js';
 import { prisma } from '../../src/lib/prisma.js';
 import { signAccessToken } from '../../src/services/token.service.js';
-import * as s3Lib from '../../src/lib/s3.js';
+import { storageProvider } from '../../src/providers/storage.provider.js';
 import { Role, UserStatus } from '@nfc-card/shared';
 
 function uploadRequest(
@@ -80,7 +80,36 @@ function uploadRequest(
   );
 }
 
-describe('File Upload Integration Tests (F-016)', () => {
+function getRequest(baseUrl: string, endpoint: string) {
+  return new Promise<{ status: number; headers: http.IncomingHttpHeaders; buffer: Buffer }>(
+    (resolve, reject) => {
+      const url = new URL(endpoint, baseUrl);
+      const req = http.request(
+        url,
+        {
+          method: 'GET',
+        },
+        (res) => {
+          const chunks: Buffer[] = [];
+          res.on('data', (chunk) =>
+            chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
+          );
+          res.on('end', () => {
+            resolve({
+              status: res.statusCode || 500,
+              headers: res.headers,
+              buffer: Buffer.concat(chunks),
+            });
+          });
+        }
+      );
+      req.on('error', reject);
+      req.end();
+    }
+  );
+}
+
+describe('File Upload Integration Tests (F-016 & Local Storage)', () => {
   let server: Server;
   let baseUrl: string;
 
@@ -91,6 +120,8 @@ describe('File Upload Integration Tests (F-016)', () => {
   let adminToken: string;
   let testTemplate: any;
   let testCardType: any;
+
+  const uploadedUrlsToClean: string[] = [];
 
   const validJpeg = Buffer.from([
     0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01,
@@ -151,6 +182,14 @@ describe('File Upload Integration Tests (F-016)', () => {
   });
 
   afterAll(async () => {
+    for (const url of uploadedUrlsToClean) {
+      try {
+        await storageProvider.delete(url);
+      } catch {
+        // ignore
+      }
+    }
+
     try {
       if (testTemplate?.id) {
         await prisma.template.deleteMany({ where: { id: testTemplate.id } });
@@ -206,11 +245,7 @@ describe('File Upload Integration Tests (F-016)', () => {
     expect(res.body.error?.code).toBe('INVALID_FILE_TYPE');
   });
 
-  it('POST /upload/profile-photo succeeds with valid JPEG image', async () => {
-    vi.spyOn(s3Lib, 'uploadFile').mockResolvedValueOnce(
-      'https://cdn.example.com/profiles/user/test.jpg'
-    );
-
+  it('POST /upload/profile-photo succeeds with valid JPEG image (Local Storage)', async () => {
     const res = await uploadRequest(baseUrl, '/upload/profile-photo', customerToken, {
       name: 'file',
       filename: 'avatar.jpg',
@@ -220,7 +255,23 @@ describe('File Upload Integration Tests (F-016)', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
-    expect(res.body.data?.url).toBe('https://cdn.example.com/profiles/user/test.jpg');
+    expect(res.body.data?.url).toBeDefined();
+    expect(res.body.data?.url).toContain('/uploads/profiles/');
+
+    const uploadedUrl = res.body.data.url;
+    uploadedUrlsToClean.push(uploadedUrl);
+
+    // Verify static serving retrieval via /uploads/...
+    const urlObj = new URL(uploadedUrl);
+    const staticRes = await getRequest(baseUrl, urlObj.pathname);
+    expect(staticRes.status).toBe(200);
+    expect(staticRes.buffer).toEqual(validJpeg);
+
+    // Verify endpoint retrieval via /upload/file/...
+    const key = storageProvider.extractKey(uploadedUrl);
+    const endpointRes = await getRequest(baseUrl, `/upload/file/${key}`);
+    expect(endpointRes.status).toBe(200);
+    expect(endpointRes.buffer).toEqual(validJpeg);
   });
 
   it('POST /upload/template-thumbnail rejects non-admin requests with 403', async () => {
@@ -255,11 +306,7 @@ describe('File Upload Integration Tests (F-016)', () => {
     expect(res.body.error?.code).toBe('VALIDATION_ERROR');
   });
 
-  it('POST /upload/template-thumbnail succeeds for admin with valid templateId', async () => {
-    vi.spyOn(s3Lib, 'uploadFile').mockResolvedValueOnce(
-      'https://cdn.example.com/templates/tpl/thumb.png'
-    );
-
+  it('POST /upload/template-thumbnail succeeds for admin with valid templateId (Local Storage)', async () => {
     const res = await uploadRequest(
       baseUrl,
       '/upload/template-thumbnail',
@@ -275,10 +322,20 @@ describe('File Upload Integration Tests (F-016)', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
-    expect(res.body.data?.url).toBe('https://cdn.example.com/templates/tpl/thumb.png');
+    expect(res.body.data?.url).toBeDefined();
+    expect(res.body.data?.url).toContain('/uploads/templates/');
+
+    const uploadedUrl = res.body.data.url;
+    uploadedUrlsToClean.push(uploadedUrl);
 
     // Verify DB update
     const updated = await prisma.template.findUnique({ where: { id: testTemplate.id } });
-    expect(updated?.thumbnail).toBe('https://cdn.example.com/templates/tpl/thumb.png');
+    expect(updated?.thumbnail).toBe(uploadedUrl);
+
+    // Verify file is retrievable over static route
+    const urlObj = new URL(uploadedUrl);
+    const staticRes = await getRequest(baseUrl, urlObj.pathname);
+    expect(staticRes.status).toBe(200);
+    expect(staticRes.buffer).toEqual(validPng);
   });
 });

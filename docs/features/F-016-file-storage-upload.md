@@ -77,6 +77,12 @@ _As a super admin managing templates, I want to upload a thumbnail image for eac
 Add to `.env.example`:
 
 ```
+# File Storage Provider: "local" (default) or "s3"
+STORAGE_PROVIDER="local"
+UPLOAD_DIR="uploads"
+# UPLOAD_BASE_URL="http://localhost:4000/uploads"
+
+# File Upload / S3 Config (optional for future S3 integration)
 S3_ENDPOINT="https://s3.amazonaws.com"  # or MinIO endpoint
 S3_BUCKET="nfc-card-platform"
 S3_REGION="us-east-1"

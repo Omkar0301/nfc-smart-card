@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import { ErrorCode } from '@nfc-card/shared';
 import { logger } from '../lib/logger.js';
-import { uploadFile, deleteFile } from '../lib/s3.js';
+import { storageProvider, StorageProvider } from '../providers/storage.provider.js';
 import {
   validateImageFile,
   MAX_PROFILE_PHOTO_SIZE,
@@ -21,6 +21,17 @@ export type ServiceResult<T> =
     };
 
 export const uploadService = {
+  // Configurable storage provider instance
+  _storage: storageProvider as StorageProvider,
+
+  setStorageProvider(provider: StorageProvider) {
+    this._storage = provider;
+  },
+
+  getStorageProvider(): StorageProvider {
+    return this._storage || storageProvider;
+  },
+
   async uploadProfilePhoto(
     userId: string,
     file?: { buffer?: Buffer; size?: number; mimetype?: string } | null
@@ -57,9 +68,10 @@ export const uploadService = {
     const key = `profiles/${userId}/${Date.now()}-${randomHex}.${validation.ext}`;
 
     try {
-      const publicUrl = await uploadFile(buffer!, key, validation.mimeType);
+      const storage = this.getStorageProvider();
+      const publicUrl = await storage.upload(buffer!, key, validation.mimeType);
 
-      // Best-effort cleanup of old profile photo in S3
+      // Best-effort cleanup of old profile photo in storage
       try {
         const assignment = await profileRepository.findActiveAssignmentByUserId(userId);
         if (assignment?.card?.cardTypeId) {
@@ -69,7 +81,7 @@ export const uploadService = {
           );
           const oldPhoto = (profile?.data as Record<string, any>)?.photo;
           if (oldPhoto && typeof oldPhoto === 'string' && oldPhoto !== publicUrl) {
-            await deleteFile(oldPhoto);
+            await storage.delete(oldPhoto);
           }
         }
       } catch (cleanupErr: any) {
@@ -144,12 +156,13 @@ export const uploadService = {
     const key = `templates/${folderId}/${Date.now()}-${randomHex}.${validation.ext}`;
 
     try {
-      const publicUrl = await uploadFile(buffer!, key, validation.mimeType);
+      const storage = this.getStorageProvider();
+      const publicUrl = await storage.upload(buffer!, key, validation.mimeType);
 
       if (existingTemplate) {
         // Best-effort cleanup of previous thumbnail
         if (existingTemplate.thumbnail && existingTemplate.thumbnail !== publicUrl) {
-          await deleteFile(existingTemplate.thumbnail);
+          await storage.delete(existingTemplate.thumbnail);
         }
         // Update template's thumbnail record in DB
         await templateRepository.update(templateId, { thumbnail: publicUrl });
@@ -167,6 +180,33 @@ export const uploadService = {
         status: 500,
         code: ErrorCode.UPLOAD_FAILED,
         message: 'Failed to upload template thumbnail to storage',
+      };
+    }
+  },
+
+  /**
+   * Retrieve a file from storage by its key or URL.
+   */
+  async getFile(keyOrUrl: string): Promise<ServiceResult<{ buffer: Buffer; contentType: string }>> {
+    try {
+      const storage = this.getStorageProvider();
+      const file = await storage.retrieve(keyOrUrl);
+      if (!file) {
+        return {
+          ok: false,
+          status: 404,
+          code: ErrorCode.NOT_FOUND,
+          message: 'File not found',
+        };
+      }
+      return { ok: true, data: file };
+    } catch (err: any) {
+      logger.error({ keyOrUrl, err: err?.message }, '[uploadService] failed to retrieve file');
+      return {
+        ok: false,
+        status: 500,
+        code: ErrorCode.INTERNAL_SERVER_ERROR,
+        message: 'Failed to retrieve file from storage',
       };
     }
   },

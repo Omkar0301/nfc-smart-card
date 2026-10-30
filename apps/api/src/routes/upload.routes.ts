@@ -22,4 +22,7 @@ router.post(
   uploadController.uploadTemplateThumbnail
 );
 
+// GET /upload/file/*key (Public file retrieval via storage abstraction)
+router.get('/file/*key', uploadController.getFile);
+
 export default router;

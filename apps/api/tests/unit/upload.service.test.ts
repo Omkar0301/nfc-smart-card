@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { uploadService } from '../../src/services/upload.service.js';
-import * as s3Lib from '../../src/lib/s3.js';
+import { storageProvider, StorageProvider } from '../../src/providers/storage.provider.js';
 import { profileRepository } from '../../src/repositories/profile.repository.js';
 import { templateRepository } from '../../src/repositories/template.repository.js';
 import { ErrorCode } from '@nfc-card/shared';
 
-describe('Upload Service Unit Tests (F-016)', () => {
+describe('Upload Service Unit Tests (F-016 & Local Storage)', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
@@ -59,17 +59,17 @@ describe('Upload Service Unit Tests (F-016)', () => {
     }
   });
 
-  it('uploads valid profile photo to S3 and cleans up old photo', async () => {
+  it('uploads valid profile photo to storage and cleans up old photo', async () => {
     const mockUpload = vi
-      .spyOn(s3Lib, 'uploadFile')
-      .mockResolvedValue('https://cdn.example.com/profiles/user-1/new.jpg');
-    const mockDelete = vi.spyOn(s3Lib, 'deleteFile').mockResolvedValue();
+      .spyOn(storageProvider, 'upload')
+      .mockResolvedValue('http://localhost:4000/uploads/profiles/user-1/new.jpg');
+    const mockDelete = vi.spyOn(storageProvider, 'delete').mockResolvedValue();
 
     vi.spyOn(profileRepository, 'findActiveAssignmentByUserId').mockResolvedValue({
       card: { cardTypeId: 'ct-business' },
     } as any);
     vi.spyOn(profileRepository, 'findProfileByUserIdAndCardTypeId').mockResolvedValue({
-      data: { photo: 'https://cdn.example.com/profiles/user-1/old.jpg' },
+      data: { photo: 'http://localhost:4000/uploads/profiles/user-1/old.jpg' },
     } as any);
 
     const result = await uploadService.uploadProfilePhoto('user-1', {
@@ -79,10 +79,27 @@ describe('Upload Service Unit Tests (F-016)', () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.data.url).toBe('https://cdn.example.com/profiles/user-1/new.jpg');
+      expect(result.data.url).toBe('http://localhost:4000/uploads/profiles/user-1/new.jpg');
     }
     expect(mockUpload).toHaveBeenCalledOnce();
-    expect(mockDelete).toHaveBeenCalledWith('https://cdn.example.com/profiles/user-1/old.jpg');
+    expect(mockDelete).toHaveBeenCalledWith(
+      'http://localhost:4000/uploads/profiles/user-1/old.jpg'
+    );
+  });
+
+  it('returns 500 UPLOAD_FAILED if storage provider throws on profile photo upload', async () => {
+    vi.spyOn(storageProvider, 'upload').mockRejectedValue(new Error('Disk write error'));
+
+    const result = await uploadService.uploadProfilePhoto('user-1', {
+      buffer: validJpegBuffer,
+      size: validJpegBuffer.length,
+    } as any);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.status).toBe(500);
+      expect(result.code).toBe(ErrorCode.UPLOAD_FAILED);
+    }
   });
 
   it('rejects template thumbnail upload if template is not found', async () => {
@@ -100,15 +117,15 @@ describe('Upload Service Unit Tests (F-016)', () => {
     }
   });
 
-  it('uploads valid template thumbnail to S3 and updates template record', async () => {
+  it('uploads valid template thumbnail to storage and updates template record', async () => {
     const mockUpload = vi
-      .spyOn(s3Lib, 'uploadFile')
-      .mockResolvedValue('https://cdn.example.com/templates/tpl-1/new.png');
-    const mockDelete = vi.spyOn(s3Lib, 'deleteFile').mockResolvedValue();
+      .spyOn(storageProvider, 'upload')
+      .mockResolvedValue('http://localhost:4000/uploads/templates/tpl-1/new.png');
+    const mockDelete = vi.spyOn(storageProvider, 'delete').mockResolvedValue();
 
     vi.spyOn(templateRepository, 'findById').mockResolvedValue({
       id: 'tpl-1',
-      thumbnail: 'https://cdn.example.com/templates/tpl-1/old.png',
+      thumbnail: 'http://localhost:4000/uploads/templates/tpl-1/old.png',
     } as any);
     const mockUpdate = vi.spyOn(templateRepository, 'update').mockResolvedValue({} as any);
 
@@ -119,19 +136,21 @@ describe('Upload Service Unit Tests (F-016)', () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.data.url).toBe('https://cdn.example.com/templates/tpl-1/new.png');
+      expect(result.data.url).toBe('http://localhost:4000/uploads/templates/tpl-1/new.png');
     }
     expect(mockUpload).toHaveBeenCalledOnce();
-    expect(mockDelete).toHaveBeenCalledWith('https://cdn.example.com/templates/tpl-1/old.png');
+    expect(mockDelete).toHaveBeenCalledWith(
+      'http://localhost:4000/uploads/templates/tpl-1/old.png'
+    );
     expect(mockUpdate).toHaveBeenCalledWith('tpl-1', {
-      thumbnail: 'https://cdn.example.com/templates/tpl-1/new.png',
+      thumbnail: 'http://localhost:4000/uploads/templates/tpl-1/new.png',
     });
   });
 
   it('allows draft/new template thumbnail upload without requiring existing db record', async () => {
     const mockUpload = vi
-      .spyOn(s3Lib, 'uploadFile')
-      .mockResolvedValue('https://cdn.example.com/templates/new-123/new.png');
+      .spyOn(storageProvider, 'upload')
+      .mockResolvedValue('http://localhost:4000/uploads/templates/new-123/new.png');
 
     const result = await uploadService.uploadTemplateThumbnail('new', {
       buffer: validPngBuffer,
@@ -140,8 +159,33 @@ describe('Upload Service Unit Tests (F-016)', () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.data.url).toBe('https://cdn.example.com/templates/new-123/new.png');
+      expect(result.data.url).toBe('http://localhost:4000/uploads/templates/new-123/new.png');
     }
     expect(mockUpload).toHaveBeenCalledOnce();
+  });
+
+  it('retrieves an existing file via getFile', async () => {
+    vi.spyOn(storageProvider, 'retrieve').mockResolvedValue({
+      buffer: validJpegBuffer,
+      contentType: 'image/jpeg',
+    });
+
+    const result = await uploadService.getFile('profiles/user-1/photo.jpg');
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.buffer).toEqual(validJpegBuffer);
+      expect(result.data.contentType).toBe('image/jpeg');
+    }
+  });
+
+  it('returns 404 when getFile target does not exist in storage', async () => {
+    vi.spyOn(storageProvider, 'retrieve').mockResolvedValue(null);
+
+    const result = await uploadService.getFile('profiles/user-1/missing.jpg');
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.status).toBe(404);
+      expect(result.code).toBe(ErrorCode.NOT_FOUND);
+    }
   });
 });
