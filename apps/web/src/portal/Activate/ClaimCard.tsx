@@ -54,7 +54,7 @@ export function ClaimCard({ token, cardType, onClaimed }: ClaimCardProps) {
         </div>
 
         <OtpFlow
-          title="Sign in to claim"
+          hideHeader
           onAuthenticated={() => {
             // Once authenticated, the user state will update and reveal the claim button
           }}

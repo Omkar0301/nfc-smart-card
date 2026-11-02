@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ApiError } from '../api/client';
 import { useAuth } from '../hooks/useAuth';
 import { updateRecoveryPhone } from '../api/auth';
+import { validateAndNormalizePhone, validateOtpCode } from '../utils/validation';
 import styles from '../components/OtpFlow/OtpFlow.module.css';
 
 function RecoveryVerifyContent() {
@@ -58,10 +59,18 @@ function RecoveryVerifyContent() {
 
   async function handleSendNewPhoneOtp(e: FormEvent) {
     e.preventDefault();
-    setPending(true);
     setError(null);
+
+    const validation = validateAndNormalizePhone(newPhone);
+    if (!validation.isValid) {
+      setError(validation.error || 'Please enter a valid phone number.');
+      return;
+    }
+
+    setPending(true);
     try {
-      await sendOtp(newPhone);
+      await sendOtp(validation.normalized);
+      setNewPhone(validation.normalized);
       setStage('phone_sent');
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not send verification code.');
@@ -72,10 +81,17 @@ function RecoveryVerifyContent() {
 
   async function handleVerifyNewPhone(e: FormEvent) {
     e.preventDefault();
-    setPending(true);
     setError(null);
+
+    const validation = validateOtpCode(otpCode);
+    if (!validation.isValid) {
+      setError(validation.error || 'Please enter a valid 6-digit verification code.');
+      return;
+    }
+
+    setPending(true);
     try {
-      await updateRecoveryPhone(newPhone, otpCode);
+      await updateRecoveryPhone(newPhone, validation.cleanCode);
       await refreshUser();
       setStage('phone_updated');
     } catch (err) {
@@ -87,127 +103,204 @@ function RecoveryVerifyContent() {
 
   if (stage === 'verifying') {
     return (
-      <div className={styles.form}>
-        <h1>Verifying recovery link…</h1>
-        <p className={styles.hint}>Please wait while we restore your account access.</p>
+      <div className={styles.authContainer}>
+        <div className={styles.authCard}>
+          <div className={styles.cardHeader}>
+            <div className={styles.brandIcon}>⏳</div>
+            <h1 className={styles.title}>Verifying Recovery Link</h1>
+            <p className={styles.subtitle}>Please wait while we restore your account access…</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (stage === 'error') {
     return (
-      <div className={styles.form}>
-        <h1>Recovery Link Error</h1>
-        {error ? <p className={styles.error}>{error}</p> : null}
-        <div style={{ marginTop: 16 }}>
-          <Link
-            href="/portal/recover"
-            className={styles.button}
-            style={{
-              display: 'inline-block',
-              textAlign: 'center',
-              textDecoration: 'none',
-              lineHeight: '44px',
-            }}
-          >
-            Request a new recovery link
-          </Link>
+      <div className={styles.authContainer}>
+        <div className={styles.authCard}>
+          <div className={styles.cardHeader}>
+            <div
+              className={styles.brandIcon}
+              style={{ background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' }}
+            >
+              ⚠️
+            </div>
+            <h1 className={styles.title}>Recovery Link Error</h1>
+            <p className={styles.subtitle}>We were unable to verify this recovery request.</p>
+          </div>
+          {error ? (
+            <div className={styles.error} style={{ marginBottom: 16 }}>
+              <span>⚠️</span>
+              <span>{error}</span>
+            </div>
+          ) : null}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <Link href="/portal/recover" className={styles.button}>
+              Request a new recovery link
+            </Link>
+            <Link href="/portal/login" className={styles.secondaryButton}>
+              ← Back to sign in
+            </Link>
+          </div>
         </div>
-        <Link href="/portal/login" style={{ marginTop: 12, display: 'inline-block', fontSize: 14 }}>
-          ← Back to sign in
-        </Link>
       </div>
     );
   }
 
   if (stage === 'phone_updated') {
     return (
-      <div className={styles.form}>
-        <h1>Phone Number Updated!</h1>
-        <p className={styles.hint}>
-          Your account is now linked to <strong>{newPhone}</strong>. You can use this phone number
-          for future OTP logins.
-        </p>
-        <button
-          className={styles.button}
-          type="button"
-          onClick={() => router.push('/portal/dashboard')}
-        >
-          Go to Dashboard
-        </button>
+      <div className={styles.authContainer}>
+        <div className={styles.authCard}>
+          <div className={styles.cardHeader}>
+            <div
+              className={styles.brandIcon}
+              style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}
+            >
+              ✓
+            </div>
+            <h1 className={styles.title}>Phone Number Updated!</h1>
+            <p className={styles.subtitle}>
+              Your account is now linked to <span className={styles.badgePhone}>{newPhone}</span>.
+              You can use this phone number for future OTP logins.
+            </p>
+          </div>
+          <button
+            className={styles.button}
+            type="button"
+            onClick={() => router.push('/portal/dashboard')}
+          >
+            Go to Dashboard
+          </button>
+        </div>
       </div>
     );
   }
 
   if (stage === 'phone_sent') {
     return (
-      <form className={styles.form} onSubmit={handleVerifyNewPhone}>
-        <h1>Verify New Phone</h1>
-        <p className={styles.hint}>Enter the 6-digit verification code sent to {newPhone}.</p>
-        <label className={styles.label}>
-          Verification code
-          <input
-            className={styles.input}
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            maxLength={6}
-            value={otpCode}
-            onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-            required
-          />
-        </label>
-        {error ? <p className={styles.error}>{error}</p> : null}
-        <button className={styles.button} type="submit" disabled={pending || otpCode.length !== 6}>
-          {pending ? 'Updating…' : 'Confirm & Update Phone'}
-        </button>
-        <button
-          className={styles.button}
-          type="button"
-          disabled={pending}
-          onClick={() => {
-            setStage('verified');
-            setOtpCode('');
-            setError(null);
-          }}
-        >
-          Use a different number
-        </button>
-      </form>
+      <div className={styles.authContainer}>
+        <div className={styles.authCard}>
+          <div className={styles.cardHeader}>
+            <div className={styles.brandIcon}>📱</div>
+            <h1 className={styles.title}>Verify New Phone</h1>
+            <p className={styles.subtitle}>
+              Enter the 6-digit verification code sent to{' '}
+              <span className={styles.badgePhone}>{newPhone}</span>.
+            </p>
+          </div>
+          <form className={styles.form} onSubmit={handleVerifyNewPhone} noValidate>
+            <div className={styles.fieldGroup}>
+              <label className={styles.label}>
+                <span>Verification code</span>
+                <input
+                  className={`${styles.input} ${styles.otpInput} ${error ? styles.inputError : ''}`}
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                  placeholder="••••••"
+                  value={otpCode}
+                  onChange={(e) => {
+                    setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6));
+                    if (error) setError(null);
+                  }}
+                  required
+                  autoFocus
+                  disabled={pending}
+                />
+              </label>
+              <div className={styles.inputHelper}>
+                <span>{otpCode.length}/6 digits entered</span>
+              </div>
+            </div>
+
+            {error ? (
+              <div className={styles.error}>
+                <span>⚠️</span>
+                <span>{error}</span>
+              </div>
+            ) : null}
+
+            <button
+              className={styles.button}
+              type="submit"
+              disabled={pending || otpCode.length !== 6}
+            >
+              {pending ? 'Updating…' : 'Confirm & Update Phone'}
+            </button>
+            <button
+              className={styles.secondaryButton}
+              type="button"
+              disabled={pending}
+              onClick={() => {
+                setStage('verified');
+                setOtpCode('');
+                setError(null);
+              }}
+            >
+              ← Use a different number
+            </button>
+          </form>
+        </div>
+      </div>
     );
   }
 
   // stage === 'verified'
   return (
-    <form className={styles.form} onSubmit={handleSendNewPhoneOtp}>
-      <h1>Account Recovered</h1>
-      <p className={styles.hint}>
-        You have successfully logged in. Please update your registered phone number so you can log
-        in with OTP in the future.
-      </p>
-      <label className={styles.label}>
-        New phone number
-        <input
-          className={styles.input}
-          type="tel"
-          placeholder="+919876543210"
-          value={newPhone}
-          onChange={(e) => setNewPhone(e.target.value)}
-          required
-        />
-      </label>
-      {error ? <p className={styles.error}>{error}</p> : null}
-      <button className={styles.button} type="submit" disabled={pending}>
-        {pending ? 'Sending verification…' : 'Send Code to New Phone'}
-      </button>
-      <button
-        className={styles.button}
-        type="button"
-        style={{ backgroundColor: 'transparent', border: '1px solid #ccc', color: '#333' }}
-        onClick={() => router.push('/portal/dashboard')}
-      >
-        Skip for now
-      </button>
-    </form>
+    <div className={styles.authContainer}>
+      <div className={styles.authCard}>
+        <div className={styles.cardHeader}>
+          <div className={styles.brandIcon}>🔓</div>
+          <h1 className={styles.title}>Account Recovered</h1>
+          <p className={styles.subtitle}>
+            You have successfully verified your recovery link. Please update your registered phone
+            number to secure future OTP access.
+          </p>
+        </div>
+        <form className={styles.form} onSubmit={handleSendNewPhoneOtp} noValidate>
+          <div className={styles.fieldGroup}>
+            <label className={styles.label}>
+              <span>New phone number</span>
+              <input
+                className={`${styles.input} ${error ? styles.inputError : ''}`}
+                type="tel"
+                placeholder="+91 98765 43210"
+                value={newPhone}
+                onChange={(e) => {
+                  setNewPhone(e.target.value);
+                  if (error) setError(null);
+                }}
+                required
+                disabled={pending}
+                autoFocus
+              />
+            </label>
+            <div className={styles.inputHelper}>
+              <span>Accepts 10-digit number or international (+91...)</span>
+            </div>
+          </div>
+
+          {error ? (
+            <div className={styles.error}>
+              <span>⚠️</span>
+              <span>{error}</span>
+            </div>
+          ) : null}
+
+          <button className={styles.button} type="submit" disabled={pending || !newPhone.trim()}>
+            {pending ? 'Sending verification…' : 'Send Code to New Phone'}
+          </button>
+          <button
+            className={styles.secondaryButton}
+            type="button"
+            onClick={() => router.push('/portal/dashboard')}
+          >
+            Skip for now
+          </button>
+        </form>
+      </div>
+    </div>
   );
 }
 
@@ -215,8 +308,12 @@ export function RecoveryVerify() {
   return (
     <Suspense
       fallback={
-        <div className={styles.form}>
-          <h1>Loading…</h1>
+        <div className={styles.authContainer}>
+          <div className={styles.authCard}>
+            <p className={styles.hint} style={{ textAlign: 'center' }}>
+              Loading recovery details…
+            </p>
+          </div>
         </div>
       }
     >

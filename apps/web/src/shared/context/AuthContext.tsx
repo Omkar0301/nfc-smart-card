@@ -54,15 +54,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       role: session.user.role,
       status: UserStatus.ACTIVE,
     };
+    setUser(me);
     try {
       const full = await authApi.getMe();
       setUser(full);
       return full;
-    } catch (err) {
-      if (err instanceof ApiError) {
-        throw err;
-      }
-      setUser(me);
+    } catch {
       return me;
     }
   }, []);
@@ -77,15 +74,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       role: session.user.role,
       status: UserStatus.ACTIVE,
     };
+    setUser(me);
     try {
       const full = await authApi.getMe();
       setUser(full);
       return full;
-    } catch (err) {
-      if (err instanceof ApiError) {
-        throw err;
-      }
-      setUser(me);
+    } catch {
       return me;
     }
   }, []);

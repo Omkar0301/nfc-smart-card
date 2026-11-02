@@ -29,6 +29,13 @@ export function setAccessToken(token: string | null): void {
 
 export function setRefreshToken(token: string | null): void {
   refreshToken = token;
+  if (typeof document !== 'undefined') {
+    if (token) {
+      document.cookie = `refreshToken=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax`;
+    } else {
+      document.cookie = `refreshToken=; path=/; max-age=0; SameSite=Lax`;
+    }
+  }
 }
 
 async function readError(res: Response): Promise<never> {
@@ -45,11 +52,20 @@ async function tryRefresh(): Promise<boolean> {
   }
 
   refreshInFlight = (async () => {
+    let token = refreshToken;
+    if (!token && typeof document !== 'undefined') {
+      const match = document.cookie.match(/(?:^|;\s*)refreshToken=([^;]+)/);
+      if (match) {
+        token = decodeURIComponent(match[1]);
+        refreshToken = token;
+      }
+    }
+
     const res = await fetch(`${API_URL}${API_ROUTES.auth.refresh}`, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(refreshToken ? { refreshToken } : {}),
+      body: JSON.stringify(token ? { refreshToken: token } : {}),
     });
 
     if (!res.ok) {
