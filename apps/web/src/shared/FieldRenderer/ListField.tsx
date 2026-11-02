@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import styles from './FieldRenderer.module.css';
 
 interface ListFieldProps {
@@ -9,37 +9,62 @@ interface ListFieldProps {
   disabled?: boolean;
 }
 
-export function ListField({ id, value, placeholder, onChange, disabled }: ListFieldProps) {
-  // Normalize value to array of strings
-  const items: string[] = Array.isArray(value)
+interface ItemEntry {
+  keyId: string;
+  text: string;
+}
+
+export function ListField({ id: _id, value, placeholder, onChange, disabled }: ListFieldProps) {
+  // Normalize incoming value to string array
+  const rawItems: string[] = Array.isArray(value)
     ? value
     : typeof value === 'string' && value.trim()
       ? value.split('\n').filter(Boolean)
       : [];
 
+  const nextKeyId = useRef(0);
+  const [entries, setEntries] = useState<ItemEntry[]>(() =>
+    rawItems.map((text) => ({ keyId: `k-${++nextKeyId.current}`, text }))
+  );
+
+  // Sync entries when external value array changes length or structure
+  useEffect(() => {
+    const currentTexts = entries.map((e) => e.text);
+    const isDifferent =
+      rawItems.length !== currentTexts.length ||
+      rawItems.some((item, i) => item !== currentTexts[i]);
+
+    if (isDifferent) {
+      setEntries(rawItems.map((text) => ({ keyId: `k-${++nextKeyId.current}`, text })));
+    }
+  }, [value]);
+
   const handleItemChange = (index: number, text: string) => {
-    const updated = [...items];
-    updated[index] = text;
-    onChange(updated);
+    const updated = entries.map((entry, i) => (i === index ? { ...entry, text } : entry));
+    setEntries(updated);
+    onChange(updated.map((e) => e.text));
   };
 
   const handleAddItem = () => {
-    onChange([...items, '']);
+    const updated = [...entries, { keyId: `k-${++nextKeyId.current}`, text: '' }];
+    setEntries(updated);
+    onChange(updated.map((e) => e.text));
   };
 
   const handleRemoveItem = (index: number) => {
-    const updated = items.filter((_, i) => i !== index);
-    onChange(updated);
+    const updated = entries.filter((_, i) => i !== index);
+    setEntries(updated);
+    onChange(updated.map((e) => e.text));
   };
 
   return (
     <div className={styles.listContainer}>
-      {items.map((item, index) => (
-        <div key={`${id}-${index}`} className={styles.listItem}>
+      {entries.map((entry, index) => (
+        <div key={entry.keyId} className={styles.listItem}>
           <input
             type="text"
             className={styles.input}
-            value={item}
+            value={entry.text}
             placeholder={placeholder || `Item ${index + 1}`}
             onChange={(e) => handleItemChange(index, e.target.value)}
             disabled={disabled}

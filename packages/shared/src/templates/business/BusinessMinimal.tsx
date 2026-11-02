@@ -124,21 +124,26 @@ export function BusinessMinimal({ profile, card }: TemplateProps) {
         <div style={{ marginBottom: 28 }}>
           <SectionHeading palette={palette}>Links</SectionHeading>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
-            {socials.map((s) => (
-              <a
-                key={s.key}
-                href={s.href}
-                style={{
-                  minHeight: 44,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  fontSize: 14,
-                  color: palette.text,
-                }}
-              >
-                {s.label} →
-              </a>
-            ))}
+            {socials.map((s) => {
+              const isExternal = s.href.startsWith('http://') || s.href.startsWith('https://');
+              return (
+                <a
+                  key={s.key}
+                  href={s.href}
+                  target={isExternal ? '_blank' : undefined}
+                  rel={isExternal ? 'noopener noreferrer' : undefined}
+                  style={{
+                    minHeight: 44,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    fontSize: 14,
+                    color: palette.text,
+                  }}
+                >
+                  {s.label} →
+                </a>
+              );
+            })}
           </div>
         </div>
       ) : null}

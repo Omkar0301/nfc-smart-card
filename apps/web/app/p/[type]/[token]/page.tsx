@@ -35,7 +35,8 @@ const DOMAIN = process.env.NEXT_PUBLIC_DOMAIN ?? 'localhost:3000';
 async function fetchPublicProfile(token: string): Promise<ApiResponse<PublicProfileResponse>> {
   try {
     const res = await fetch(`${API_URL}/profile/public/${token}`, {
-      next: { tags: [`profile-${token}`] },
+      cache: 'force-cache',
+      next: { tags: [`profile-${token}`], revalidate: 86400 },
     });
     const body = await res.json();
     return {
@@ -105,6 +106,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: pageTitle,
     description: pageDescription,
+    alternates: {
+      canonical: pageUrl,
+    },
     openGraph: {
       title: `${name}${subtitle ? ` — ${subtitle}` : ''}`,
       description: pageDescription,
@@ -192,8 +196,36 @@ export default async function PublicProfilePage({ params }: PageProps) {
   const profileUrl = `${protocol}://${DOMAIN}/p/${cardType.slug}/${card.publicToken}`;
   const saveContactHref = `/p/${cardType.slug}/${card.publicToken}/contact.vcf`;
 
+  const profileData = (profile.data as Record<string, any>) || {};
+  const personName =
+    typeof profileData.name === 'string' && profileData.name.trim()
+      ? profileData.name.trim()
+      : 'Digital Profile';
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    mainEntity: {
+      '@type': 'Person',
+      name: personName,
+      jobTitle:
+        typeof profileData.designation === 'string' ? profileData.designation.trim() : undefined,
+      worksFor:
+        typeof profileData.company === 'string' && profileData.company.trim()
+          ? { '@type': 'Organization', name: profileData.company.trim() }
+          : undefined,
+      description: typeof profileData.bio === 'string' ? profileData.bio.trim() : undefined,
+      image: typeof profileData.photo === 'string' ? profileData.photo.trim() : undefined,
+      url: profileUrl,
+    },
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <AnalyticsTracker cardToken={token} eventType="PROFILE_VIEW" />
       <TemplateRenderer
         slug={templateSlug}

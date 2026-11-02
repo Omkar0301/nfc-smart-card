@@ -50,6 +50,9 @@ export function QRCodeDisplay({
     const ctx = canvas.getContext('2d');
     const img = new Image();
 
+    const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+    const svgUrl = URL.createObjectURL(svgBlob);
+
     img.onload = () => {
       canvas.width = 600;
       canvas.height = 600;
@@ -63,9 +66,10 @@ export function QRCodeDisplay({
         downloadLink.href = pngFile;
         downloadLink.click();
       }
+      URL.revokeObjectURL(svgUrl);
     };
 
-    img.src = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgData)))}`;
+    img.src = svgUrl;
   };
 
   const elementId = `qr-${cardNumber.replace(/[^a-zA-Z0-9_-]/g, '_')}`;

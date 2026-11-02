@@ -14,7 +14,7 @@
     "lint:fix": "oxlint --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "npm run test -w apps/api",
+    "test": "npm run test -w apps/api && npm run test -w apps/web",
     "test:unit": "npm run test:unit -w apps/api",
     "test:integration": "npm run test:integration -w apps/api",
     "db:generate": "npm run prisma:generate -w apps/api",

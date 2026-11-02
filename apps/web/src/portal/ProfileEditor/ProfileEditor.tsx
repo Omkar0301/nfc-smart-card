@@ -51,6 +51,19 @@ export function ProfileEditor() {
     fetchProfileData();
   }, []);
 
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isDirty]);
+
   const fieldSchema: FieldSchemaItem[] = useMemo(() => {
     return (profileData?.cardType?.fieldSchema as FieldSchemaItem[]) || [];
   }, [profileData]);

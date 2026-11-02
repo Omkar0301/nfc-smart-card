@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useAuth } from '@/src/shared/hooks/useAuth';
 import styles from './PortalNav.module.css';
 
@@ -24,8 +24,13 @@ export function PortalLayoutClient({ children }: PortalLayoutClientProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isLoading, logout } = useAuth();
+  const [moreOpen, setMoreOpen] = useState(false);
 
   const isPublicAuthRoute = pathname === '/portal/login' || pathname.startsWith('/portal/recover');
+
+  useEffect(() => {
+    setMoreOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     if (!isLoading && !user && !isPublicAuthRoute) {
@@ -160,9 +165,103 @@ export function PortalLayoutClient({ children }: PortalLayoutClientProps) {
         <main className={styles.contentWrapper}>{children}</main>
       </div>
 
+      {/* Mobile Drawer Backdrop & Menu */}
+      {moreOpen && (
+        <div
+          onClick={() => setMoreOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.65)',
+            zIndex: 998,
+            backdropFilter: 'blur(4px)',
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: 'fixed',
+              bottom: 64,
+              left: 12,
+              right: 12,
+              background: '#1e293b',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              borderRadius: 16,
+              padding: 16,
+              boxShadow: '0 -10px 30px rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+              zIndex: 999,
+            }}
+          >
+            <div
+              style={{
+                fontSize: '0.78rem',
+                textTransform: 'uppercase',
+                color: '#94a3b8',
+                fontWeight: 600,
+                padding: '4px 8px',
+                letterSpacing: '0.05em',
+              }}
+            >
+              Additional Features
+            </div>
+            {NAV_ITEMS.slice(4).map((item) => {
+              const isActive = pathname.startsWith(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMoreOpen(false)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: '12px 14px',
+                    borderRadius: 10,
+                    textDecoration: 'none',
+                    color: isActive ? '#818cf8' : '#f8fafc',
+                    background: isActive ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
+                    fontSize: '0.95rem',
+                    fontWeight: 500,
+                    minHeight: 44,
+                  }}
+                >
+                  <span style={{ fontSize: '1.25rem' }}>{item.icon}</span>
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+            <div style={{ height: 1, background: 'rgba(255, 255, 255, 0.08)', margin: '4px 0' }} />
+            <button
+              onClick={handleLogout}
+              type="button"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                padding: '12px 14px',
+                borderRadius: 10,
+                color: '#f87171',
+                background: 'rgba(239, 68, 68, 0.08)',
+                border: '1px solid rgba(239, 68, 68, 0.2)',
+                fontSize: '0.95rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                minHeight: 44,
+              }}
+            >
+              <span style={{ fontSize: '1.25rem' }}>🚪</span>
+              <span>Sign Out</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Mobile Bottom Navigation Bar (min 44px tap targets) */}
       <nav className={styles.mobileNav}>
-        {NAV_ITEMS.slice(0, 5).map((item) => {
+        {NAV_ITEMS.slice(0, 4).map((item) => {
           const isActive =
             item.href === '/portal/dashboard'
               ? pathname === '/portal/dashboard'
@@ -178,6 +277,16 @@ export function PortalLayoutClient({ children }: PortalLayoutClientProps) {
             </Link>
           );
         })}
+        <button
+          type="button"
+          onClick={() => setMoreOpen(!moreOpen)}
+          className={`${styles.mobileNavItem} ${moreOpen || NAV_ITEMS.slice(4).some((n) => pathname.startsWith(n.href)) ? styles.mobileNavItemActive : ''}`}
+          style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}
+          aria-label="More navigation items"
+        >
+          <span className={styles.mobileNavIcon}>⋯</span>
+          <span>More</span>
+        </button>
       </nav>
     </div>
   );

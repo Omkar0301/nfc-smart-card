@@ -75,8 +75,11 @@ export function CardList({ onSelectCard }: CardListProps) {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setPage(1);
-    fetchCards();
+    if (page === 1) {
+      fetchCards();
+    } else {
+      setPage(1);
+    }
   };
 
   const handleQuickActivate = async (card: CardInventoryItem) => {

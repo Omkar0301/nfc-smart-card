@@ -8,7 +8,7 @@ import type {
   PlatformAnalyticsSummary,
   PublicCardLookupResponse,
 } from '@nfc-card/shared';
-import { apiFetch, getAccessToken } from './client';
+import { apiFetch, getAccessToken, tryRefresh } from './client';
 import { API_ROUTES } from './routes';
 import type { ApiResponseEnvelope } from './cardTypes';
 
@@ -87,12 +87,22 @@ export async function downloadCardsCsv(filters?: {
   batchId?: string;
 }): Promise<void> {
   const url = getExportCardsUrl(filters);
-  const token = getAccessToken();
+  const makeRequest = () => {
+    const token = getAccessToken();
+    return fetch(url, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      credentials: 'include',
+    });
+  };
 
-  const response = await fetch(url, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-    credentials: 'include',
-  });
+  let response = await makeRequest();
+
+  if (response.status === 401) {
+    const refreshed = await tryRefresh();
+    if (refreshed) {
+      response = await makeRequest();
+    }
+  }
 
   if (!response.ok) {
     throw new Error(`Failed to export CSV: ${response.statusText}`);

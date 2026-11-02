@@ -1,16 +1,18 @@
 import { NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
 
-const REVALIDATE_SECRET = process.env.REVALIDATE_SECRET;
-
 /**
  * Cache invalidation webhook used by the Express API (F-009 / F-010).
  * POST { tag: "profile-<publicToken>" } with the x-revalidate-secret header.
  */
 export async function POST(request: Request) {
-  if (REVALIDATE_SECRET && request.headers.get('x-revalidate-secret') !== REVALIDATE_SECRET) {
+  const secret = process.env.REVALIDATE_SECRET;
+  if (!secret || request.headers.get('x-revalidate-secret') !== secret) {
     return NextResponse.json(
-      { success: false, error: { code: 'UNAUTHORIZED', message: 'Invalid revalidation secret.' } },
+      {
+        success: false,
+        error: { code: 'UNAUTHORIZED', message: 'Invalid or missing revalidation secret.' },
+      },
       { status: 401 }
     );
   }

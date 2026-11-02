@@ -204,7 +204,17 @@ export function Avatar({
   };
 
   if (src) {
-    return <img src={src} alt={name ?? 'Profile photo'} style={base} />;
+    return (
+      <img
+        src={src}
+        alt={name ? `${name}'s profile photo` : 'Profile photo'}
+        width={size}
+        height={size}
+        loading="lazy"
+        decoding="async"
+        style={base}
+      />
+    );
   }
   return <div style={base}>{initialOf(name)}</div>;
 }
@@ -242,8 +252,14 @@ export function ActionButton({
     background: filled ? palette.accent : 'transparent',
     border: filled ? `1px solid ${palette.accent}` : `1px solid ${palette.border}`,
   };
+  const isExternal = href.startsWith('http://') || href.startsWith('https://');
   return (
-    <a href={href} style={style}>
+    <a
+      href={href}
+      target={isExternal ? '_blank' : undefined}
+      rel={isExternal ? 'noopener noreferrer' : undefined}
+      style={style}
+    >
       {icon ? <span aria-hidden>{icon}</span> : null}
       <span>{label}</span>
     </a>
@@ -251,9 +267,12 @@ export function ActionButton({
 }
 
 export function IconLink({ href, icon, label, palette }: LinkEntry & { palette: Palette }) {
+  const isExternal = href.startsWith('http://') || href.startsWith('https://');
   return (
     <a
       href={href}
+      target={isExternal ? '_blank' : undefined}
+      rel={isExternal ? 'noopener noreferrer' : undefined}
       aria-label={label}
       title={label}
       style={{
@@ -276,9 +295,12 @@ export function IconLink({ href, icon, label, palette }: LinkEntry & { palette: 
 }
 
 export function LinkChip({ href, icon, label, palette }: LinkEntry & { palette: Palette }) {
+  const isExternal = href.startsWith('http://') || href.startsWith('https://');
   return (
     <a
       href={href}
+      target={isExternal ? '_blank' : undefined}
+      rel={isExternal ? 'noopener noreferrer' : undefined}
       style={{
         display: 'inline-flex',
         alignItems: 'center',
